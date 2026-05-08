@@ -1,0 +1,9 @@
+{
+  "type": "item",
+  "id": "minecraft:rotten_flesh",
+  "strength": 1.0,
+  "radius": 2.0,
+  "respectsShielding": true,
+  "enabled": true,
+  "comment": "Temporary Phase 1 dev-only smoke rule. Not final gameplay balance."
+}

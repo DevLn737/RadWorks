@@ -1,0 +1,15 @@
+# Changelog
+
+## 0.1.0 - Phase 1 data-driven radiation rules
+- Added datapack radiation rule loading from `data/radworks/radiation_rules/*.json`.
+- Added temporary dev-only smoke rule for `minecraft:rotten_flesh`.
+- Added `/radworks validate`.
+- Added rules validation summary to `/radworks version` and `/radworks dump`.
+- Kept Phase 1 diagnostic-only: no exposure, scanning, shielding, effects, damage or optional integrations.
+
+## 0.1.0 - Phase 0 repository foundation
+- Created minimal NeoForge mod scaffold for RadWorks.
+- Added `/radworks version`.
+- Added `/radworks dump`.
+- Added migration, testing and diagnostics documentation.
+- Confirmed no radiation gameplay is implemented in Phase 0.

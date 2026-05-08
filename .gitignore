@@ -1,0 +1,16 @@
+.gradle/
+.gradle-user/
+build/
+runs/
+out/
+*.class
+
+# Local IDE state
+.idea/
+.vscode/
+
+# Minecraft generated files
+eula.txt
+logs/
+crash-reports/
+radworks_dumps/
