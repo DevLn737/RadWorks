@@ -1,6 +1,7 @@
 package dev.radworks.command;
 
 import dev.radworks.diagnostics.PerformanceStats;
+import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationRules;
@@ -61,6 +62,7 @@ public final class SourcesCommand {
         if (sources.size() > shown) {
             source.sendSuccess(() -> Component.literal("... and " + (sources.size() - shown) + " more"), false);
         }
+        SourceScanSummary.updateOutputBounds(shown, sources.size() - shown);
         source.sendSuccess(() -> Component.literal("sourcesShown="
                 + shown
                 + " sourcesOmitted="

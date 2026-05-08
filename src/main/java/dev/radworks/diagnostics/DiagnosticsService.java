@@ -80,6 +80,7 @@ public final class DiagnosticsService {
         root.add("integrations", integrationsInfo());
         root.add("performance", performanceInfo());
         root.add("lastExposureSnapshot", lastExposureSnapshotInfo());
+        root.add("sourceScanSummary", SourceScanSummary.lastToJson());
         root.add("recentWarnings", WarningBuffer.toJson());
         return root;
     }

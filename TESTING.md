@@ -401,6 +401,43 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `averageMillis`;
    - `maxMillis`.
 
+## Manual Minecraft test - Phase 4C.1 source scan summary
+1. Run:
+
+   ```text
+   /radworks sources
+   /radworks dump
+   ```
+
+2. Open the generated JSON under `radworks_dumps/`.
+3. Confirm `sourceScanSummary` exists and contains:
+   - `inventoryStacksChecked`;
+   - `inventoryMatches`;
+   - `blockPositionsChecked`;
+   - `blockMatches`;
+   - `blockEntitiesChecked`;
+   - `containerBlockEntitiesFound`;
+   - `containerSlotsChecked`;
+   - `containerMatches`;
+   - `itemHandlerPositionsChecked`;
+   - `itemHandlersFound`;
+   - `itemHandlerSlotsChecked`;
+   - `itemHandlerMatches`;
+   - `skippedContainerBlockEntitiesForItemHandler`;
+   - `sourcesShown`;
+   - `sourcesOmitted`.
+
+4. If a vanilla chest/barrel is in scan range, confirm `skippedContainerBlockEntitiesForItemHandler` is greater than `0` and `diagnosticNotes` explains that `itemHandlerScan` skipped vanilla `Container` block entities to avoid double counting.
+
+## What to send Codex for source discovery bugs
+When a source is missing, duplicated, or has the wrong contribution, send:
+- the generated `/radworks dump` JSON;
+- the exact `/radworks sources` and `/radworks exposure` chat output;
+- where the player stood and what was nearby;
+- contents of relevant inventory/container slots;
+- whether `/reload` was run after changing datapacks;
+- expected result versus actual result.
+
 ## Manual Minecraft test - Phase 4C optional modded item handler block
 If the dev instance has a non-vanilla block that exposes `Capabilities.ItemHandler.BLOCK` and is not a vanilla `Container`:
 
@@ -679,3 +716,10 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `/radworks dump` includes `performance.itemHandlerScan`.
 - Optional non-vanilla block item handler sources can be shown as `type=block_item_handler` when such a block exists in the instance.
 - No entity capabilities, item stack capabilities, nested containers, Curios/Trinkets, fluids/tanks, `IFluidHandler`, energy, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS logic exists.
+
+## Phase 4C.1 acceptance
+- The project builds.
+- `/radworks dump` includes `sourceScanSummary` after `/radworks sources` or `/radworks exposure`.
+- `sourceScanSummary` includes all requested checked/match counters and output bounds.
+- `sourceScanSummary.diagnosticNotes` explains container skipping when item handler scan skips vanilla `Container` block entities.
+- No formulas, source mechanics, gameplay effects, ticking, cache, fluids, shielding, Create, Aeronautics or KubeJS logic changes.

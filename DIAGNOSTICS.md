@@ -313,6 +313,7 @@ If the command is run from a server console, the filename uses `server` and the 
       "maxMillis": 0
     }
   },
+  "sourceScanSummary": null,
   "lastExposureSnapshot": null,
   "recentWarnings": []
 }
@@ -418,6 +419,47 @@ After Phase 4C, source rows may include block item handler sources:
 ```
 
 Dump snapshot output is bounded to 20 source rows. If rules are reloaded and the checksum changes, an old snapshot reports `stale=true`.
+
+## Source scan summary
+After `/radworks sources` or `/radworks exposure`, `/radworks dump` includes `sourceScanSummary`.
+
+Example:
+
+```json
+{
+  "createdAt": "ISO-8601",
+  "inventoryStacksChecked": 37,
+  "inventoryMatches": 1,
+  "blockPositionsChecked": 2197,
+  "blockMatches": 1,
+  "blockEntitiesChecked": 125,
+  "containerBlockEntitiesFound": 1,
+  "containerSlotsChecked": 27,
+  "containerMatches": 1,
+  "itemHandlerPositionsChecked": 125,
+  "itemHandlersFound": 0,
+  "itemHandlerSlotsChecked": 0,
+  "itemHandlerMatches": 0,
+  "skippedContainerBlockEntitiesForItemHandler": 1,
+  "sourcesShown": 3,
+  "sourcesOmitted": 0,
+  "diagnosticNotes": [
+    "itemHandlerScan skipped vanilla Container block entities to avoid double counting with block_entity_inventory sources"
+  ]
+}
+```
+
+How to read it:
+- `*Checked` fields show how much of each provider's search space was inspected by the last command.
+- `*Matches` fields show how many rows became radiation sources.
+- `skippedContainerBlockEntitiesForItemHandler` should increase when vanilla `Container` block entities are near the player; those are handled by `block_entity_inventory`, not `block_item_handler`.
+- `sourcesShown` and `sourcesOmitted` mirror the bounded chat output.
+
+For source discovery bugs, send Codex:
+- the full `/radworks dump` JSON;
+- `/radworks sources` and `/radworks exposure` chat output;
+- player position, nearby relevant blocks, and inventory/container contents;
+- expected source row and actual source row or missing row.
 
 ## Recent warnings
 `recentWarnings` is an in-memory bounded ring buffer with a maximum of 100 entries.

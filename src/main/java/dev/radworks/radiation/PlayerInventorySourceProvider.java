@@ -1,5 +1,6 @@
 package dev.radworks.radiation;
 
+import dev.radworks.diagnostics.SourceScanSummary;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,13 @@ public final class PlayerInventorySourceProvider {
     }
 
     public static List<RadiationSource> collect(ServerPlayer player, RadiationRules rules) {
+        return collect(player, rules, SourceScanSummary.builder());
+    }
+
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded()) {
             return sources;
@@ -21,10 +29,12 @@ public final class PlayerInventorySourceProvider {
 
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.items.size(); slot++) {
-            collectStack("inventory." + slot, inventory.items.get(slot), rules, sources);
+            summary.inventoryStackChecked();
+            collectStack("inventory." + slot, inventory.items.get(slot), rules, sources, summary);
         }
         for (int slot = 0; slot < inventory.offhand.size(); slot++) {
-            collectStack("offhand." + slot, inventory.offhand.get(slot), rules, sources);
+            summary.inventoryStackChecked();
+            collectStack("offhand." + slot, inventory.offhand.get(slot), rules, sources, summary);
         }
         return List.copyOf(sources);
     }
@@ -33,7 +43,8 @@ public final class PlayerInventorySourceProvider {
             String slot,
             ItemStack stack,
             RadiationRules rules,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            SourceScanSummary.Builder summary) {
         if (stack.isEmpty()) {
             return;
         }
@@ -45,6 +56,7 @@ public final class PlayerInventorySourceProvider {
         }
 
         double contribution = stack.getCount() * rule.get().strength();
+        summary.inventoryMatch();
         sources.add(RadiationSource.playerInventory(
                 itemId,
                 slot,

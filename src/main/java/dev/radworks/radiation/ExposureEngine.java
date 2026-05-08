@@ -1,5 +1,6 @@
 package dev.radworks.radiation;
 
+import dev.radworks.diagnostics.SourceScanSummary;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +35,15 @@ public final class ExposureEngine {
     }
 
     public static List<RadiationSource> collectSources(ServerPlayer player, RadiationRules rules) {
+        SourceScanSummary.Builder summary = SourceScanSummary.builder();
         List<RadiationSource> sources = new ArrayList<>();
-        sources.addAll(PlayerInventorySourceProvider.collect(player, rules));
-        sources.addAll(BlockSourceProvider.collect(player, rules));
-        sources.addAll(BlockEntityInventorySourceProvider.collect(player, rules));
-        sources.addAll(BlockItemHandlerSourceProvider.collect(player, rules));
-        return List.copyOf(sources);
+        sources.addAll(PlayerInventorySourceProvider.collect(player, rules, summary));
+        sources.addAll(BlockSourceProvider.collect(player, rules, summary));
+        sources.addAll(BlockEntityInventorySourceProvider.collect(player, rules, summary));
+        sources.addAll(BlockItemHandlerSourceProvider.collect(player, rules, summary));
+        List<RadiationSource> immutableSources = List.copyOf(sources);
+        SourceScanSummary.store(summary, Math.min(20, immutableSources.size()), Math.max(0, immutableSources.size() - 20));
+        return immutableSources;
     }
 
     public static ExposureBreakdown lastExposureSnapshot() {

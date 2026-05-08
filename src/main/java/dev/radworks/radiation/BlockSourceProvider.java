@@ -1,6 +1,7 @@
 package dev.radworks.radiation;
 
 import dev.radworks.diagnostics.PerformanceStats;
+import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +22,20 @@ public final class BlockSourceProvider {
     }
 
     public static List<RadiationSource> collect(ServerPlayer player, RadiationRules rules) {
-        return PerformanceStats.timeValue("blockScan", () -> collectTimed(player, rules));
+        return collect(player, rules, SourceScanSummary.builder());
     }
 
-    private static List<RadiationSource> collectTimed(ServerPlayer player, RadiationRules rules) {
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
+        return PerformanceStats.timeValue("blockScan", () -> collectTimed(player, rules, summary));
+    }
+
+    private static List<RadiationSource> collectTimed(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.blockRules() == 0) {
             return sources;
@@ -43,6 +54,7 @@ public final class BlockSourceProvider {
         BlockPos max = center.offset(scanRadius, scanRadius, scanRadius);
 
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            summary.blockPositionChecked();
             BlockState state = player.serverLevel().getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             RadiationRule rule = rules.blockRule(blockId).orElse(null);
@@ -55,6 +67,7 @@ public final class BlockSourceProvider {
                 continue;
             }
 
+            summary.blockMatch();
             sources.add(RadiationSource.block(
                     blockId,
                     pos,

@@ -1,6 +1,7 @@
 package dev.radworks.command;
 
 import dev.radworks.diagnostics.PerformanceStats;
+import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import dev.radworks.radiation.ExposureBreakdown;
 import dev.radworks.radiation.ExposureEngine;
@@ -52,6 +53,7 @@ public final class ExposureCommand {
         if (breakdown.sources().size() > shown) {
             source.sendSuccess(() -> Component.literal("... and " + (breakdown.sources().size() - shown) + " more"), false);
         }
+        SourceScanSummary.updateOutputBounds(shown, breakdown.sources().size() - shown);
         source.sendSuccess(() -> Component.literal("sourcesShown="
                 + shown
                 + " sourcesOmitted="

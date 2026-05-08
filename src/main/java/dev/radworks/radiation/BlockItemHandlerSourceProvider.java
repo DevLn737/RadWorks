@@ -1,6 +1,7 @@
 package dev.radworks.radiation;
 
 import dev.radworks.diagnostics.PerformanceStats;
+import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,10 +38,20 @@ public final class BlockItemHandlerSourceProvider {
     }
 
     public static List<RadiationSource> collect(ServerPlayer player, RadiationRules rules) {
-        return PerformanceStats.timeValue("itemHandlerScan", () -> collectTimed(player, rules));
+        return collect(player, rules, SourceScanSummary.builder());
     }
 
-    private static List<RadiationSource> collectTimed(ServerPlayer player, RadiationRules rules) {
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
+        return PerformanceStats.timeValue("itemHandlerScan", () -> collectTimed(player, rules, summary));
+    }
+
+    private static List<RadiationSource> collectTimed(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.itemRules() == 0) {
             return sources;
@@ -60,8 +71,10 @@ public final class BlockItemHandlerSourceProvider {
         BlockPos max = center.offset(scanRadius, scanRadius, scanRadius);
 
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            summary.itemHandlerPositionChecked();
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof Container) {
+                summary.skippedContainerBlockEntityForItemHandler();
                 continue;
             }
 
@@ -69,11 +82,12 @@ public final class BlockItemHandlerSourceProvider {
             if (lookup == null) {
                 continue;
             }
+            summary.itemHandlerFound();
 
             BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
-            collectHandlerSlots(blockId, pos, distance, lookup, rules, sources);
+            collectHandlerSlots(blockId, pos, distance, lookup, rules, sources, summary);
         }
 
         return List.copyOf(sources);
@@ -100,7 +114,8 @@ public final class BlockItemHandlerSourceProvider {
             double distance,
             HandlerLookup lookup,
             RadiationRules rules,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            SourceScanSummary.Builder summary) {
         int slots;
         try {
             slots = lookup.handler().getSlots();
@@ -110,6 +125,7 @@ public final class BlockItemHandlerSourceProvider {
         }
 
         for (int slot = 0; slot < slots; slot++) {
+            summary.itemHandlerSlotChecked();
             ItemStack stack;
             try {
                 stack = lookup.handler().getStackInSlot(slot);
@@ -133,6 +149,7 @@ public final class BlockItemHandlerSourceProvider {
             }
 
             double contribution = stack.getCount() * rule.strength();
+            summary.itemHandlerMatch();
             sources.add(RadiationSource.blockItemHandler(
                     blockId,
                     pos,

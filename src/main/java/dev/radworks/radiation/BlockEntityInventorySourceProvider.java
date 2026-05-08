@@ -1,6 +1,7 @@
 package dev.radworks.radiation;
 
 import dev.radworks.diagnostics.PerformanceStats;
+import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +25,20 @@ public final class BlockEntityInventorySourceProvider {
     }
 
     public static List<RadiationSource> collect(ServerPlayer player, RadiationRules rules) {
-        return PerformanceStats.timeValue("blockEntityInventoryScan", () -> collectTimed(player, rules));
+        return collect(player, rules, SourceScanSummary.builder());
     }
 
-    private static List<RadiationSource> collectTimed(ServerPlayer player, RadiationRules rules) {
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
+        return PerformanceStats.timeValue("blockEntityInventoryScan", () -> collectTimed(player, rules, summary));
+    }
+
+    private static List<RadiationSource> collectTimed(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.itemRules() == 0) {
             return sources;
@@ -46,15 +57,17 @@ public final class BlockEntityInventorySourceProvider {
         BlockPos max = center.offset(scanRadius, scanRadius, scanRadius);
 
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            summary.blockEntityChecked();
             BlockEntity blockEntity = player.serverLevel().getBlockEntity(pos);
             if (!(blockEntity instanceof Container container)) {
                 continue;
             }
+            summary.containerBlockEntityFound();
 
             BlockState state = player.serverLevel().getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
-            collectContainerSlots(blockId, pos, distance, container, rules, sources);
+            collectContainerSlots(blockId, pos, distance, container, rules, sources, summary);
         }
 
         return List.copyOf(sources);
@@ -66,8 +79,10 @@ public final class BlockEntityInventorySourceProvider {
             double distance,
             Container container,
             RadiationRules rules,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            SourceScanSummary.Builder summary) {
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            summary.containerSlotChecked();
             ItemStack stack = container.getItem(slot);
             if (stack.isEmpty()) {
                 continue;
@@ -80,6 +95,7 @@ public final class BlockEntityInventorySourceProvider {
             }
 
             double contribution = stack.getCount() * rule.strength();
+            summary.containerMatch();
             sources.add(RadiationSource.blockEntityInventory(
                     blockId,
                     containerPos,

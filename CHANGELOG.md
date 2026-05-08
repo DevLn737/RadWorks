@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0 - Phase 4C.1 source diagnostics cleanup
+- Added `sourceScanSummary` to `/radworks dump` for the most recent `/radworks sources` or `/radworks exposure`.
+- Added provider counters for inventory, static block, vanilla container and block item handler scans.
+- Added bounded diagnostic note when item handler scan skips vanilla `Container` block entities to avoid double counting.
+- Documented what to send Codex when source discovery is wrong.
+- Kept Phase 4C.1 diagnostic-only with no exposure formula or gameplay changes.
+
 ## 0.1.0 - Phase 4C NeoForge ItemHandler block capability sources
 - Added `block_item_handler` diagnostic source type.
 - Added command-only source discovery for nearby block inventories exposed through NeoForge `Capabilities.ItemHandler.BLOCK`.
