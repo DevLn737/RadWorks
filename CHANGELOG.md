@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0 - Phase 5A shielding diagnostics
+- Added diagnostic-only shielding calculation for positioned source rows.
+- Added `#radworks:shielding_blocks` with temporary/dev-only `minecraft:iron_block`.
+- Added shielding fields: `respectsShielding`, `rawContribution`, `shielding`, `shieldingBlocksHit`, `shieldingMultiplier`, `shieldingReduction` and `finalContribution`.
+- Kept compatibility `contribution` equal to `finalContribution`.
+- Added command diagnostics timing as `performance.shielding`.
+- Added shielding counters to `sourceScanSummary`.
+- Kept Phase 5A diagnostic-only: no armor protection, damage/effects, hunger/exhaustion, ticking accumulation, cache/invalidation, Create, Aeronautics or KubeJS.
+
 ## 0.1.0 - Phase 4D block FluidHandler capability sources
 - Added `block_fluid_handler` diagnostic source type.
 - Added command-only source discovery for nearby block fluids exposed through NeoForge `Capabilities.FluidHandler.BLOCK`.

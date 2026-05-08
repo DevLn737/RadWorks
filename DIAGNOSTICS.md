@@ -73,16 +73,24 @@ Phase 4C item handler scan includes only block capabilities queried through `Cap
 
 Phase 4D fluid handler scan includes only block capabilities queried through `Capabilities.FluidHandler.BLOCK`. It does not scan item fluid capabilities, entity fluid capabilities, buckets or fluid containers in player inventory.
 
+Phase 5A shielding uses the block tag:
+
+```text
+#radworks:shielding_blocks
+```
+
+The bundled temporary/dev-only shielding block is `minecraft:iron_block`.
+
 Vanilla `Container` block entities are skipped by item handler scan to avoid double counting with Phase 4B.
 
-Phase 4D does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, dropped items, entities, item NBT/components, item fluid containers, energy, Create or Aeronautics.
+Phase 5A does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, dropped items, entities, item NBT/components, item fluid containers, energy, Create or Aeronautics.
 
 Formula:
 
 ```text
 contribution = stack.count * rule.strength
 distance = 0
-shielding = not_applied
+shielding = not_applicable
 finalExposure = sum(contribution)
 ```
 
@@ -92,7 +100,6 @@ Static block formula:
 distance = player position to block center
 active when distance <= rule.radius
 contribution = rule.strength
-shielding = not_applied
 ```
 
 Vanilla container item formula:
@@ -101,7 +108,6 @@ Vanilla container item formula:
 distance = player position to container block center
 active when distance <= itemRule.radius
 contribution = stack.count * itemRule.strength
-shielding = not_applied
 ```
 
 Block item handler formula:
@@ -110,7 +116,6 @@ Block item handler formula:
 distance = player position to block center
 active when distance <= itemRule.radius
 contribution = stack.count * itemRule.strength
-shielding = not_applied
 ```
 
 Block fluid handler formula:
@@ -119,7 +124,44 @@ Block fluid handler formula:
 distance = player position to block center
 active when distance <= fluidRule.radius
 contribution = fluidRule.strength * amountMb / 1000.0
-shielding = not_applied
+```
+
+Shielding formula for positioned sources:
+
+```text
+rawContribution = provider contribution before shielding
+sample line = source block/container center to player body center
+sampleStep = 0.25
+maxSamples = 64
+each unique #radworks:shielding_blocks hit multiplies by 0.5
+minimum shieldingMultiplier = 0.1
+finalContribution = rawContribution * shieldingMultiplier
+shieldingReduction = rawContribution - finalContribution
+contribution = finalContribution
+```
+
+Inventory sources do not have a world line, so they use:
+
+```text
+shielding = not_applicable
+finalContribution = rawContribution
+contribution = finalContribution
+```
+
+Positioned sources with `respectsShielding=false` also use `shielding=not_applicable`.
+
+Positioned sources with `respectsShielding=true` and no shielding block hit use:
+
+```text
+shielding = clear
+finalContribution = rawContribution
+```
+
+Positioned sources with one or more shielding block hits use:
+
+```text
+shielding = reduced
+finalContribution < rawContribution
 ```
 
 The effective block command scan radius is:
@@ -152,9 +194,9 @@ Example:
 
 ```text
 RadWorks exposure for Dev: totalExposure=25.0 matchedSources=3
-- type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 shielding=not_applied
-- type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 contribution=5.0 shielding=not_applied
-- type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 shielding=not_applied
+- type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=10.0 contribution=10.0 shielding=not_applicable shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=10.0
+- type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 respectsShielding=true rawContribution=5.0 contribution=5.0 shielding=clear shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=5.0
+- type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=10.0 contribution=10.0 shielding=clear shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=10.0
 Note: diagnostic only, no gameplay effect
 ```
 
@@ -187,9 +229,9 @@ Example:
 
 ```text
 RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers+block_fluid_handlers
-- type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
-- type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 contribution=5.0 reason=active block rule matched type=block id=minecraft:gold_block
-- type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh
+- type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=10.0 shielding=not_applicable shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=10.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
+- type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 respectsShielding=true rawContribution=5.0 shielding=clear shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=5.0 contribution=5.0 reason=active block rule matched type=block id=minecraft:gold_block
+- type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=10.0 shielding=clear shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=10.0 contribution=10.0 reason=vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh
 sourcesShown=3 sourcesOmitted=0
 Note: diagnostic only, player inventory, static block, vanilla Container, block ItemHandler and block FluidHandler sources only
 Note: vanilla Container block entities are skipped by itemHandlerScan to avoid double counting
@@ -198,13 +240,13 @@ Note: vanilla Container block entities are skipped by itemHandlerScan to avoid d
 If a non-vanilla block item handler source is present, a row can look like:
 
 ```text
-- type=block_item_handler itemId=minecraft:rotten_flesh blockId=example:item_handler_block position=12,64,10 capabilityContext=unsided slot=item_handler.0 count=10 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=NeoForge ItemHandler block capability matched active item rule type=item id=minecraft:rotten_flesh
+- type=block_item_handler itemId=minecraft:rotten_flesh blockId=example:item_handler_block position=12,64,10 capabilityContext=unsided slot=item_handler.0 count=10 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=10.0 shielding=clear shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=10.0 contribution=10.0 reason=NeoForge ItemHandler block capability matched active item rule type=item id=minecraft:rotten_flesh
 ```
 
 If a block fluid handler source is present, a row can look like:
 
 ```text
-- type=block_fluid_handler fluidId=minecraft:water blockId=example:tank position=12,64,10 capabilityContext=unsided tank=fluid_handler.0 amountMb=1000 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 contribution=1.0 reason=NeoForge FluidHandler block capability matched active fluid rule type=fluid id=minecraft:water
+- type=block_fluid_handler fluidId=minecraft:water blockId=example:tank position=12,64,10 capabilityContext=unsided tank=fluid_handler.0 amountMb=1000 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=1.0 shielding=clear shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=1.0 contribution=1.0 reason=NeoForge FluidHandler block capability matched active fluid rule type=fluid id=minecraft:water
 ```
 
 Chat output is bounded to 10 source rows.
@@ -336,6 +378,12 @@ If the command is run from a server console, the filename uses `server` and the 
       "averageMillis": 0,
       "maxMillis": 0
     },
+    "shielding": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
     "dump": {
       "lastMillis": 0,
       "count": 0,
@@ -371,7 +419,13 @@ After `/radworks exposure`, `lastExposureSnapshot` becomes:
       "ruleStrength": 1.0,
       "ruleRadius": 2.0,
       "distance": 0.0,
-      "shielding": "not_applied",
+      "respectsShielding": true,
+      "rawContribution": 10.0,
+      "shielding": "not_applicable",
+      "shieldingBlocksHit": 0,
+      "shieldingMultiplier": 1.0,
+      "shieldingReduction": 0.0,
+      "finalContribution": 10.0,
       "contribution": 10.0,
       "matchReason": "active item rule matched type=item id=minecraft:rotten_flesh"
     }
@@ -395,7 +449,13 @@ After Phase 4A, source rows may include block sources:
   "ruleStrength": 5.0,
   "ruleRadius": 6.0,
   "distance": 1.2,
-  "shielding": "not_applied",
+  "respectsShielding": true,
+  "rawContribution": 5.0,
+  "shielding": "clear",
+  "shieldingBlocksHit": 0,
+  "shieldingMultiplier": 1.0,
+  "shieldingReduction": 0.0,
+  "finalContribution": 5.0,
   "contribution": 5.0,
   "matchReason": "active block rule matched type=block id=minecraft:gold_block"
 }
@@ -418,7 +478,13 @@ After Phase 4B, source rows may include vanilla container block entity inventory
   "ruleStrength": 1.0,
   "ruleRadius": 2.0,
   "distance": 1.6,
-  "shielding": "not_applied",
+  "respectsShielding": true,
+  "rawContribution": 10.0,
+  "shielding": "clear",
+  "shieldingBlocksHit": 0,
+  "shieldingMultiplier": 1.0,
+  "shieldingReduction": 0.0,
+  "finalContribution": 10.0,
   "contribution": 10.0,
   "matchReason": "vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh"
 }
@@ -442,7 +508,13 @@ After Phase 4C, source rows may include block item handler sources:
   "ruleStrength": 1.0,
   "ruleRadius": 2.0,
   "distance": 1.4,
-  "shielding": "not_applied",
+  "respectsShielding": true,
+  "rawContribution": 10.0,
+  "shielding": "clear",
+  "shieldingBlocksHit": 0,
+  "shieldingMultiplier": 1.0,
+  "shieldingReduction": 0.0,
+  "finalContribution": 10.0,
   "contribution": 10.0,
   "matchReason": "NeoForge ItemHandler block capability matched active item rule type=item id=minecraft:rotten_flesh"
 }
@@ -466,7 +538,13 @@ After Phase 4D, source rows may include block fluid handler sources:
   "ruleStrength": 1.0,
   "ruleRadius": 2.0,
   "distance": 1.4,
-  "shielding": "not_applied",
+  "respectsShielding": true,
+  "rawContribution": 1.0,
+  "shielding": "clear",
+  "shieldingBlocksHit": 0,
+  "shieldingMultiplier": 1.0,
+  "shieldingReduction": 0.0,
+  "finalContribution": 1.0,
   "contribution": 1.0,
   "matchReason": "NeoForge FluidHandler block capability matched active fluid rule type=fluid id=minecraft:water"
 }
@@ -499,6 +577,11 @@ Example:
   "fluidHandlersFound": 0,
   "fluidTanksChecked": 0,
   "fluidMatches": 0,
+  "shieldingSourcesChecked": 3,
+  "shieldingSourcesApplicable": 2,
+  "shieldingSamplesChecked": 12,
+  "shieldingBlocksHit": 0,
+  "shieldingSourcesReduced": 0,
   "sourcesShown": 3,
   "sourcesOmitted": 0,
   "diagnosticNotes": [
@@ -512,6 +595,10 @@ How to read it:
 - `*Matches` fields show how many rows became radiation sources.
 - `skippedContainerBlockEntitiesForItemHandler` should increase when vanilla `Container` block entities are near the player; those are handled by `block_entity_inventory`, not `block_item_handler`.
 - `fluidMatches` only increases when a block fluid handler contains a fluid with an active `type=fluid` rule and the block is within that rule radius.
+- `shieldingSourcesChecked` counts matched source rows that were passed through shielding diagnostics.
+- `shieldingSourcesApplicable` excludes inventory sources and sources whose rule does not respect shielding.
+- `shieldingBlocksHit` counts unique shielding block positions hit across applicable source lines.
+- `shieldingSourcesReduced` counts source rows whose final contribution was reduced.
 - `sourcesShown` and `sourcesOmitted` mirror the bounded chat output.
 
 For source discovery bugs, send Codex:
@@ -553,6 +640,7 @@ Measured operations:
 - `blockEntityInventoryScan`
 - `itemHandlerScan`
 - `fluidHandlerScan`
+- `shielding`
 - `dump`
 
 Fields:
@@ -596,3 +684,5 @@ Phase 4B adds vanilla `Container` block entity item source diagnostics.
 Phase 4C adds NeoForge block `IItemHandler` capability item source diagnostics.
 
 Phase 4D adds NeoForge block `IFluidHandler` capability fluid source diagnostics.
+
+Phase 5A adds diagnostic-only shielding calculation for positioned sources.

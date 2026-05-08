@@ -160,6 +160,7 @@ public final class BlockItemHandlerSourceProvider {
                     rule.strength(),
                     rule.radius(),
                     distance,
+                    rule.respectsShielding(),
                     contribution,
                     "NeoForge ItemHandler block capability matched active item rule type=item id=" + itemId));
         }

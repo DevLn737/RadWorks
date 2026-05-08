@@ -1,6 +1,7 @@
 package dev.radworks.radiation;
 
 import com.google.gson.JsonObject;
+import dev.radworks.radiation.shielding.ShieldingResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 
@@ -18,8 +19,13 @@ public record RadiationSource(
         double ruleStrength,
         double ruleRadius,
         double distance,
+        boolean respectsShielding,
+        double rawContribution,
         String shielding,
-        double contribution,
+        int shieldingBlocksHit,
+        double shieldingMultiplier,
+        double shieldingReduction,
+        double finalContribution,
         String matchReason) {
     public static RadiationSource playerInventory(
             ResourceLocation itemId,
@@ -27,6 +33,7 @@ public record RadiationSource(
             int count,
             double ruleStrength,
             double ruleRadius,
+            boolean respectsShielding,
             double contribution,
             String matchReason) {
         return new RadiationSource(
@@ -43,7 +50,12 @@ public record RadiationSource(
                 ruleStrength,
                 ruleRadius,
                 0.0D,
-                "not_applied",
+                respectsShielding,
+                contribution,
+                "not_applicable",
+                0,
+                1.0D,
+                0.0D,
                 contribution,
                 matchReason);
     }
@@ -54,6 +66,7 @@ public record RadiationSource(
             double ruleStrength,
             double ruleRadius,
             double distance,
+            boolean respectsShielding,
             double contribution,
             String matchReason) {
         return new RadiationSource(
@@ -70,7 +83,12 @@ public record RadiationSource(
                 ruleStrength,
                 ruleRadius,
                 distance,
-                "not_applied",
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
                 contribution,
                 matchReason);
     }
@@ -84,6 +102,7 @@ public record RadiationSource(
             double ruleStrength,
             double ruleRadius,
             double distance,
+            boolean respectsShielding,
             double contribution,
             String matchReason) {
         return new RadiationSource(
@@ -100,7 +119,12 @@ public record RadiationSource(
                 ruleStrength,
                 ruleRadius,
                 distance,
-                "not_applied",
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
                 contribution,
                 matchReason);
     }
@@ -115,6 +139,7 @@ public record RadiationSource(
             double ruleStrength,
             double ruleRadius,
             double distance,
+            boolean respectsShielding,
             double contribution,
             String matchReason) {
         return new RadiationSource(
@@ -131,7 +156,12 @@ public record RadiationSource(
                 ruleStrength,
                 ruleRadius,
                 distance,
-                "not_applied",
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
                 contribution,
                 matchReason);
     }
@@ -146,6 +176,7 @@ public record RadiationSource(
             double ruleStrength,
             double ruleRadius,
             double distance,
+            boolean respectsShielding,
             double contribution,
             String matchReason) {
         return new RadiationSource(
@@ -162,8 +193,38 @@ public record RadiationSource(
                 ruleStrength,
                 ruleRadius,
                 distance,
-                "not_applied",
+                respectsShielding,
                 contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                matchReason);
+    }
+
+    public RadiationSource withShielding(ShieldingResult result) {
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                distance,
+                respectsShielding,
+                rawContribution,
+                result.shielding(),
+                result.shieldingBlocksHit(),
+                result.shieldingMultiplier(),
+                result.shieldingReduction(),
+                result.finalContribution(),
                 matchReason);
     }
 
@@ -208,9 +269,19 @@ public record RadiationSource(
         json.addProperty("ruleStrength", ruleStrength);
         json.addProperty("ruleRadius", ruleRadius);
         json.addProperty("distance", distance);
+        json.addProperty("respectsShielding", respectsShielding);
+        json.addProperty("rawContribution", rawContribution);
         json.addProperty("shielding", shielding);
-        json.addProperty("contribution", contribution);
+        json.addProperty("shieldingBlocksHit", shieldingBlocksHit);
+        json.addProperty("shieldingMultiplier", shieldingMultiplier);
+        json.addProperty("shieldingReduction", shieldingReduction);
+        json.addProperty("finalContribution", finalContribution);
+        json.addProperty("contribution", finalContribution);
         json.addProperty("matchReason", matchReason);
         return json;
+    }
+
+    public double contribution() {
+        return finalContribution;
     }
 }

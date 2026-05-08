@@ -63,6 +63,7 @@ public final class PlayerInventorySourceProvider {
                 stack.getCount(),
                 rule.get().strength(),
                 rule.get().radius(),
+                rule.get().respectsShielding(),
                 contribution,
                 "active item rule matched type=item id=" + itemId));
     }

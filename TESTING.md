@@ -65,6 +65,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - performance counters are present.
    - Phase 4C: `performance.itemHandlerScan` is present after the updated mod is loaded.
    - Phase 4D: `performance.fluidHandlerScan` is present after the updated mod is loaded.
+   - Phase 5A: `performance.shielding` is present after the updated mod is loaded.
 
 ## Manual Minecraft test - clean `/radworks validate`
 1. Start the client:
@@ -88,6 +89,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `errors=0`;
    - a short checksum;
    - Phase 4D: the temporary/dev-only `minecraft:water` fluid rule is valid;
+   - Phase 5A: `#radworks:shielding_blocks` includes temporary/dev-only `minecraft:iron_block`;
    - no gameplay effects are applied.
 
 ## Manual Minecraft test - `/reload`
@@ -155,7 +157,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `ruleStrength=1.0`;
    - `ruleRadius=2.0`;
    - `contribution=1.0`;
-   - `shielding=not_applied`.
+   - `shielding=not_applicable`.
 
 ## Manual Minecraft test - scaling 1 vs 10 rotten flesh
 1. Change the same stack to exactly 10 `minecraft:rotten_flesh`.
@@ -430,6 +432,11 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `fluidHandlersFound`;
    - `fluidTanksChecked`;
    - `fluidMatches`;
+   - `shieldingSourcesChecked`;
+   - `shieldingSourcesApplicable`;
+   - `shieldingSamplesChecked`;
+   - `shieldingBlocksHit`;
+   - `shieldingSourcesReduced`;
    - `sourcesShown`;
    - `sourcesOmitted`.
 
@@ -511,6 +518,81 @@ If the dev instance later has a block that exposes `Capabilities.FluidHandler.BL
    - `contribution=1.0`.
 
 If no such block exists, this is expected for the clean dev environment and is not a Phase 4D failure. Do not add a custom tank block for this phase.
+
+## Manual Minecraft test - Phase 5A inventory shielding is not applicable
+1. Remove nearby `minecraft:gold_block`, chest/barrel radioactive contents and test tank sources.
+2. Put exactly 10 `minecraft:rotten_flesh` in player inventory.
+3. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+4. Confirm output includes:
+   - `totalExposure=10.0`;
+   - `type=player_inventory`;
+   - `rawContribution=10.0`;
+   - `shielding=not_applicable`;
+   - `finalContribution=10.0`;
+   - `contribution=10.0`.
+
+## Manual Minecraft test - Phase 5A no shielding baseline
+1. Put exactly 10 `minecraft:rotten_flesh` in player inventory.
+2. Stand within 6 blocks of one `minecraft:gold_block`.
+3. Make sure there is no `minecraft:iron_block` between the player and the gold block.
+4. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+5. Confirm output includes:
+   - `totalExposure=15.0`;
+   - gold block row with `rawContribution=5.0`;
+   - gold block row with `shielding=clear`;
+   - gold block row with `shieldingBlocksHit=0`;
+   - gold block row with `finalContribution=5.0`;
+   - no damage, effects, hunger/exhaustion, particles, sounds or ticking accumulation.
+
+## Manual Minecraft test - Phase 5A gold block shielding
+1. Put exactly 10 `minecraft:rotten_flesh` in player inventory.
+2. Place one `minecraft:gold_block` within 6 blocks of the player.
+3. Place one `minecraft:iron_block` directly between the player and the gold block.
+4. Run:
+
+   ```text
+   /radworks exposure
+   /radworks sources
+   ```
+
+5. Confirm output includes:
+   - `totalExposure=12.5`;
+   - gold block row with `rawContribution=5.0`;
+   - gold block row with `shielding=reduced`;
+   - gold block row with `shieldingBlocksHit=1`;
+   - gold block row with `shieldingMultiplier=0.5`;
+   - gold block row with `shieldingReduction=2.5`;
+   - gold block row with `finalContribution=2.5`;
+   - gold block row with `contribution=2.5`.
+
+## Manual Minecraft test - Phase 5A container shielding
+1. Remove player inventory `minecraft:rotten_flesh`.
+2. Place a `minecraft:chest` or `minecraft:barrel` within 2 blocks of the player.
+3. Put exactly 10 `minecraft:rotten_flesh` in one container slot.
+4. Place one `minecraft:iron_block` directly between the player and the container.
+5. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+6. Confirm the container row uses `containerPos=` and includes:
+   - `rawContribution=10.0`;
+   - `shielding=reduced`;
+   - `shieldingBlocksHit=1`;
+   - `shieldingMultiplier=0.5`;
+   - `finalContribution=5.0`;
+   - `contribution=5.0`.
 
 ## Manual Minecraft test - container outside item radius
 1. Move more than 2 blocks away from the test chest or barrel that contains 10 `minecraft:rotten_flesh`.
@@ -617,6 +699,32 @@ If no such block exists, this is expected for the clean dev environment and is n
    - `sourceScanSummary.fluidTanksChecked` exists;
    - `sourceScanSummary.fluidMatches` exists;
    - if a block fluid handler source exists, `lastExposureSnapshot.sources` after `/radworks exposure` may include `type: "block_fluid_handler"`, `position`, `capabilityContext`, `tank`, `fluidId`, `amountMb` and `contribution`.
+
+## Manual Minecraft test - Phase 5A dump shielding fields
+1. Run:
+
+   ```text
+   /radworks exposure
+   /radworks dump
+   ```
+
+2. Open the generated JSON under `radworks_dumps/`.
+3. Confirm source rows include:
+   - `respectsShielding`;
+   - `rawContribution`;
+   - `shielding`;
+   - `shieldingBlocksHit`;
+   - `shieldingMultiplier`;
+   - `shieldingReduction`;
+   - `finalContribution`;
+   - `contribution`.
+4. Confirm the `performance` object contains `shielding`.
+5. Confirm `sourceScanSummary` contains:
+   - `shieldingSourcesChecked`;
+   - `shieldingSourcesApplicable`;
+   - `shieldingSamplesChecked`;
+   - `shieldingBlocksHit`;
+   - `shieldingSourcesReduced`.
 
 ## Manual Minecraft test - Phase 3 dump diagnostics
 1. Run:
@@ -798,3 +906,14 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `/radworks dump.sourceScanSummary` includes fluid handler position, handler, tank and match counters.
 - Optional block fluid handler sources can be shown as `type=block_fluid_handler` when such a block exists in the instance.
 - No item fluid capabilities, entity fluid capabilities, buckets, fluid containers in player inventory, item NBT/components, registry tanks/blocks/items, energy, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS logic exists.
+
+## Phase 5A acceptance
+- The project builds.
+- `#radworks:shielding_blocks` contains temporary/dev-only `minecraft:iron_block`.
+- Baseline Phase 4B/4C scenario remains `totalExposure=25.0` without shielding blocks between sources and player.
+- 10 `minecraft:rotten_flesh` plus one nearby `minecraft:gold_block` remains `totalExposure=15.0` with no shielding block between source and player.
+- One `minecraft:iron_block` between player and `minecraft:gold_block` reduces the block row from `rawContribution=5.0` to `finalContribution=2.5`, giving `totalExposure=12.5` with 10 rotten flesh in inventory.
+- Player inventory rows report `shielding=not_applicable` and keep `finalContribution=rawContribution`.
+- Container rows use `containerPos` for shielding.
+- `/radworks dump` includes shielding fields, `performance.shielding`, and shielding counters in `sourceScanSummary`.
+- No armor protection, damage/effects, hunger/exhaustion, particles, sounds, ticking accumulation, cache/invalidation, Create, Aeronautics or KubeJS logic exists.

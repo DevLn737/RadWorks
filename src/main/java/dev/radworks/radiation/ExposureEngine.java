@@ -1,6 +1,7 @@
 package dev.radworks.radiation;
 
 import dev.radworks.diagnostics.SourceScanSummary;
+import dev.radworks.radiation.shielding.ShieldingEngine;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public final class ExposureEngine {
         sources.addAll(BlockEntityInventorySourceProvider.collect(player, rules, summary));
         sources.addAll(BlockItemHandlerSourceProvider.collect(player, rules, summary));
         sources.addAll(BlockFluidHandlerSourceProvider.collect(player, rules, summary));
-        List<RadiationSource> immutableSources = List.copyOf(sources);
+        List<RadiationSource> immutableSources = ShieldingEngine.apply(player, sources, summary);
         SourceScanSummary.store(summary, Math.min(20, immutableSources.size()), Math.max(0, immutableSources.size() - 20));
         return immutableSources;
     }

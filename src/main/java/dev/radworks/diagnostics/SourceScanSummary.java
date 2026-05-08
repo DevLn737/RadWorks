@@ -24,6 +24,11 @@ public record SourceScanSummary(
         int fluidHandlersFound,
         int fluidTanksChecked,
         int fluidMatches,
+        int shieldingSourcesChecked,
+        int shieldingSourcesApplicable,
+        int shieldingSamplesChecked,
+        int shieldingBlocksHit,
+        int shieldingSourcesReduced,
         int sourcesShown,
         int sourcesOmitted) {
     private static volatile SourceScanSummary lastSummary;
@@ -59,6 +64,11 @@ public record SourceScanSummary(
                 lastSummary.fluidHandlersFound,
                 lastSummary.fluidTanksChecked,
                 lastSummary.fluidMatches,
+                lastSummary.shieldingSourcesChecked,
+                lastSummary.shieldingSourcesApplicable,
+                lastSummary.shieldingSamplesChecked,
+                lastSummary.shieldingBlocksHit,
+                lastSummary.shieldingSourcesReduced,
                 sourcesShown,
                 sourcesOmitted);
     }
@@ -90,6 +100,11 @@ public record SourceScanSummary(
         json.addProperty("fluidHandlersFound", fluidHandlersFound);
         json.addProperty("fluidTanksChecked", fluidTanksChecked);
         json.addProperty("fluidMatches", fluidMatches);
+        json.addProperty("shieldingSourcesChecked", shieldingSourcesChecked);
+        json.addProperty("shieldingSourcesApplicable", shieldingSourcesApplicable);
+        json.addProperty("shieldingSamplesChecked", shieldingSamplesChecked);
+        json.addProperty("shieldingBlocksHit", shieldingBlocksHit);
+        json.addProperty("shieldingSourcesReduced", shieldingSourcesReduced);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
 
@@ -119,6 +134,11 @@ public record SourceScanSummary(
         private int fluidHandlersFound;
         private int fluidTanksChecked;
         private int fluidMatches;
+        private int shieldingSourcesChecked;
+        private int shieldingSourcesApplicable;
+        private int shieldingSamplesChecked;
+        private int shieldingBlocksHit;
+        private int shieldingSourcesReduced;
 
         public void inventoryStackChecked() {
             inventoryStacksChecked++;
@@ -188,6 +208,26 @@ public record SourceScanSummary(
             fluidMatches++;
         }
 
+        public void shieldingSourceChecked() {
+            shieldingSourcesChecked++;
+        }
+
+        public void shieldingSourceApplicable() {
+            shieldingSourcesApplicable++;
+        }
+
+        public void shieldingSampleChecked() {
+            shieldingSamplesChecked++;
+        }
+
+        public void shieldingBlocksHit(int blocksHit) {
+            shieldingBlocksHit += blocksHit;
+        }
+
+        public void shieldingSourceReduced() {
+            shieldingSourcesReduced++;
+        }
+
         private SourceScanSummary build(int sourcesShown, int sourcesOmitted) {
             return new SourceScanSummary(
                     Instant.now(),
@@ -208,6 +248,11 @@ public record SourceScanSummary(
                     fluidHandlersFound,
                     fluidTanksChecked,
                     fluidMatches,
+                    shieldingSourcesChecked,
+                    shieldingSourcesApplicable,
+                    shieldingSamplesChecked,
+                    shieldingBlocksHit,
+                    shieldingSourcesReduced,
                     sourcesShown,
                     sourcesOmitted);
         }

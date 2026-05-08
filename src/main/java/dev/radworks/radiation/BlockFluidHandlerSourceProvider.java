@@ -153,6 +153,7 @@ public final class BlockFluidHandlerSourceProvider {
                     rule.strength(),
                     rule.radius(),
                     distance,
+                    rule.respectsShielding(),
                     contribution,
                     "NeoForge FluidHandler block capability matched active fluid rule type=fluid id=" + fluidId));
         }

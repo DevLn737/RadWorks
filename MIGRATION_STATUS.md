@@ -69,6 +69,16 @@ Verified by user:
 - `./gradlew build` passed.
 
 ## Phase 4D - Block FluidHandler capability sources
+Status: implemented and manually verified.
+
+Verified by user:
+- `fluidRules=1`.
+- `performance.fluidHandlerScan` is present.
+- `sourceScanSummary` contains fluid counters.
+- Baseline scenario remains `totalExposure=25.0`.
+- Gameplay effects are absent.
+
+## Phase 5A - Shielding diagnostics
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## MIGRATION_DECISION_ACCEPTED
@@ -97,6 +107,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Diagnostic-only item source discovery inside nearby vanilla `Container` block entities.
 - Diagnostic-only item source discovery through NeoForge block `IItemHandler` capability.
 - Diagnostic-only fluid source discovery through NeoForge block `IFluidHandler` capability.
+- Diagnostic-only shielding calculation for positioned sources.
 - Bounded `sourceScanSummary` diagnostics for the most recent `/radworks sources` or `/radworks exposure`.
 - Rules summary in `/radworks version`.
 - Rules validation summary in `/radworks dump`.
@@ -127,6 +138,13 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Radius: `2.0`
 - Purpose: smoke-test fluid rule validation without requiring Create, Create Nuclear, TFMG or a full modpack.
 - Status: temporary/dev-only; not final gameplay balance. It only becomes a source if a block fluid handler containing water exists.
+
+## Phase 5A temporary/dev-only shielding tag
+- `src/main/resources/data/radworks/tags/block/shielding_blocks.json`
+- Tag ID: `#radworks:shielding_blocks`
+- Temporary block: `minecraft:iron_block`
+- Purpose: smoke-test shielding diagnostics without requiring custom RadWorks shielding blocks or a full modpack.
+- Status: temporary/dev-only; not final gameplay balance.
 
 ## Explicitly not implemented in Phase 0
 - Radiation mechanics.
@@ -167,13 +185,14 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4C `timeout 60s ./gradlew runClient` launched the client, listed `RadWorks 0.1.0`, and started an integrated server; smoke log showed the existing Phase 4B scenario still reports `totalExposure=25.0` with player inventory + gold block + chest, not `35.0`. The process then ended with timeout code `124`, so full manual command verification is still pending.
 - Phase 4C.1 `./gradlew build` passed on 2026-05-08.
 - Phase 4D `./gradlew build` passed on 2026-05-08.
+- Phase 5A `./gradlew build` passed on 2026-05-08.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.
 - `/radworks exposure <player>` targets an online `ServerPlayer`.
 - Diagnostic formula: `contribution = stack.count * rule.strength`.
 - Inventory source distance is `0`.
-- Shielding is reported as `not_applied`.
+- Inventory shielding is reported as `not_applicable`.
 - Final exposure is the sum of contributions.
 - Chat output is bounded to 10 source rows.
 - Dump `lastExposureSnapshot` is bounded to 20 source rows.
@@ -250,6 +269,21 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Fluid handler scan timing is command diagnostics only and appears as `performance.fluidHandlerScan`.
 - `sourceScanSummary` includes fluid handler position, handler, tank and match counters.
 
+## Phase 5A implementation notes
+- Shielding is diagnostic-only.
+- Shielding applies only to sources with a world position and `respectsShielding=true`.
+- Player inventory sources report `shielding=not_applicable`; their final contribution remains equal to raw contribution.
+- Shielding blocks are read from `#radworks:shielding_blocks`.
+- Temporary/dev-only shielding block is `minecraft:iron_block`.
+- Shielding samples a simple line from source block/container center to player body center.
+- Sampling uses `sampleStep=0.25`, `maxSamples=64`, and skips source/player endpoint samples.
+- Unique shielding block positions are counted once.
+- Each shielding block hit multiplies contribution by `0.5`; minimum multiplier is capped at `0.1`.
+- `rawContribution`, `shieldingReduction`, `finalContribution` and compatibility `contribution` are shown in source rows and dump snapshots.
+- `contribution` mirrors `finalContribution`.
+- Shielding timing is command diagnostics only and appears as `performance.shielding`.
+- `sourceScanSummary` includes shielding source, sample, block-hit and reduced-source counters.
+
 ## Phase 1 implementation notes
 - Reload implementation uses a direct `SimplePreparableReloadListener` instead of `SimpleJsonResourceReloadListener` so malformed external datapack JSON can be captured and reported by `/radworks validate`.
 - Unknown registry IDs are warnings in `lenient/dev`, not fatal errors.
@@ -282,3 +316,6 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4D works without extra mod dependencies, but the clean dev environment may not contain a block that exposes `IFluidHandler`.
 - Phase 4D does not scan item fluid capabilities, entity fluid capabilities, buckets, fluid containers in player inventory, item NBT/components, Create tanks, Create contraptions or Aeronautics ships.
 - Phase 4D does not implement shielding, damage, effects, exposure accumulation, cache or invalidation.
+- Phase 5A uses simple line sampling, not the old 3-ray binary model and not complex voxel raytracing.
+- Phase 5A does not implement armor protection, material-specific shielding strength, cache/invalidation, damage/effects or ticking accumulation.
+- Partial blocks, fluids and transparent-block behavior are not specially modeled in Phase 5A.

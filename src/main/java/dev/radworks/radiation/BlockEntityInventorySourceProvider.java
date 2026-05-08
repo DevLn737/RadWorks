@@ -105,6 +105,7 @@ public final class BlockEntityInventorySourceProvider {
                     rule.strength(),
                     rule.radius(),
                     distance,
+                    rule.respectsShielding(),
                     contribution,
                     "vanilla Container slot matched active item rule type=item id=" + itemId));
         }

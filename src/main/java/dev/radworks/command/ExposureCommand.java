@@ -104,8 +104,14 @@ public final class ExposureCommand {
         row.append(" distance=").append(source.distance());
         row.append(" ruleRadius=").append(source.ruleRadius());
         row.append(" ruleStrength=").append(source.ruleStrength());
+        row.append(" respectsShielding=").append(source.respectsShielding());
+        row.append(" rawContribution=").append(source.rawContribution());
         row.append(" contribution=").append(source.contribution());
         row.append(" shielding=").append(source.shielding());
+        row.append(" shieldingBlocksHit=").append(source.shieldingBlocksHit());
+        row.append(" shieldingMultiplier=").append(source.shieldingMultiplier());
+        row.append(" shieldingReduction=").append(source.shieldingReduction());
+        row.append(" finalContribution=").append(source.finalContribution());
         return row.toString();
     }
 }

@@ -74,6 +74,7 @@ public final class BlockSourceProvider {
                     rule.strength(),
                     rule.radius(),
                     distance,
+                    rule.respectsShielding(),
                     rule.strength(),
                     "active block rule matched type=block id=" + blockId));
         }
