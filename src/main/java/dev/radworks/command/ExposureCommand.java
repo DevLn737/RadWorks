@@ -81,6 +81,9 @@ public final class ExposureCommand {
                     .append(",")
                     .append(source.position().getZ());
         }
+        if (source.capabilityContext() != null) {
+            row.append(" capabilityContext=").append(source.capabilityContext());
+        }
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }

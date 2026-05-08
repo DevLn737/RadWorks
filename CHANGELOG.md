@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 - Phase 4C NeoForge ItemHandler block capability sources
+- Added `block_item_handler` diagnostic source type.
+- Added command-only source discovery for nearby block inventories exposed through NeoForge `Capabilities.ItemHandler.BLOCK`.
+- Skips vanilla `Container` block entities during item handler scan to avoid double counting with Phase 4B.
+- Extended `/radworks sources`, `/radworks exposure` and dump snapshots to include item handler source rows.
+- Added command diagnostics timing as `performance.itemHandlerScan`.
+- Kept Phase 4C diagnostic-only: no entity capabilities, item stack capabilities, nested containers, fluids, energy, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS.
+
 ## 0.1.0 - Phase 4B vanilla container block entity item sources
 - Added `block_entity_inventory` diagnostic source type.
 - Added command-only source discovery for nearby block entities implementing vanilla `Container`.

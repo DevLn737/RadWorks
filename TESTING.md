@@ -63,6 +63,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - Phase 1: `rules.checksum` is a full SHA-256 string;
    - Create and Aeronautics integrations are disabled;
    - performance counters are present.
+   - Phase 4C: `performance.itemHandlerScan` is present after the updated mod is loaded.
 
 ## Manual Minecraft test - clean `/radworks validate`
 1. Start the client:
@@ -228,7 +229,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 5. Confirm output includes:
    - `matchedSources=0`;
-   - `scope=player_inventory+static_blocks+vanilla_containers`;
+   - `scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers`;
    - no container/entity/fluid source rows.
 
 ## Manual Minecraft test - `/radworks sources` with 10 rotten flesh
@@ -366,6 +367,65 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - one `type=block` row with `contribution=5.0`;
    - one `type=block_entity_inventory` row with `contribution=10.0`.
 
+## Manual Minecraft test - Phase 4C double-counting guard
+1. Put exactly 10 `minecraft:rotten_flesh` in player inventory.
+2. Stand within 6 blocks of one `minecraft:gold_block`.
+3. Place a `minecraft:chest` or `minecraft:barrel` within 2 blocks of the player.
+4. Put exactly 10 `minecraft:rotten_flesh` in one container slot.
+5. Run:
+
+   ```text
+   /radworks exposure
+   /radworks sources
+   ```
+
+6. Confirm output includes:
+   - `totalExposure=25.0`, not `35.0`;
+   - one `type=block_entity_inventory` row with `contribution=10.0`;
+   - no extra `type=block_item_handler` row for the same vanilla chest/barrel;
+   - a note that vanilla `Container` block entities are skipped by `itemHandlerScan` to avoid double counting.
+
+## Manual Minecraft test - Phase 4C item handler performance field
+1. Run:
+
+   ```text
+   /radworks sources
+   /radworks dump
+   ```
+
+2. Open the generated JSON under `radworks_dumps/`.
+3. Confirm the `performance` object contains:
+   - `itemHandlerScan`;
+   - `lastMillis`;
+   - `count`;
+   - `averageMillis`;
+   - `maxMillis`.
+
+## Manual Minecraft test - Phase 4C optional modded item handler block
+If the dev instance has a non-vanilla block that exposes `Capabilities.ItemHandler.BLOCK` and is not a vanilla `Container`:
+
+1. Place that block within 2 blocks of the player.
+2. Put exactly 10 `minecraft:rotten_flesh` in one item handler slot.
+3. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+4. Confirm output may include:
+   - `type=block_item_handler`;
+   - `blockId=`;
+   - `position=`;
+   - `capabilityContext=unsided` or a side name;
+   - `slot=item_handler.`;
+   - `itemId=minecraft:rotten_flesh`;
+   - `count=10`;
+   - `ruleStrength=1.0`;
+   - `ruleRadius=2.0`;
+   - `contribution=10.0`.
+
+If no such block exists, this is expected for the clean dev environment and is not a Phase 4C failure.
+
 ## Manual Minecraft test - container outside item radius
 1. Move more than 2 blocks away from the test chest or barrel that contains 10 `minecraft:rotten_flesh`.
 2. Run:
@@ -440,6 +500,20 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - one container row with `type: "block_entity_inventory"`, `containerPos`, `blockId`, `itemId: "minecraft:rotten_flesh"`, `slot`, `count` and `contribution`;
    - `sourcesShown`;
    - `sourcesOmitted`.
+
+## Manual Minecraft test - Phase 4C dump source rows
+1. Run:
+
+   ```text
+   /radworks sources
+   /radworks dump
+   ```
+
+2. Open the generated JSON under `radworks_dumps/`.
+3. Confirm:
+   - `performance.itemHandlerScan` exists;
+   - if a non-vanilla item handler source exists, `lastExposureSnapshot.sources` after `/radworks exposure` may include `type: "block_item_handler"`, `position`, `capabilityContext`, `slot`, `itemId`, `count` and `contribution`;
+   - vanilla chest/barrel contents remain represented as `type: "block_entity_inventory"`, not double-counted as `block_item_handler`.
 
 ## Manual Minecraft test - Phase 3 dump diagnostics
 1. Run:
@@ -596,3 +670,12 @@ The command should create a dump with `player` set to `null` and a filename endi
 - 10 `minecraft:rotten_flesh` in inventory plus one nearby `minecraft:gold_block` plus 10 `minecraft:rotten_flesh` in a nearby chest/barrel gives `totalExposure=25.0`.
 - `/radworks dump` after exposure includes bounded inventory, block and block entity inventory source rows.
 - No NeoForge capabilities, `IItemHandler`, modded capability containers, nested containers, shulker contents, backpacks, fluids, tanks, entities, dropped items, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS logic exists.
+
+## Phase 4C acceptance
+- The project builds.
+- Existing Phase 4B scenario remains `totalExposure=25.0`, not `35.0`.
+- Vanilla chest/barrel sources are not double-counted through `IItemHandler`.
+- `/radworks sources` explains that vanilla `Container` block entities are skipped by `itemHandlerScan` to avoid double counting.
+- `/radworks dump` includes `performance.itemHandlerScan`.
+- Optional non-vanilla block item handler sources can be shown as `type=block_item_handler` when such a block exists in the instance.
+- No entity capabilities, item stack capabilities, nested containers, Curios/Trinkets, fluids/tanks, `IFluidHandler`, energy, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS logic exists.

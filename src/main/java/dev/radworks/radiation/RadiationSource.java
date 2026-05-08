@@ -11,6 +11,7 @@ public record RadiationSource(
         String slot,
         int count,
         BlockPos position,
+        String capabilityContext,
         double ruleStrength,
         double ruleRadius,
         double distance,
@@ -31,6 +32,7 @@ public record RadiationSource(
                 null,
                 slot,
                 count,
+                null,
                 null,
                 ruleStrength,
                 ruleRadius,
@@ -55,6 +57,7 @@ public record RadiationSource(
                 null,
                 0,
                 position.immutable(),
+                null,
                 ruleStrength,
                 ruleRadius,
                 distance,
@@ -81,6 +84,35 @@ public record RadiationSource(
                 slot,
                 count,
                 containerPos.immutable(),
+                null,
+                ruleStrength,
+                ruleRadius,
+                distance,
+                "not_applied",
+                contribution,
+                matchReason);
+    }
+
+    public static RadiationSource blockItemHandler(
+            ResourceLocation blockId,
+            BlockPos position,
+            String capabilityContext,
+            String slot,
+            ResourceLocation itemId,
+            int count,
+            double ruleStrength,
+            double ruleRadius,
+            double distance,
+            double contribution,
+            String matchReason) {
+        return new RadiationSource(
+                RadiationSourceType.BLOCK_ITEM_HANDLER,
+                itemId,
+                blockId,
+                slot,
+                count,
+                position.immutable(),
+                capabilityContext,
                 ruleStrength,
                 ruleRadius,
                 distance,
@@ -114,6 +146,9 @@ public record RadiationSource(
             } else {
                 json.add("position", pos);
             }
+        }
+        if (capabilityContext != null) {
+            json.addProperty("capabilityContext", capabilityContext);
         }
         json.addProperty("ruleStrength", ruleStrength);
         json.addProperty("ruleRadius", ruleRadius);

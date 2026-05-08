@@ -48,6 +48,15 @@ Verified by user:
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## Phase 4B - Vanilla container block entity item sources
+Status: implemented and manually verified.
+
+Verified by user:
+- Vanilla `Container` block entity item sources work.
+- Chest/barrel with 10 `minecraft:rotten_flesh` gives `block_entity_inventory contribution=10.0`.
+- 10 `minecraft:rotten_flesh` in player inventory plus nearby `minecraft:gold_block` plus chest with 10 `minecraft:rotten_flesh` gives `totalExposure=25.0`.
+- Phase 4B remains diagnostic-only.
+
+## Phase 4C - NeoForge ItemHandler block capability sources
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## MIGRATION_DECISION_ACCEPTED
@@ -74,6 +83,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - `/radworks debug on/off/status`.
 - Diagnostic-only static block source discovery for ordinary block states.
 - Diagnostic-only item source discovery inside nearby vanilla `Container` block entities.
+- Diagnostic-only item source discovery through NeoForge block `IItemHandler` capability.
 - Rules summary in `/radworks version`.
 - Rules validation summary in `/radworks dump`.
 - Last diagnostic-only exposure snapshot in `/radworks dump` after `/radworks exposure` runs.
@@ -130,6 +140,9 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4B must run `./gradlew build` after implementation.
 - Phase 4B `./gradlew build` passed on 2026-05-08.
 - Phase 4B `timeout 60s ./gradlew runClient` launched the client, listed `RadWorks 0.1.0`, and started an integrated server; the process then ended with timeout code `124`, so full manual command verification is still pending.
+- Phase 4B was manually verified by user after implementation.
+- Phase 4C `./gradlew build` passed on 2026-05-08.
+- Phase 4C `timeout 60s ./gradlew runClient` launched the client, listed `RadWorks 0.1.0`, and started an integrated server; smoke log showed the existing Phase 4B scenario still reports `totalExposure=25.0` with player inventory + gold block + chest, not `35.0`. The process then ended with timeout code `124`, so full manual command verification is still pending.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.
@@ -178,6 +191,21 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Chat output remains bounded to 10 source rows.
 - Dump `lastExposureSnapshot` remains bounded to 20 source rows and can include inventory, block and block entity inventory source rows.
 
+## Phase 4C implementation notes
+- NeoForge block item handler discovery is command-only.
+- `/radworks sources` and `/radworks exposure` combine player inventory, static block, vanilla `Container` block entity inventory and block `IItemHandler` capability sources.
+- Source type: `block_item_handler`.
+- Capability lookup uses `Capabilities.ItemHandler.BLOCK`.
+- Lookup order is unsided first, then `UP`, `DOWN`, `NORTH`, `SOUTH`, `WEST`, `EAST`; only the first available handler per block position is scanned.
+- Vanilla `Container` block entities are skipped by item handler scan to avoid double counting with Phase 4B.
+- Handler slots are read only through `getSlots()` and `getStackInSlot(slot)`.
+- Active item handler source formula: `distance = player position to block center`; source is active only when `distance <= item rule.radius`.
+- Phase 4C item handler contribution is `stack.count * itemRule.strength`; no falloff and no shielding result is applied.
+- Effective command scan radius is `min(max active item rule radius, 8)`.
+- Item handler scan timing is command diagnostics only and appears as `performance.itemHandlerScan`.
+- Chat output remains bounded to 10 source rows.
+- Dump `lastExposureSnapshot` remains bounded to 20 source rows and can include `block_item_handler` source rows.
+
 ## Phase 1 implementation notes
 - Reload implementation uses a direct `SimplePreparableReloadListener` instead of `SimpleJsonResourceReloadListener` so malformed external datapack JSON can be captured and reported by `/radworks validate`.
 - Unknown registry IDs are warnings in `lenient/dev`, not fatal errors.
@@ -202,3 +230,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4B scans a bounded cube on command execution only; it is intentionally not cached.
 - Phase 4B does not scan nested item contents, fluids, tanks, dropped items, entities, Create contraptions or Aeronautics ships.
 - Phase 4B does not implement shielding, damage, effects or exposure accumulation.
+- Phase 4C works without extra mod dependencies, but the dev environment may not contain a non-vanilla block that exposes `IItemHandler`.
+- Phase 4C does not scan entity capabilities, item stack capabilities, Curios/Trinkets, nested item contents, fluids, tanks, energy, dropped items, entities, Create contraptions or Aeronautics ships.
+- Phase 4C does not implement shielding, damage, effects, exposure accumulation, cache or invalidation.
+- Phase 4C only scans the first available item handler context per block position, which may miss side-distinct inventories in some modded blocks; this is intentional to avoid accidental double counting in this diagnostic phase.

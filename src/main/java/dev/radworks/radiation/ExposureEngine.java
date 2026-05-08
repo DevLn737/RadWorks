@@ -38,6 +38,7 @@ public final class ExposureEngine {
         sources.addAll(PlayerInventorySourceProvider.collect(player, rules));
         sources.addAll(BlockSourceProvider.collect(player, rules));
         sources.addAll(BlockEntityInventorySourceProvider.collect(player, rules));
+        sources.addAll(BlockItemHandlerSourceProvider.collect(player, rules));
         return List.copyOf(sources);
     }
 

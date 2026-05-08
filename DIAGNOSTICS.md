@@ -49,7 +49,7 @@ Validation categories:
 - `DISABLED_RULE`: info; disabled rules are counted but not active.
 
 ## `/radworks exposure`
-Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory, active static block rules around the player, and active item rules inside nearby vanilla `Container` block entities.
+Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory, active static block rules around the player, active item rules inside nearby vanilla `Container` block entities, and active item rules inside nearby block item handlers exposed through NeoForge `Capabilities.ItemHandler.BLOCK`.
 
 ```text
 /radworks exposure
@@ -69,7 +69,11 @@ Phase 4A block scan includes only ordinary block states read with `getBlockState
 
 Phase 4B container scan includes only block entities that implement `net.minecraft.world.Container`. Slots are read through `getContainerSize()` and `getItem(slot)`.
 
-Phase 4B does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, capability-only modded containers, tanks, dropped items, entities, fluids, NBT, components, NeoForge capabilities, `IItemHandler`, Create or Aeronautics.
+Phase 4C item handler scan includes only block capabilities queried through `Capabilities.ItemHandler.BLOCK`. It does not scan entity capabilities or item stack capabilities.
+
+Vanilla `Container` block entities are skipped by item handler scan to avoid double counting with Phase 4B.
+
+Phase 4C does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, tanks, dropped items, entities, fluids, NBT, components, `IFluidHandler`, energy, Create or Aeronautics.
 
 Formula:
 
@@ -98,6 +102,15 @@ contribution = stack.count * itemRule.strength
 shielding = not_applied
 ```
 
+Block item handler formula:
+
+```text
+distance = player position to block center
+active when distance <= itemRule.radius
+contribution = stack.count * itemRule.strength
+shielding = not_applied
+```
+
 The effective block command scan radius is:
 
 ```text
@@ -110,7 +123,13 @@ The effective container command scan radius is:
 min(max active item rule radius, 8)
 ```
 
-Block and container scans are command-only and are not tick scans.
+The effective item handler command scan radius is also:
+
+```text
+min(max active item rule radius, 8)
+```
+
+Block, container and item handler scans are command-only and are not tick scans.
 
 Example:
 
@@ -125,7 +144,7 @@ Note: diagnostic only, no gameplay effect
 Chat output is bounded to 10 source rows.
 
 ## `/radworks sources`
-Reports the diagnostic sources currently found for a player. Phase 4B combines Phase 2 player inventory sources, Phase 4A static block sources and nearby vanilla `Container` block entity inventory sources.
+Reports the diagnostic sources currently found for a player. Phase 4C combines Phase 2 player inventory sources, Phase 4A static block sources, Phase 4B nearby vanilla `Container` block entity inventory sources and nearby block item handler sources.
 
 ```text
 /radworks sources
@@ -136,24 +155,32 @@ Difference from `/radworks exposure`:
 - `sources` shows found source rows and why they matched.
 - `exposure` shows the summed total and contribution math.
 
-Phase 4B `sources` scope:
+Phase 4C `sources` scope:
 - main inventory;
 - offhand;
 - ordinary block states around the player;
 - vanilla block entities implementing `Container`;
+- block `IItemHandler` capability exposed through `Capabilities.ItemHandler.BLOCK`;
 - active `type=item` and `type=block` rules only.
 
-It does not use NeoForge capabilities or `IItemHandler`. It does not scan nested containers, shulker contents, backpacks, tanks, dropped items, entities, fluids, NBT/components, Create or Aeronautics.
+It does not scan entity capabilities, item stack capabilities, nested containers, shulker contents, backpacks, tanks, dropped items, entities, fluids, NBT/components, `IFluidHandler`, energy, Create or Aeronautics.
 
 Example:
 
 ```text
-RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers
+RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers
 - type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
 - type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 contribution=5.0 reason=active block rule matched type=block id=minecraft:gold_block
 - type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh
 sourcesShown=3 sourcesOmitted=0
-Note: diagnostic only, player inventory, static block and vanilla Container sources only
+Note: diagnostic only, player inventory, static block, vanilla Container and block ItemHandler sources only
+Note: vanilla Container block entities are skipped by itemHandlerScan to avoid double counting
+```
+
+If a non-vanilla block item handler source is present, a row can look like:
+
+```text
+- type=block_item_handler itemId=minecraft:rotten_flesh blockId=example:item_handler_block position=12,64,10 capabilityContext=unsided slot=item_handler.0 count=10 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=NeoForge ItemHandler block capability matched active item rule type=item id=minecraft:rotten_flesh
 ```
 
 Chat output is bounded to 10 source rows.
@@ -273,6 +300,12 @@ If the command is run from a server console, the filename uses `server` and the 
       "averageMillis": 0,
       "maxMillis": 0
     },
+    "itemHandlerScan": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
     "dump": {
       "lastMillis": 0,
       "count": 0,
@@ -360,6 +393,30 @@ After Phase 4B, source rows may include vanilla container block entity inventory
 }
 ```
 
+After Phase 4C, source rows may include block item handler sources:
+
+```json
+{
+  "type": "block_item_handler",
+  "itemId": "minecraft:rotten_flesh",
+  "blockId": "example:item_handler_block",
+  "slot": "item_handler.0",
+  "count": 10,
+  "position": {
+    "x": 12,
+    "y": 64,
+    "z": 10
+  },
+  "capabilityContext": "unsided",
+  "ruleStrength": 1.0,
+  "ruleRadius": 2.0,
+  "distance": 1.4,
+  "shielding": "not_applied",
+  "contribution": 10.0,
+  "matchReason": "NeoForge ItemHandler block capability matched active item rule type=item id=minecraft:rotten_flesh"
+}
+```
+
 Dump snapshot output is bounded to 20 source rows. If rules are reloaded and the checksum changes, an old snapshot reports `stale=true`.
 
 ## Recent warnings
@@ -393,6 +450,7 @@ Measured operations:
 - `sources`
 - `blockScan`
 - `blockEntityInventoryScan`
+- `itemHandlerScan`
 - `dump`
 
 Fields:
@@ -432,3 +490,5 @@ Phase 3 uses the same item-rule inventory provider for `/radworks sources` diagn
 Phase 4A adds static block source diagnostics.
 
 Phase 4B adds vanilla `Container` block entity item source diagnostics.
+
+Phase 4C adds NeoForge block `IItemHandler` capability item source diagnostics.

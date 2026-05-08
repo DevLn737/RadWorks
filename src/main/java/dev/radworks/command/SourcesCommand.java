@@ -50,7 +50,7 @@ public final class SourcesCommand {
                 + player.getGameProfile().getName()
                 + ": matchedSources="
                 + sources.size()
-                + " scope=player_inventory+static_blocks+vanilla_containers"), false);
+                + " scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
         for (int index = 0; index < shown; index++) {
@@ -65,7 +65,8 @@ public final class SourcesCommand {
                 + shown
                 + " sourcesOmitted="
                 + (sources.size() - shown)), false);
-        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory, static block and vanilla Container sources only"), false);
+        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory, static block, vanilla Container and block ItemHandler sources only"), false);
+        source.sendSuccess(() -> Component.literal("Note: vanilla Container block entities are skipped by itemHandlerScan to avoid double counting"), false);
         return 1;
     }
 
@@ -89,6 +90,9 @@ public final class SourcesCommand {
                     .append(source.position().getY())
                     .append(",")
                     .append(source.position().getZ());
+        }
+        if (source.capabilityContext() != null) {
+            row.append(" capabilityContext=").append(source.capabilityContext());
         }
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
