@@ -5,3 +5,13 @@
 /radworks
 /radworks validate
 /radworks dump
+/radworks exposure
+/radworks
+/radworks dump
+/radworks exposure
+/give @s minecraft:rotten_flesh 1
+/radworks exposure
+/clear @s minecraft:rotten_flesh
+/give @s minecraft:rotten_flesh 10
+/radworks exposure
+/radworks dump

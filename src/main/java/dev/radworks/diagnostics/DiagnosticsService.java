@@ -6,6 +6,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.radworks.RadWorks;
+import dev.radworks.radiation.ExposureBreakdown;
+import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
 import java.io.IOException;
@@ -66,6 +68,7 @@ public final class DiagnosticsService {
         root.add("rules", rulesInfo());
         root.add("integrations", integrationsInfo());
         root.add("performance", performanceInfo());
+        root.add("lastExposureSnapshot", lastExposureSnapshotInfo());
         root.add("recentWarnings", new JsonArray());
         return root;
     }
@@ -132,6 +135,14 @@ public final class DiagnosticsService {
         performance.addProperty("sourcesScanned", 0);
         performance.addProperty("cacheHitRate", 0);
         return performance;
+    }
+
+    private static com.google.gson.JsonElement lastExposureSnapshotInfo() {
+        ExposureBreakdown snapshot = ExposureEngine.lastExposureSnapshot();
+        if (snapshot == null) {
+            return JsonNull.INSTANCE;
+        }
+        return snapshot.toJson(20, RadiationRulesLoader.currentRules().checksum());
     }
 
     private static Path uniqueDumpPath(Path dumpDir, Instant createdAt, String suffix) {

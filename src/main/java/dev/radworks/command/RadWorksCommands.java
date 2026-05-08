@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import dev.radworks.diagnostics.DiagnosticsService;
 import java.io.IOException;
 import java.nio.file.Path;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -22,7 +23,13 @@ public final class RadWorksCommands {
                 .then(Commands.literal("dump")
                         .executes(context -> writeDump(context.getSource())))
                 .then(Commands.literal("validate")
-                        .executes(context -> ValidateCommand.run(context.getSource()))));
+                        .executes(context -> ValidateCommand.run(context.getSource())))
+                .then(Commands.literal("exposure")
+                        .executes(context -> ExposureCommand.runSelf(context.getSource()))
+                        .then(Commands.argument("player", EntityArgument.player())
+                                .executes(context -> ExposureCommand.run(
+                                        context.getSource(),
+                                        EntityArgument.getPlayer(context, "player"))))));
     }
 
     private static int showVersion(CommandSourceStack source) {

@@ -119,6 +119,120 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `errors: []`;
    - `warnings: []`;
    - `infos: []` or only expected disabled-rule info if a local test datapack is active.
+   - Before running `/radworks exposure`, `lastExposureSnapshot` is `null`.
+
+## Manual Minecraft test - `/radworks exposure` with no rotten flesh
+1. Remove all `minecraft:rotten_flesh` from main inventory and offhand.
+2. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+3. Confirm output includes:
+   - `totalExposure=0.0`;
+   - `matchedStacks=0`;
+   - `diagnostic only, no gameplay effect`.
+
+## Manual Minecraft test - `/radworks exposure` with 1 rotten flesh
+1. Put exactly 1 `minecraft:rotten_flesh` in main inventory.
+2. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+3. Confirm output includes:
+   - `totalExposure=1.0`;
+   - `matchedStacks=1`;
+   - `minecraft:rotten_flesh`;
+   - the slot name;
+   - `count=1`;
+   - `strength=1.0`;
+   - `radius=2.0`;
+   - `contribution=1.0`;
+   - `shielding=not_applied`.
+
+## Manual Minecraft test - scaling 1 vs 10 rotten flesh
+1. Change the same stack to exactly 10 `minecraft:rotten_flesh`.
+2. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+3. Confirm output includes:
+   - `totalExposure=10.0`;
+   - `count=10`;
+   - `contribution=10.0`.
+
+## Manual Minecraft test - offhand rotten flesh
+1. Remove rotten flesh from main inventory.
+2. Put exactly 1 `minecraft:rotten_flesh` in offhand.
+3. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+4. Confirm output includes:
+   - `totalExposure=1.0`;
+   - `slot=offhand.0`;
+   - `count=1`.
+
+## Manual Minecraft test - `/radworks exposure <player>`
+1. In single-player, run:
+
+   ```text
+   /radworks exposure Dev
+   ```
+
+   Replace `Dev` with the actual player name shown by the client.
+
+2. Confirm it reports that player.
+3. From server console, `/radworks exposure` without a player should fail with:
+
+   ```text
+   player required; use /radworks exposure <player>
+   ```
+
+## Manual Minecraft test - exposure dump snapshot
+1. Before running `/radworks exposure`, run:
+
+   ```text
+   /radworks dump
+   ```
+
+2. Confirm `lastExposureSnapshot` is `null`.
+3. Run:
+
+   ```text
+   /radworks exposure
+   /radworks dump
+   ```
+
+4. Confirm `lastExposureSnapshot` exists and includes:
+   - `rulesChecksum`;
+   - `createdAt`;
+   - `playerName`;
+   - `playerUuid`;
+   - `totalExposure`;
+   - `matchedStacks`;
+   - `sources`;
+   - `notes`;
+   - `stale`.
+
+## Manual Minecraft test - Phase 2 reload
+1. Run:
+
+   ```text
+   /reload
+   /radworks validate
+   /radworks exposure
+   ```
+
+2. Confirm validation remains clean and exposure still detects `minecraft:rotten_flesh`.
+3. If a datapack changes the rules checksum, a previous dump snapshot should show `stale=true` until `/radworks exposure` is run again.
 
 ## Manual Minecraft test - external broken-rule datapack
 Do not put malformed JSON in `src/main/resources`.
@@ -193,3 +307,15 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `/radworks dump` includes the rules validation summary.
 - Broken external datapack rules report validation issues without crashing.
 - No exposure calculation, inventory/world/entity scanning, shielding, effects, damage or gameplay radiation exists.
+
+## Phase 2 acceptance
+- The project builds.
+- `/radworks exposure` works for the executing player.
+- `/radworks exposure <player>` works for an online server player.
+- No rotten flesh gives `totalExposure=0.0`.
+- 1 rotten flesh gives `totalExposure=1.0`.
+- 10 rotten flesh gives `totalExposure=10.0`.
+- Offhand rotten flesh is counted.
+- `/radworks dump` has `lastExposureSnapshot=null` before exposure and a bounded snapshot after exposure.
+- `/reload`, `/radworks validate`, and `/radworks exposure` work together.
+- No damage, effects, hunger/exhaustion, particles, sounds, ticking accumulation, shielding, fluids or world/container/entity scan exists.

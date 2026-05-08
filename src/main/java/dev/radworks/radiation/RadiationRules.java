@@ -2,6 +2,8 @@ package dev.radworks.radiation;
 
 import com.google.gson.JsonObject;
 import java.util.List;
+import java.util.Optional;
+import net.minecraft.resources.ResourceLocation;
 
 public final class RadiationRules {
     public static final String VALIDATION_MODE = "lenient/dev";
@@ -73,6 +75,15 @@ public final class RadiationRules {
 
     public int fluidRules() {
         return count(RadiationRuleType.FLUID);
+    }
+
+    public Optional<RadiationRule> itemRule(ResourceLocation id) {
+        for (RadiationRule rule : activeRules) {
+            if (rule.type() == RadiationRuleType.ITEM && rule.id().equals(id)) {
+                return Optional.of(rule);
+            }
+        }
+        return Optional.empty();
     }
 
     public JsonObject toJson() {
