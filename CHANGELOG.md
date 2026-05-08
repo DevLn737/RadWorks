@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 - Phase 3 exposure diagnostics framework
+- Added `/radworks debug on`, `/radworks debug off`, and `/radworks debug status`.
+- Added `/radworks sources` and `/radworks sources <player>` for player inventory item sources only.
+- Added bounded recent warning buffer to dumps.
+- Added command diagnostics performance stats for validate, exposure, sources and dump.
+- Added debug state to dumps.
+- Kept Phase 3 diagnostic-only and inventory-only.
+
 ## 0.1.0 - Phase 2 player inventory radiation diagnostics
 - Added `/radworks exposure` and `/radworks exposure <player>`.
 - Added diagnostic-only inventory exposure from active item rules.

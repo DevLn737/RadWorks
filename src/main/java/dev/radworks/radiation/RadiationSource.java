@@ -12,7 +12,8 @@ public record RadiationSource(
         double ruleRadius,
         double distance,
         String shielding,
-        double contribution) {
+        double contribution,
+        String matchReason) {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", type.id());
@@ -24,6 +25,7 @@ public record RadiationSource(
         json.addProperty("distance", distance);
         json.addProperty("shielding", shielding);
         json.addProperty("contribution", contribution);
+        json.addProperty("matchReason", matchReason);
         return json;
     }
 }

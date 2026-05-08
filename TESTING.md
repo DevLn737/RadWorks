@@ -196,6 +196,57 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    player required; use /radworks exposure <player>
    ```
 
+## Manual Minecraft test - `/radworks debug`
+1. Run:
+
+   ```text
+   /radworks debug status
+   ```
+
+2. Confirm it reports `disabled` by default.
+3. As an operator or in a cheats-enabled world, run:
+
+   ```text
+   /radworks debug on
+   /radworks debug status
+   /radworks debug off
+   /radworks debug status
+   ```
+
+4. Confirm status changes from enabled to disabled.
+
+## Manual Minecraft test - `/radworks sources` without rotten flesh
+1. Remove all `minecraft:rotten_flesh` from main inventory and offhand.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm output includes:
+   - `matchedSources=0`;
+   - `scope=player_inventory`;
+   - no world/block/container/entity/fluid sources.
+
+## Manual Minecraft test - `/radworks sources` with 10 rotten flesh
+1. Put exactly 10 `minecraft:rotten_flesh` in main inventory.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm output includes:
+   - `matchedSources=1`;
+   - `type=player_inventory`;
+   - `minecraft:rotten_flesh`;
+   - slot name;
+   - `count=10`;
+   - `strength=1.0`;
+   - `radius=2.0`;
+   - `contribution=10.0`;
+   - `reason=active item rule matched type=item id=minecraft:rotten_flesh`.
+
 ## Manual Minecraft test - exposure dump snapshot
 1. Before running `/radworks exposure`, run:
 
@@ -221,6 +272,34 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `sources`;
    - `notes`;
    - `stale`.
+
+## Manual Minecraft test - Phase 3 dump diagnostics
+1. Run:
+
+   ```text
+   /radworks debug status
+   /radworks sources
+   /radworks exposure
+   /radworks validate
+   /radworks dump
+   ```
+
+2. Open the generated JSON and confirm it contains:
+   - `debug.enabled`;
+   - `performance.validate`;
+   - `performance.exposure`;
+   - `performance.sources`;
+   - `performance.dump`;
+   - `recentWarnings`;
+   - existing `lastExposureSnapshot`.
+
+3. Confirm performance fields use command diagnostics names:
+   - `lastMillis`;
+   - `count`;
+   - `averageMillis`;
+   - `maxMillis`.
+
+4. Confirm no TPS/server performance wording and no block/world/source scan snapshot.
 
 ## Manual Minecraft test - Phase 2 reload
 1. Run:
@@ -319,3 +398,13 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `/radworks dump` has `lastExposureSnapshot=null` before exposure and a bounded snapshot after exposure.
 - `/reload`, `/radworks validate`, and `/radworks exposure` work together.
 - No damage, effects, hunger/exhaustion, particles, sounds, ticking accumulation, shielding, fluids or world/container/entity scan exists.
+
+## Phase 3 acceptance
+- The project builds.
+- `/radworks debug status/on/off` works with expected permissions.
+- `/radworks sources` reports only player inventory item sources.
+- `/radworks sources` with no rotten flesh reports 0 sources.
+- `/radworks sources` with 10 rotten flesh reports one `player_inventory` source and match reason.
+- `/radworks exposure` still reports `totalExposure=10.0` for 10 rotten flesh.
+- `/radworks dump` includes debug state, command diagnostics performance stats, recent warnings and existing exposure snapshot.
+- No damage, effects, hunger/exhaustion, particles, sounds, ticking accumulation, shielding, fluids, world scan, block scan, container scan or entity scan exists.

@@ -23,6 +23,17 @@ Verified by user:
 - `errors=0 warnings=0`.
 
 ## Phase 2 - Player inventory radiation diagnostics
+Status: implemented and manually verified.
+
+Verified by user:
+- `./gradlew build` passed.
+- `/radworks validate` works.
+- `/radworks exposure` works.
+- 10 `minecraft:rotten_flesh` in inventory gives `totalExposure=10.0`.
+- `/radworks dump` contains `lastExposureSnapshot` with a source row.
+- Gameplay effects are absent.
+
+## Phase 3 - Exposure diagnostics framework
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## MIGRATION_DECISION_ACCEPTED
@@ -45,9 +56,14 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Default validation mode: `lenient/dev`.
 - `/radworks validate`.
 - `/radworks exposure`.
+- `/radworks sources`.
+- `/radworks debug on/off/status`.
 - Rules summary in `/radworks version`.
 - Rules validation summary in `/radworks dump`.
 - Last diagnostic-only exposure snapshot in `/radworks dump` after `/radworks exposure` runs.
+- Server-wide in-memory debug state in `/radworks dump`.
+- Bounded recent warning buffer in `/radworks dump`.
+- Command diagnostics performance stats in `/radworks dump`.
 - Documentation: `AGENTS.md`, `README.md`, `MIGRATION_STATUS.md`, `TESTING.md`, `DIAGNOSTICS.md`, `CHANGELOG.md`.
 
 ## Phase 1 temporary/dev-only rule
@@ -81,6 +97,9 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 2 must run `./gradlew build` after implementation.
 - Phase 2 `./gradlew build` passed on 2026-05-08.
 - Phase 2 `./gradlew runClient` was requested but not run because the approval flow rejected the launch.
+- Phase 3 must run `./gradlew build` after implementation.
+- Phase 3 `./gradlew build` passed on 2026-05-08.
+- Phase 3 `./gradlew runClient` was requested but not run because the approval flow rejected the launch.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.
@@ -93,6 +112,16 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Dump `lastExposureSnapshot` is bounded to 20 source rows.
 - Dump `lastExposureSnapshot` is `null` until `/radworks exposure` has run.
 - Snapshot includes `stale=true` when its rules checksum differs from current loaded rules.
+
+## Phase 3 implementation notes
+- `/radworks sources` uses only Phase 2 player inventory sources.
+- `/radworks sources` does not scan blocks, block entities, containers, dropped items, entities, fluids, NBT/components, Create or Aeronautics.
+- `/radworks sources` explains why each source matched an active item rule.
+- `/radworks debug on/off` require permission level 2; `/radworks debug status` is readable by normal players.
+- Debug state is server-wide, in-memory, and resets on restart.
+- `WarningBuffer` is bounded to 100 entries.
+- `PerformanceStats` measures command diagnostics only: `validate`, `exposure`, `sources`, `dump`.
+- Performance stats are not TPS or server performance metrics.
 
 ## Phase 1 implementation notes
 - Reload implementation uses a direct `SimplePreparableReloadListener` instead of `SimpleJsonResourceReloadListener` so malformed external datapack JSON can be captured and reported by `/radworks validate`.
@@ -109,3 +138,5 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - External broken-rule datapack tests must be removed after verification.
 - Phase 2 formula is intentionally simple and diagnostic-only; old dynamic radius math is not ported yet.
 - Offhand is included, but armor, Curios/Trinkets and nested containers are not included.
+- Phase 3 debug state is not persisted.
+- Phase 3 warning/performance buffers are in-memory and reset on restart.

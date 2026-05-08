@@ -54,6 +54,7 @@ public final class PlayerInventorySourceProvider {
                 rule.get().radius(),
                 0.0D,
                 "not_applied",
-                contribution));
+                contribution,
+                "active item rule matched type=item id=" + itemId));
     }
 }

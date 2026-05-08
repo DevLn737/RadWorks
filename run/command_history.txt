@@ -15,3 +15,19 @@
 /give @s minecraft:rotten_flesh 10
 /radworks exposure
 /radworks dump
+/radworks debug status
+/radworks debug on
+/radworks debug
+/radworks debug on
+/radworks debug status
+/radworks debug off
+/radworks debug status
+/radworks sources
+/radworks validate
+/План Phase 3 одобрен с уточнениями.Реализуй строго только Phase 3 — Exposure Diagnostics Framework.Подтверждаю:- /radworks debug on|off|status- /radworks sources- /radworks sources <player>- WarningBuffer max 100- PerformanceStats только для command diagc
+/clear @s minecraft:rotten_flesh
+/radworks sources
+/give @s minecraft:rotten_flesh 10
+/radworks sources
+/radworks exposure
+/radworks dump

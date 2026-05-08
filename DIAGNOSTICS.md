@@ -86,6 +86,51 @@ Note: diagnostic only, no gameplay effect
 
 Chat output is bounded to 10 source rows.
 
+## `/radworks sources`
+Reports the inventory sources currently found for a player. Phase 3 uses only the existing Phase 2 player inventory provider.
+
+```text
+/radworks sources
+/radworks sources <player>
+```
+
+Difference from `/radworks exposure`:
+- `sources` shows found source rows and why they matched.
+- `exposure` shows the summed total and contribution math.
+
+Phase 3 `sources` scope:
+- main inventory;
+- offhand;
+- active `type=item` rules only.
+
+It does not scan blocks, block entities, chests, containers, dropped items, entities, fluids, NBT/components, Create or Aeronautics.
+
+Example:
+
+```text
+RadWorks sources for Dev: matchedSources=1 scope=player_inventory
+- minecraft:rotten_flesh type=player_inventory slot=inventory.0 count=10 strength=1.0 radius=2.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
+Note: diagnostic only, player inventory sources only
+```
+
+Chat output is bounded to 10 source rows.
+
+## `/radworks debug`
+Controls server-wide in-memory diagnostics debug state:
+
+```text
+/radworks debug status
+/radworks debug on
+/radworks debug off
+```
+
+Rules:
+- `debug status` is available to normal players.
+- `debug on/off` require permission level 2.
+- Console can use all three commands if permission allows.
+- Debug state resets on server restart.
+- Debug state does not change gameplay balance or calculations.
+
 ## `/radworks dump`
 Creates a JSON diagnostics file in:
 
@@ -139,6 +184,9 @@ If the command is run from a server console, the filename uses `server` and the 
     "warnings": [],
     "infos": []
   },
+  "debug": {
+    "enabled": false
+  },
   "integrations": {
     "create": {
       "loaded": false,
@@ -152,10 +200,30 @@ If the command is run from a server console, the filename uses `server` and the 
     }
   },
   "performance": {
-    "lastScanMillis": 0,
-    "averageScanMillis": 0,
-    "sourcesScanned": 0,
-    "cacheHitRate": 0
+    "validate": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
+    "exposure": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
+    "sources": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
+    "dump": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    }
   },
   "lastExposureSnapshot": null,
   "recentWarnings": []
@@ -184,7 +252,8 @@ After `/radworks exposure`, `lastExposureSnapshot` becomes:
       "ruleRadius": 2.0,
       "distance": 0.0,
       "shielding": "not_applied",
-      "contribution": 10.0
+      "contribution": 10.0,
+      "matchReason": "active item rule matched type=item id=minecraft:rotten_flesh"
     }
   ],
   "sourcesShown": 1,
@@ -194,9 +263,44 @@ After `/radworks exposure`, `lastExposureSnapshot` becomes:
 
 Dump snapshot output is bounded to 20 source rows. If rules are reloaded and the checksum changes, an old snapshot reports `stale=true`.
 
+## Recent warnings
+`recentWarnings` is an in-memory bounded ring buffer with a maximum of 100 entries.
+
+Warnings include real diagnostics issues such as:
+- validation warnings/errors after `/radworks validate`;
+- command misuse, such as using player-only commands from console;
+- dump write failures;
+- unexpected diagnostic exceptions if they occur.
+
+Entries have:
+
+```json
+{
+  "createdAt": "ISO-8601",
+  "category": "COMMAND_MISUSE",
+  "source": "sources",
+  "message": "player required; use /radworks sources <player>"
+}
+```
+
+Normal successful commands do not add warnings.
+
+## Performance stats
+`performance` contains command diagnostics timings only. It is not TPS and not general server performance.
+
+Measured operations:
+- `validate`
+- `exposure`
+- `sources`
+- `dump`
+
+Fields:
+- `lastMillis`
+- `count`
+- `averageMillis`
+- `maxMillis`
+
 ## Not available in Phase 0
-- `/radworks sources`
-- `/radworks debug`
 - Gameplay use of radiation rules
 - Gameplay exposure effects
 
@@ -221,3 +325,5 @@ Allowed `type` values:
 Phase 1 does not scan the world or apply these rules to gameplay.
 
 Phase 2 uses item rules only for `/radworks exposure` diagnostics.
+
+Phase 3 uses the same item-rule inventory provider for `/radworks sources` diagnostics.

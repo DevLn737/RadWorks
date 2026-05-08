@@ -1,5 +1,7 @@
 package dev.radworks.command;
 
+import dev.radworks.diagnostics.PerformanceStats;
+import dev.radworks.diagnostics.WarningBuffer;
 import dev.radworks.radiation.ExposureBreakdown;
 import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationSource;
@@ -14,15 +16,25 @@ public final class ExposureCommand {
     }
 
     public static int runSelf(CommandSourceStack source) {
+        return PerformanceStats.timeCommand("exposure", () -> runSelfTimed(source));
+    }
+
+    private static int runSelfTimed(CommandSourceStack source) {
         if (source.getEntity() instanceof ServerPlayer player) {
-            return run(source, player);
+            return runTimed(source, player);
         }
 
-        source.sendFailure(Component.literal("player required; use /radworks exposure <player>"));
+        String message = "player required; use /radworks exposure <player>";
+        WarningBuffer.add("COMMAND_MISUSE", "exposure", message);
+        source.sendFailure(Component.literal(message));
         return 0;
     }
 
     public static int run(CommandSourceStack source, ServerPlayer player) {
+        return PerformanceStats.timeCommand("exposure", () -> runTimed(source, player));
+    }
+
+    private static int runTimed(CommandSourceStack source, ServerPlayer player) {
         ExposureBreakdown breakdown = ExposureEngine.calculate(player);
         source.sendSuccess(() -> Component.literal("RadWorks exposure for "
                 + breakdown.playerName()

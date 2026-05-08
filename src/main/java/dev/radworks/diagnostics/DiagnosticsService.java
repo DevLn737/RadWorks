@@ -45,6 +45,16 @@ public final class DiagnosticsService {
     }
 
     public static Path writeDump(CommandSourceStack source) throws IOException {
+        return PerformanceStats.timeValue("dump", () -> {
+            try {
+                return writeDumpTimed(source);
+            } catch (IOException exception) {
+                throw new DumpWriteException(exception);
+            }
+        });
+    }
+
+    private static Path writeDumpTimed(CommandSourceStack source) throws IOException {
         Instant createdAt = Instant.now();
         ServerPlayer player = source.getEntity() instanceof ServerPlayer serverPlayer ? serverPlayer : null;
         ServerLevel level = player != null ? player.serverLevel() : source.getLevel();
@@ -66,10 +76,11 @@ public final class DiagnosticsService {
         root.add("world", worldInfo(source, level));
         root.add("player", player == null ? JsonNull.INSTANCE : playerInfo(player));
         root.add("rules", rulesInfo());
+        root.add("debug", DiagnosticsState.toJson());
         root.add("integrations", integrationsInfo());
         root.add("performance", performanceInfo());
         root.add("lastExposureSnapshot", lastExposureSnapshotInfo());
-        root.add("recentWarnings", new JsonArray());
+        root.add("recentWarnings", WarningBuffer.toJson());
         return root;
     }
 
@@ -129,12 +140,7 @@ public final class DiagnosticsService {
     }
 
     private static JsonObject performanceInfo() {
-        JsonObject performance = new JsonObject();
-        performance.addProperty("lastScanMillis", 0);
-        performance.addProperty("averageScanMillis", 0);
-        performance.addProperty("sourcesScanned", 0);
-        performance.addProperty("cacheHitRate", 0);
-        return performance;
+        return PerformanceStats.toJson();
     }
 
     private static com.google.gson.JsonElement lastExposureSnapshotInfo() {
@@ -181,5 +187,11 @@ public final class DiagnosticsService {
 
     private static String sanitize(String value) {
         return value.replaceAll("[^A-Za-z0-9_.-]", "_");
+    }
+
+    private static final class DumpWriteException extends RuntimeException {
+        private DumpWriteException(IOException cause) {
+            super(cause);
+        }
     }
 }
