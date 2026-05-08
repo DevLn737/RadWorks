@@ -95,6 +95,15 @@ public final class RadiationRules {
         return Optional.empty();
     }
 
+    public Optional<RadiationRule> fluidRule(ResourceLocation id) {
+        for (RadiationRule rule : activeRules) {
+            if (rule.type() == RadiationRuleType.FLUID && rule.id().equals(id)) {
+                return Optional.of(rule);
+            }
+        }
+        return Optional.empty();
+    }
+
     public List<RadiationRule> activeBlockRules() {
         return activeRules.stream()
                 .filter(rule -> rule.type() == RadiationRuleType.BLOCK)
@@ -107,10 +116,26 @@ public final class RadiationRules {
                 .toList();
     }
 
+    public List<RadiationRule> activeFluidRules() {
+        return activeRules.stream()
+                .filter(rule -> rule.type() == RadiationRuleType.FLUID)
+                .toList();
+    }
+
     public double maxActiveBlockRuleRadius() {
         double maxRadius = 0.0D;
         for (RadiationRule rule : activeRules) {
             if (rule.type() == RadiationRuleType.BLOCK) {
+                maxRadius = Math.max(maxRadius, rule.radius());
+            }
+        }
+        return maxRadius;
+    }
+
+    public double maxActiveFluidRuleRadius() {
+        double maxRadius = 0.0D;
+        for (RadiationRule rule : activeRules) {
+            if (rule.type() == RadiationRuleType.FLUID) {
                 maxRadius = Math.max(maxRadius, rule.radius());
             }
         }

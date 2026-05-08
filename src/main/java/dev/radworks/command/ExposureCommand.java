@@ -68,6 +68,9 @@ public final class ExposureCommand {
         if (source.itemId() != null) {
             row.append(" itemId=").append(source.itemId());
         }
+        if (source.fluidId() != null) {
+            row.append(" fluidId=").append(source.fluidId());
+        }
         if (source.blockId() != null) {
             row.append(" blockId=").append(source.blockId());
         }
@@ -89,8 +92,14 @@ public final class ExposureCommand {
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }
+        if (source.tank() != null) {
+            row.append(" tank=").append(source.tank());
+        }
         if (source.count() > 0) {
             row.append(" count=").append(source.count());
+        }
+        if (source.amountMb() > 0) {
+            row.append(" amountMb=").append(source.amountMb());
         }
         row.append(" distance=").append(source.distance());
         row.append(" ruleRadius=").append(source.ruleRadius());

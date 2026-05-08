@@ -64,6 +64,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - Create and Aeronautics integrations are disabled;
    - performance counters are present.
    - Phase 4C: `performance.itemHandlerScan` is present after the updated mod is loaded.
+   - Phase 4D: `performance.fluidHandlerScan` is present after the updated mod is loaded.
 
 ## Manual Minecraft test - clean `/radworks validate`
 1. Start the client:
@@ -81,11 +82,12 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 4. Confirm the output includes:
    - `mode=lenient/dev`;
-   - `loaded=2`;
-   - `enabled=2`;
+   - `loaded=3`;
+   - `enabled=3`;
    - `disabled=0`;
    - `errors=0`;
    - a short checksum;
+   - Phase 4D: the temporary/dev-only `minecraft:water` fluid rule is valid;
    - no gameplay effects are applied.
 
 ## Manual Minecraft test - `/reload`
@@ -116,7 +118,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `validationMode: "lenient/dev"`;
    - `itemRules: 1`;
    - `blockRules: 1`;
-   - `fluidRules: 0`;
+   - `fluidRules: 1`;
    - `disabledRules: 0`;
    - `errors: []`;
    - `warnings: []`;
@@ -229,7 +231,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 5. Confirm output includes:
    - `matchedSources=0`;
-   - `scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers`;
+   - `scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers+block_fluid_handlers`;
    - no container/entity/fluid source rows.
 
 ## Manual Minecraft test - `/radworks sources` with 10 rotten flesh
@@ -424,6 +426,10 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `itemHandlerSlotsChecked`;
    - `itemHandlerMatches`;
    - `skippedContainerBlockEntitiesForItemHandler`;
+   - `fluidHandlerPositionsChecked`;
+   - `fluidHandlersFound`;
+   - `fluidTanksChecked`;
+   - `fluidMatches`;
    - `sourcesShown`;
    - `sourcesOmitted`.
 
@@ -434,7 +440,7 @@ When a source is missing, duplicated, or has the wrong contribution, send:
 - the generated `/radworks dump` JSON;
 - the exact `/radworks sources` and `/radworks exposure` chat output;
 - where the player stood and what was nearby;
-- contents of relevant inventory/container slots;
+- contents of relevant inventory/container slots or fluid tanks;
 - whether `/reload` was run after changing datapacks;
 - expected result versus actual result.
 
@@ -462,6 +468,49 @@ If the dev instance has a non-vanilla block that exposes `Capabilities.ItemHandl
    - `contribution=10.0`.
 
 If no such block exists, this is expected for the clean dev environment and is not a Phase 4C failure.
+
+## Manual Minecraft test - Phase 4D fluid handler baseline
+1. Run:
+
+   ```text
+   /radworks validate
+   /radworks sources
+   /radworks exposure
+   /radworks dump
+   ```
+
+2. Confirm validation includes the dev-only `minecraft:water` fluid rule and has `errors=0`.
+3. In a clean dev environment with no block fluid handler, confirm:
+   - existing Phase 4B/4C scenario remains `totalExposure=25.0`;
+   - no `type=block_fluid_handler` row appears;
+   - `/radworks dump` contains `performance.fluidHandlerScan`;
+   - `sourceScanSummary` contains `fluidHandlerPositionsChecked`, `fluidHandlersFound`, `fluidTanksChecked` and `fluidMatches`.
+
+## Manual Minecraft test - Phase 4D optional modded fluid handler block
+If the dev instance later has a block that exposes `Capabilities.FluidHandler.BLOCK`:
+
+1. Place that block within 2 blocks of the player.
+2. Put exactly 1000 mB of `minecraft:water` in one tank.
+3. Run:
+
+   ```text
+   /radworks sources
+   /radworks exposure
+   ```
+
+4. Confirm output may include:
+   - `type=block_fluid_handler`;
+   - `blockId=`;
+   - `position=`;
+   - `capabilityContext=unsided` or a side name;
+   - `tank=fluid_handler.`;
+   - `fluidId=minecraft:water`;
+   - `amountMb=1000`;
+   - `ruleStrength=1.0`;
+   - `ruleRadius=2.0`;
+   - `contribution=1.0`.
+
+If no such block exists, this is expected for the clean dev environment and is not a Phase 4D failure. Do not add a custom tank block for this phase.
 
 ## Manual Minecraft test - container outside item radius
 1. Move more than 2 blocks away from the test chest or barrel that contains 10 `minecraft:rotten_flesh`.
@@ -551,6 +600,23 @@ If no such block exists, this is expected for the clean dev environment and is n
    - `performance.itemHandlerScan` exists;
    - if a non-vanilla item handler source exists, `lastExposureSnapshot.sources` after `/radworks exposure` may include `type: "block_item_handler"`, `position`, `capabilityContext`, `slot`, `itemId`, `count` and `contribution`;
    - vanilla chest/barrel contents remain represented as `type: "block_entity_inventory"`, not double-counted as `block_item_handler`.
+
+## Manual Minecraft test - Phase 4D dump source rows
+1. Run:
+
+   ```text
+   /radworks sources
+   /radworks dump
+   ```
+
+2. Open the generated JSON under `radworks_dumps/`.
+3. Confirm:
+   - `performance.fluidHandlerScan` exists;
+   - `sourceScanSummary.fluidHandlerPositionsChecked` exists;
+   - `sourceScanSummary.fluidHandlersFound` exists;
+   - `sourceScanSummary.fluidTanksChecked` exists;
+   - `sourceScanSummary.fluidMatches` exists;
+   - if a block fluid handler source exists, `lastExposureSnapshot.sources` after `/radworks exposure` may include `type: "block_fluid_handler"`, `position`, `capabilityContext`, `tank`, `fluidId`, `amountMb` and `contribution`.
 
 ## Manual Minecraft test - Phase 3 dump diagnostics
 1. Run:
@@ -723,3 +789,12 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `sourceScanSummary` includes all requested checked/match counters and output bounds.
 - `sourceScanSummary.diagnosticNotes` explains container skipping when item handler scan skips vanilla `Container` block entities.
 - No formulas, source mechanics, gameplay effects, ticking, cache, fluids, shielding, Create, Aeronautics or KubeJS logic changes.
+
+## Phase 4D acceptance
+- The project builds.
+- `/radworks validate` reports the dev-only `minecraft:water` fluid rule with no validation errors.
+- Existing Phase 4B/4C scenario remains `totalExposure=25.0` when no block fluid handler source is present.
+- `/radworks dump` includes `performance.fluidHandlerScan`.
+- `/radworks dump.sourceScanSummary` includes fluid handler position, handler, tank and match counters.
+- Optional block fluid handler sources can be shown as `type=block_fluid_handler` when such a block exists in the instance.
+- No item fluid capabilities, entity fluid capabilities, buckets, fluid containers in player inventory, item NBT/components, registry tanks/blocks/items, energy, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS logic exists.

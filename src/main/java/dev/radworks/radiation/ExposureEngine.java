@@ -41,6 +41,7 @@ public final class ExposureEngine {
         sources.addAll(BlockSourceProvider.collect(player, rules, summary));
         sources.addAll(BlockEntityInventorySourceProvider.collect(player, rules, summary));
         sources.addAll(BlockItemHandlerSourceProvider.collect(player, rules, summary));
+        sources.addAll(BlockFluidHandlerSourceProvider.collect(player, rules, summary));
         List<RadiationSource> immutableSources = List.copyOf(sources);
         SourceScanSummary.store(summary, Math.min(20, immutableSources.size()), Math.max(0, immutableSources.size() - 20));
         return immutableSources;

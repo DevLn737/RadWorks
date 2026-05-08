@@ -51,7 +51,7 @@ public final class SourcesCommand {
                 + player.getGameProfile().getName()
                 + ": matchedSources="
                 + sources.size()
-                + " scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers"), false);
+                + " scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers+block_fluid_handlers"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
         for (int index = 0; index < shown; index++) {
@@ -67,7 +67,7 @@ public final class SourcesCommand {
                 + shown
                 + " sourcesOmitted="
                 + (sources.size() - shown)), false);
-        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory, static block, vanilla Container and block ItemHandler sources only"), false);
+        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory, static block, vanilla Container, block ItemHandler and block FluidHandler sources only"), false);
         source.sendSuccess(() -> Component.literal("Note: vanilla Container block entities are skipped by itemHandlerScan to avoid double counting"), false);
         return 1;
     }
@@ -77,6 +77,9 @@ public final class SourcesCommand {
         row.append("type=").append(source.type().id());
         if (source.itemId() != null) {
             row.append(" itemId=").append(source.itemId());
+        }
+        if (source.fluidId() != null) {
+            row.append(" fluidId=").append(source.fluidId());
         }
         if (source.blockId() != null) {
             row.append(" blockId=").append(source.blockId());
@@ -99,8 +102,14 @@ public final class SourcesCommand {
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }
+        if (source.tank() != null) {
+            row.append(" tank=").append(source.tank());
+        }
         if (source.count() > 0) {
             row.append(" count=").append(source.count());
+        }
+        if (source.amountMb() > 0) {
+            row.append(" amountMb=").append(source.amountMb());
         }
         row.append(" distance=").append(source.distance());
         row.append(" ruleRadius=").append(source.ruleRadius());

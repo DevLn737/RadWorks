@@ -1,0 +1,9 @@
+{
+  "type": "fluid",
+  "id": "minecraft:water",
+  "strength": 1.0,
+  "radius": 2.0,
+  "respectsShielding": true,
+  "enabled": true,
+  "comment": "Temporary Phase 4D dev-only smoke rule"
+}

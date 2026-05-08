@@ -7,9 +7,12 @@ import net.minecraft.resources.ResourceLocation;
 public record RadiationSource(
         RadiationSourceType type,
         ResourceLocation itemId,
+        ResourceLocation fluidId,
         ResourceLocation blockId,
         String slot,
+        String tank,
         int count,
+        int amountMb,
         BlockPos position,
         String capabilityContext,
         double ruleStrength,
@@ -30,8 +33,11 @@ public record RadiationSource(
                 RadiationSourceType.PLAYER_INVENTORY,
                 itemId,
                 null,
+                null,
                 slot,
+                null,
                 count,
+                0,
                 null,
                 null,
                 ruleStrength,
@@ -53,8 +59,11 @@ public record RadiationSource(
         return new RadiationSource(
                 RadiationSourceType.BLOCK,
                 null,
+                null,
                 blockId,
                 null,
+                null,
+                0,
                 0,
                 position.immutable(),
                 null,
@@ -80,9 +89,12 @@ public record RadiationSource(
         return new RadiationSource(
                 RadiationSourceType.BLOCK_ENTITY_INVENTORY,
                 itemId,
+                null,
                 blockId,
                 slot,
+                null,
                 count,
+                0,
                 containerPos.immutable(),
                 null,
                 ruleStrength,
@@ -108,9 +120,43 @@ public record RadiationSource(
         return new RadiationSource(
                 RadiationSourceType.BLOCK_ITEM_HANDLER,
                 itemId,
+                null,
                 blockId,
                 slot,
+                null,
                 count,
+                0,
+                position.immutable(),
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                distance,
+                "not_applied",
+                contribution,
+                matchReason);
+    }
+
+    public static RadiationSource blockFluidHandler(
+            ResourceLocation blockId,
+            BlockPos position,
+            String capabilityContext,
+            String tank,
+            ResourceLocation fluidId,
+            int amountMb,
+            double ruleStrength,
+            double ruleRadius,
+            double distance,
+            double contribution,
+            String matchReason) {
+        return new RadiationSource(
+                RadiationSourceType.BLOCK_FLUID_HANDLER,
+                null,
+                fluidId,
+                blockId,
+                null,
+                tank,
+                0,
+                amountMb,
                 position.immutable(),
                 capabilityContext,
                 ruleStrength,
@@ -127,14 +173,23 @@ public record RadiationSource(
         if (itemId != null) {
             json.addProperty("itemId", itemId.toString());
         }
+        if (fluidId != null) {
+            json.addProperty("fluidId", fluidId.toString());
+        }
         if (blockId != null) {
             json.addProperty("blockId", blockId.toString());
         }
         if (slot != null) {
             json.addProperty("slot", slot);
         }
+        if (tank != null) {
+            json.addProperty("tank", tank);
+        }
         if (count > 0) {
             json.addProperty("count", count);
+        }
+        if (amountMb > 0) {
+            json.addProperty("amountMb", amountMb);
         }
         if (position != null) {
             JsonObject pos = new JsonObject();

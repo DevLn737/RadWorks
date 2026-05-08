@@ -20,6 +20,10 @@ public record SourceScanSummary(
         int itemHandlerSlotsChecked,
         int itemHandlerMatches,
         int skippedContainerBlockEntitiesForItemHandler,
+        int fluidHandlerPositionsChecked,
+        int fluidHandlersFound,
+        int fluidTanksChecked,
+        int fluidMatches,
         int sourcesShown,
         int sourcesOmitted) {
     private static volatile SourceScanSummary lastSummary;
@@ -51,6 +55,10 @@ public record SourceScanSummary(
                 lastSummary.itemHandlerSlotsChecked,
                 lastSummary.itemHandlerMatches,
                 lastSummary.skippedContainerBlockEntitiesForItemHandler,
+                lastSummary.fluidHandlerPositionsChecked,
+                lastSummary.fluidHandlersFound,
+                lastSummary.fluidTanksChecked,
+                lastSummary.fluidMatches,
                 sourcesShown,
                 sourcesOmitted);
     }
@@ -78,6 +86,10 @@ public record SourceScanSummary(
         json.addProperty("itemHandlerSlotsChecked", itemHandlerSlotsChecked);
         json.addProperty("itemHandlerMatches", itemHandlerMatches);
         json.addProperty("skippedContainerBlockEntitiesForItemHandler", skippedContainerBlockEntitiesForItemHandler);
+        json.addProperty("fluidHandlerPositionsChecked", fluidHandlerPositionsChecked);
+        json.addProperty("fluidHandlersFound", fluidHandlersFound);
+        json.addProperty("fluidTanksChecked", fluidTanksChecked);
+        json.addProperty("fluidMatches", fluidMatches);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
 
@@ -103,6 +115,10 @@ public record SourceScanSummary(
         private int itemHandlerSlotsChecked;
         private int itemHandlerMatches;
         private int skippedContainerBlockEntitiesForItemHandler;
+        private int fluidHandlerPositionsChecked;
+        private int fluidHandlersFound;
+        private int fluidTanksChecked;
+        private int fluidMatches;
 
         public void inventoryStackChecked() {
             inventoryStacksChecked++;
@@ -156,6 +172,22 @@ public record SourceScanSummary(
             skippedContainerBlockEntitiesForItemHandler++;
         }
 
+        public void fluidHandlerPositionChecked() {
+            fluidHandlerPositionsChecked++;
+        }
+
+        public void fluidHandlerFound() {
+            fluidHandlersFound++;
+        }
+
+        public void fluidTankChecked() {
+            fluidTanksChecked++;
+        }
+
+        public void fluidMatch() {
+            fluidMatches++;
+        }
+
         private SourceScanSummary build(int sourcesShown, int sourcesOmitted) {
             return new SourceScanSummary(
                     Instant.now(),
@@ -172,6 +204,10 @@ public record SourceScanSummary(
                     itemHandlerSlotsChecked,
                     itemHandlerMatches,
                     skippedContainerBlockEntitiesForItemHandler,
+                    fluidHandlerPositionsChecked,
+                    fluidHandlersFound,
+                    fluidTanksChecked,
+                    fluidMatches,
                     sourcesShown,
                     sourcesOmitted);
         }

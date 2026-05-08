@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0 - Phase 4D block FluidHandler capability sources
+- Added `block_fluid_handler` diagnostic source type.
+- Added command-only source discovery for nearby block fluids exposed through NeoForge `Capabilities.FluidHandler.BLOCK`.
+- Added temporary dev-only `minecraft:water` fluid rule for validation smoke testing.
+- Added bucket-scaled diagnostic contribution: `strength * amountMb / 1000.0`.
+- Added command diagnostics timing as `performance.fluidHandlerScan`.
+- Added fluid handler counters to `sourceScanSummary`.
+- Kept Phase 4D diagnostic-only: no item/entity fluid capabilities, buckets, inventory fluid containers, registry tanks, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS.
+
 ## 0.1.0 - Phase 4C.1 source diagnostics cleanup
 - Added `sourceScanSummary` to `/radworks dump` for the most recent `/radworks sources` or `/radworks exposure`.
 - Added provider counters for inventory, static block, vanilla container and block item handler scans.

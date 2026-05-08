@@ -38,7 +38,7 @@ lenient/dev
 Clean output should look like:
 
 ```text
-RadWorks rules validation: loaded=2 enabled=2 disabled=0 errors=0 warnings=0 mode=lenient/dev checksum=<short>
+RadWorks rules validation: loaded=3 enabled=3 disabled=0 errors=0 warnings=0 mode=lenient/dev checksum=<short>
 ```
 
 Validation categories:
@@ -49,7 +49,7 @@ Validation categories:
 - `DISABLED_RULE`: info; disabled rules are counted but not active.
 
 ## `/radworks exposure`
-Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory, active static block rules around the player, active item rules inside nearby vanilla `Container` block entities, and active item rules inside nearby block item handlers exposed through NeoForge `Capabilities.ItemHandler.BLOCK`.
+Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory, active static block rules around the player, active item rules inside nearby vanilla `Container` block entities, active item rules inside nearby block item handlers exposed through NeoForge `Capabilities.ItemHandler.BLOCK`, and active fluid rules inside nearby block fluid handlers exposed through NeoForge `Capabilities.FluidHandler.BLOCK`.
 
 ```text
 /radworks exposure
@@ -71,9 +71,11 @@ Phase 4B container scan includes only block entities that implement `net.minecra
 
 Phase 4C item handler scan includes only block capabilities queried through `Capabilities.ItemHandler.BLOCK`. It does not scan entity capabilities or item stack capabilities.
 
+Phase 4D fluid handler scan includes only block capabilities queried through `Capabilities.FluidHandler.BLOCK`. It does not scan item fluid capabilities, entity fluid capabilities, buckets or fluid containers in player inventory.
+
 Vanilla `Container` block entities are skipped by item handler scan to avoid double counting with Phase 4B.
 
-Phase 4C does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, tanks, dropped items, entities, fluids, NBT, components, `IFluidHandler`, energy, Create or Aeronautics.
+Phase 4D does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, dropped items, entities, item NBT/components, item fluid containers, energy, Create or Aeronautics.
 
 Formula:
 
@@ -111,6 +113,15 @@ contribution = stack.count * itemRule.strength
 shielding = not_applied
 ```
 
+Block fluid handler formula:
+
+```text
+distance = player position to block center
+active when distance <= fluidRule.radius
+contribution = fluidRule.strength * amountMb / 1000.0
+shielding = not_applied
+```
+
 The effective block command scan radius is:
 
 ```text
@@ -129,7 +140,13 @@ The effective item handler command scan radius is also:
 min(max active item rule radius, 8)
 ```
 
-Block, container and item handler scans are command-only and are not tick scans.
+The effective fluid handler command scan radius is:
+
+```text
+min(max active fluid rule radius, 8)
+```
+
+Block, container, item handler and fluid handler scans are command-only and are not tick scans.
 
 Example:
 
@@ -144,7 +161,7 @@ Note: diagnostic only, no gameplay effect
 Chat output is bounded to 10 source rows.
 
 ## `/radworks sources`
-Reports the diagnostic sources currently found for a player. Phase 4C combines Phase 2 player inventory sources, Phase 4A static block sources, Phase 4B nearby vanilla `Container` block entity inventory sources and nearby block item handler sources.
+Reports the diagnostic sources currently found for a player. Phase 4D combines Phase 2 player inventory sources, Phase 4A static block sources, Phase 4B nearby vanilla `Container` block entity inventory sources, nearby block item handler sources and nearby block fluid handler sources.
 
 ```text
 /radworks sources
@@ -155,25 +172,26 @@ Difference from `/radworks exposure`:
 - `sources` shows found source rows and why they matched.
 - `exposure` shows the summed total and contribution math.
 
-Phase 4C `sources` scope:
+Phase 4D `sources` scope:
 - main inventory;
 - offhand;
 - ordinary block states around the player;
 - vanilla block entities implementing `Container`;
 - block `IItemHandler` capability exposed through `Capabilities.ItemHandler.BLOCK`;
-- active `type=item` and `type=block` rules only.
+- block `IFluidHandler` capability exposed through `Capabilities.FluidHandler.BLOCK`;
+- active `type=item`, `type=block` and `type=fluid` rules only.
 
-It does not scan entity capabilities, item stack capabilities, nested containers, shulker contents, backpacks, tanks, dropped items, entities, fluids, NBT/components, `IFluidHandler`, energy, Create or Aeronautics.
+It does not scan entity capabilities, item stack capabilities, item fluid capabilities, nested containers, shulker contents, backpacks, dropped items, entities, buckets, item NBT/components, energy, Create or Aeronautics.
 
 Example:
 
 ```text
-RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers
+RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers+block_fluid_handlers
 - type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
 - type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 contribution=5.0 reason=active block rule matched type=block id=minecraft:gold_block
 - type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh
 sourcesShown=3 sourcesOmitted=0
-Note: diagnostic only, player inventory, static block, vanilla Container and block ItemHandler sources only
+Note: diagnostic only, player inventory, static block, vanilla Container, block ItemHandler and block FluidHandler sources only
 Note: vanilla Container block entities are skipped by itemHandlerScan to avoid double counting
 ```
 
@@ -181,6 +199,12 @@ If a non-vanilla block item handler source is present, a row can look like:
 
 ```text
 - type=block_item_handler itemId=minecraft:rotten_flesh blockId=example:item_handler_block position=12,64,10 capabilityContext=unsided slot=item_handler.0 count=10 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=NeoForge ItemHandler block capability matched active item rule type=item id=minecraft:rotten_flesh
+```
+
+If a block fluid handler source is present, a row can look like:
+
+```text
+- type=block_fluid_handler fluidId=minecraft:water blockId=example:tank position=12,64,10 capabilityContext=unsided tank=fluid_handler.0 amountMb=1000 distance=1.4 ruleRadius=2.0 ruleStrength=1.0 contribution=1.0 reason=NeoForge FluidHandler block capability matched active fluid rule type=fluid id=minecraft:water
 ```
 
 Chat output is bounded to 10 source rows.
@@ -248,7 +272,7 @@ If the command is run from a server console, the filename uses `server` and the 
     "validationMode": "lenient/dev",
     "itemRules": 1,
     "blockRules": 1,
-    "fluidRules": 0,
+    "fluidRules": 1,
     "disabledRules": 0,
     "errors": [],
     "warnings": [],
@@ -301,6 +325,12 @@ If the command is run from a server console, the filename uses `server` and the 
       "maxMillis": 0
     },
     "itemHandlerScan": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
+    "fluidHandlerScan": {
       "lastMillis": 0,
       "count": 0,
       "averageMillis": 0,
@@ -418,6 +448,30 @@ After Phase 4C, source rows may include block item handler sources:
 }
 ```
 
+After Phase 4D, source rows may include block fluid handler sources:
+
+```json
+{
+  "type": "block_fluid_handler",
+  "fluidId": "minecraft:water",
+  "blockId": "example:tank",
+  "tank": "fluid_handler.0",
+  "amountMb": 1000,
+  "position": {
+    "x": 12,
+    "y": 64,
+    "z": 10
+  },
+  "capabilityContext": "unsided",
+  "ruleStrength": 1.0,
+  "ruleRadius": 2.0,
+  "distance": 1.4,
+  "shielding": "not_applied",
+  "contribution": 1.0,
+  "matchReason": "NeoForge FluidHandler block capability matched active fluid rule type=fluid id=minecraft:water"
+}
+```
+
 Dump snapshot output is bounded to 20 source rows. If rules are reloaded and the checksum changes, an old snapshot reports `stale=true`.
 
 ## Source scan summary
@@ -441,6 +495,10 @@ Example:
   "itemHandlerSlotsChecked": 0,
   "itemHandlerMatches": 0,
   "skippedContainerBlockEntitiesForItemHandler": 1,
+  "fluidHandlerPositionsChecked": 125,
+  "fluidHandlersFound": 0,
+  "fluidTanksChecked": 0,
+  "fluidMatches": 0,
   "sourcesShown": 3,
   "sourcesOmitted": 0,
   "diagnosticNotes": [
@@ -453,6 +511,7 @@ How to read it:
 - `*Checked` fields show how much of each provider's search space was inspected by the last command.
 - `*Matches` fields show how many rows became radiation sources.
 - `skippedContainerBlockEntitiesForItemHandler` should increase when vanilla `Container` block entities are near the player; those are handled by `block_entity_inventory`, not `block_item_handler`.
+- `fluidMatches` only increases when a block fluid handler contains a fluid with an active `type=fluid` rule and the block is within that rule radius.
 - `sourcesShown` and `sourcesOmitted` mirror the bounded chat output.
 
 For source discovery bugs, send Codex:
@@ -493,6 +552,7 @@ Measured operations:
 - `blockScan`
 - `blockEntityInventoryScan`
 - `itemHandlerScan`
+- `fluidHandlerScan`
 - `dump`
 
 Fields:
@@ -534,3 +594,5 @@ Phase 4A adds static block source diagnostics.
 Phase 4B adds vanilla `Container` block entity item source diagnostics.
 
 Phase 4C adds NeoForge block `IItemHandler` capability item source diagnostics.
+
+Phase 4D adds NeoForge block `IFluidHandler` capability fluid source diagnostics.

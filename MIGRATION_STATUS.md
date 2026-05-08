@@ -60,6 +60,15 @@ Verified by user:
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## Phase 4C.1 - Source diagnostics cleanup
+Status: implemented and manually verified.
+
+Verified by user:
+- `sourceScanSummary` was added to `/radworks dump`.
+- Exposure formulas did not change.
+- No new mechanics were added.
+- `./gradlew build` passed.
+
+## Phase 4D - Block FluidHandler capability sources
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## MIGRATION_DECISION_ACCEPTED
@@ -87,6 +96,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Diagnostic-only static block source discovery for ordinary block states.
 - Diagnostic-only item source discovery inside nearby vanilla `Container` block entities.
 - Diagnostic-only item source discovery through NeoForge block `IItemHandler` capability.
+- Diagnostic-only fluid source discovery through NeoForge block `IFluidHandler` capability.
 - Bounded `sourceScanSummary` diagnostics for the most recent `/radworks sources` or `/radworks exposure`.
 - Rules summary in `/radworks version`.
 - Rules validation summary in `/radworks dump`.
@@ -109,6 +119,14 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Radius: `6.0`
 - Purpose: smoke-test static block source diagnostics without requiring Create, Create Nuclear, TFMG or a full modpack.
 - Status: temporary/dev-only; not final gameplay balance.
+
+## Phase 4D temporary/dev-only rule
+- `src/main/resources/data/radworks/radiation_rules/dev_water.json`
+- Rule ID: `minecraft:water`
+- Strength: `1.0`
+- Radius: `2.0`
+- Purpose: smoke-test fluid rule validation without requiring Create, Create Nuclear, TFMG or a full modpack.
+- Status: temporary/dev-only; not final gameplay balance. It only becomes a source if a block fluid handler containing water exists.
 
 ## Explicitly not implemented in Phase 0
 - Radiation mechanics.
@@ -148,6 +166,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4C `./gradlew build` passed on 2026-05-08.
 - Phase 4C `timeout 60s ./gradlew runClient` launched the client, listed `RadWorks 0.1.0`, and started an integrated server; smoke log showed the existing Phase 4B scenario still reports `totalExposure=25.0` with player inventory + gold block + chest, not `35.0`. The process then ended with timeout code `124`, so full manual command verification is still pending.
 - Phase 4C.1 `./gradlew build` passed on 2026-05-08.
+- Phase 4D `./gradlew build` passed on 2026-05-08.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.
@@ -218,6 +237,19 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - The summary includes a bounded diagnostic note when `itemHandlerScan` skips vanilla `Container` block entities to avoid double counting.
 - Phase 4C.1 does not change source discovery mechanics or exposure formulas.
 
+## Phase 4D implementation notes
+- NeoForge block fluid handler discovery is command-only.
+- `/radworks sources` and `/radworks exposure` include block `IFluidHandler` capability sources.
+- Source type: `block_fluid_handler`.
+- Capability lookup uses `Capabilities.FluidHandler.BLOCK`.
+- Lookup order is unsided first, then `UP`, `DOWN`, `NORTH`, `SOUTH`, `WEST`, `EAST`; only the first available handler per block position is scanned.
+- Fluid handler tanks are read only through `getTanks()` and `getFluidInTank(tank)`.
+- Active fluid handler source formula: `distance = player position to block center`; source is active only when `distance <= fluid rule.radius`.
+- Phase 4D fluid handler contribution is `fluidRule.strength * amountMb / 1000.0`; no falloff and no shielding result is applied.
+- Effective command scan radius is `min(max active fluid rule radius, 8)`.
+- Fluid handler scan timing is command diagnostics only and appears as `performance.fluidHandlerScan`.
+- `sourceScanSummary` includes fluid handler position, handler, tank and match counters.
+
 ## Phase 1 implementation notes
 - Reload implementation uses a direct `SimplePreparableReloadListener` instead of `SimpleJsonResourceReloadListener` so malformed external datapack JSON can be captured and reported by `/radworks validate`.
 - Unknown registry IDs are warnings in `lenient/dev`, not fatal errors.
@@ -247,3 +279,6 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4C does not implement shielding, damage, effects, exposure accumulation, cache or invalidation.
 - Phase 4C only scans the first available item handler context per block position, which may miss side-distinct inventories in some modded blocks; this is intentional to avoid accidental double counting in this diagnostic phase.
 - Phase 4C.1 counters are command diagnostics only and reset to the most recent `/radworks sources` or `/radworks exposure` result; they are not cumulative server metrics.
+- Phase 4D works without extra mod dependencies, but the clean dev environment may not contain a block that exposes `IFluidHandler`.
+- Phase 4D does not scan item fluid capabilities, entity fluid capabilities, buckets, fluid containers in player inventory, item NBT/components, Create tanks, Create contraptions or Aeronautics ships.
+- Phase 4D does not implement shielding, damage, effects, exposure accumulation, cache or invalidation.
