@@ -2,7 +2,7 @@ package dev.radworks.command;
 
 import dev.radworks.diagnostics.PerformanceStats;
 import dev.radworks.diagnostics.WarningBuffer;
-import dev.radworks.radiation.PlayerInventorySourceProvider;
+import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
 import dev.radworks.radiation.RadiationSource;
@@ -45,38 +45,62 @@ public final class SourcesCommand {
             return 0;
         }
 
-        List<RadiationSource> sources = PlayerInventorySourceProvider.collect(player, rules);
+        List<RadiationSource> sources = ExposureEngine.collectSources(player, rules);
         source.sendSuccess(() -> Component.literal("RadWorks sources for "
                 + player.getGameProfile().getName()
                 + ": matchedSources="
                 + sources.size()
-                + " scope=player_inventory"), false);
+                + " scope=player_inventory+static_blocks+vanilla_containers"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
         for (int index = 0; index < shown; index++) {
             RadiationSource radiationSource = sources.get(index);
-            source.sendSuccess(() -> Component.literal("- "
-                    + radiationSource.itemId()
-                    + " type="
-                    + radiationSource.type().id()
-                    + " slot="
-                    + radiationSource.slot()
-                    + " count="
-                    + radiationSource.count()
-                    + " strength="
-                    + radiationSource.ruleStrength()
-                    + " radius="
-                    + radiationSource.ruleRadius()
-                    + " contribution="
-                    + radiationSource.contribution()
-                    + " reason="
-                    + radiationSource.matchReason()), false);
+            source.sendSuccess(() -> Component.literal("- " + sourceRow(radiationSource)), false);
         }
 
         if (sources.size() > shown) {
             source.sendSuccess(() -> Component.literal("... and " + (sources.size() - shown) + " more"), false);
         }
-        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory sources only"), false);
+        source.sendSuccess(() -> Component.literal("sourcesShown="
+                + shown
+                + " sourcesOmitted="
+                + (sources.size() - shown)), false);
+        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory, static block and vanilla Container sources only"), false);
         return 1;
+    }
+
+    private static String sourceRow(RadiationSource source) {
+        StringBuilder row = new StringBuilder();
+        row.append("type=").append(source.type().id());
+        if (source.itemId() != null) {
+            row.append(" itemId=").append(source.itemId());
+        }
+        if (source.blockId() != null) {
+            row.append(" blockId=").append(source.blockId());
+        }
+        if (source.position() != null) {
+            if (source.type() == dev.radworks.radiation.RadiationSourceType.BLOCK_ENTITY_INVENTORY) {
+                row.append(" containerPos=");
+            } else {
+                row.append(" position=");
+            }
+            row.append(source.position().getX())
+                    .append(",")
+                    .append(source.position().getY())
+                    .append(",")
+                    .append(source.position().getZ());
+        }
+        if (source.slot() != null) {
+            row.append(" slot=").append(source.slot());
+        }
+        if (source.count() > 0) {
+            row.append(" count=").append(source.count());
+        }
+        row.append(" distance=").append(source.distance());
+        row.append(" ruleRadius=").append(source.ruleRadius());
+        row.append(" ruleStrength=").append(source.ruleStrength());
+        row.append(" contribution=").append(source.contribution());
+        row.append(" reason=").append(source.matchReason());
+        return row.toString();
     }
 }

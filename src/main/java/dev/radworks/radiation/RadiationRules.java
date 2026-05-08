@@ -86,6 +86,47 @@ public final class RadiationRules {
         return Optional.empty();
     }
 
+    public Optional<RadiationRule> blockRule(ResourceLocation id) {
+        for (RadiationRule rule : activeRules) {
+            if (rule.type() == RadiationRuleType.BLOCK && rule.id().equals(id)) {
+                return Optional.of(rule);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public List<RadiationRule> activeBlockRules() {
+        return activeRules.stream()
+                .filter(rule -> rule.type() == RadiationRuleType.BLOCK)
+                .toList();
+    }
+
+    public List<RadiationRule> activeItemRules() {
+        return activeRules.stream()
+                .filter(rule -> rule.type() == RadiationRuleType.ITEM)
+                .toList();
+    }
+
+    public double maxActiveBlockRuleRadius() {
+        double maxRadius = 0.0D;
+        for (RadiationRule rule : activeRules) {
+            if (rule.type() == RadiationRuleType.BLOCK) {
+                maxRadius = Math.max(maxRadius, rule.radius());
+            }
+        }
+        return maxRadius;
+    }
+
+    public double maxActiveItemRuleRadius() {
+        double maxRadius = 0.0D;
+        for (RadiationRule rule : activeRules) {
+            if (rule.type() == RadiationRuleType.ITEM) {
+                maxRadius = Math.max(maxRadius, rule.radius());
+            }
+        }
+        return maxRadius;
+    }
+
     public JsonObject toJson() {
         JsonObject rules = new JsonObject();
         rules.addProperty("loaded", loaded);

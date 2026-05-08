@@ -12,6 +12,8 @@ public final class PerformanceStats {
         STATS.put("validate", new OperationStats());
         STATS.put("exposure", new OperationStats());
         STATS.put("sources", new OperationStats());
+        STATS.put("blockScan", new OperationStats());
+        STATS.put("blockEntityInventoryScan", new OperationStats());
         STATS.put("dump", new OperationStats());
     }
 

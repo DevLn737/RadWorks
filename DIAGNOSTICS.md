@@ -38,7 +38,7 @@ lenient/dev
 Clean output should look like:
 
 ```text
-RadWorks rules validation: loaded=1 enabled=1 disabled=0 errors=0 warnings=0 mode=lenient/dev checksum=<short>
+RadWorks rules validation: loaded=2 enabled=2 disabled=0 errors=0 warnings=0 mode=lenient/dev checksum=<short>
 ```
 
 Validation categories:
@@ -49,7 +49,7 @@ Validation categories:
 - `DISABLED_RULE`: info; disabled rules are counted but not active.
 
 ## `/radworks exposure`
-Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory.
+Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory, active static block rules around the player, and active item rules inside nearby vanilla `Container` block entities.
 
 ```text
 /radworks exposure
@@ -61,11 +61,15 @@ This form works only when run by a player. From server console, use:
 /radworks exposure <player>
 ```
 
-Phase 2 scans only:
+Inventory scan includes only:
 - main inventory;
 - offhand.
 
-Phase 2 does not scan armor, Curios/Trinkets, nested containers, block entities, chests, dropped items, entities, fluids, NBT, components, Create or Aeronautics.
+Phase 4A block scan includes only ordinary block states read with `getBlockState`.
+
+Phase 4B container scan includes only block entities that implement `net.minecraft.world.Container`. Slots are read through `getContainerSize()` and `getItem(slot)`.
+
+Phase 4B does not scan armor, Curios/Trinkets, nested containers, shulker contents, backpacks, capability-only modded containers, tanks, dropped items, entities, fluids, NBT, components, NeoForge capabilities, `IItemHandler`, Create or Aeronautics.
 
 Formula:
 
@@ -76,18 +80,52 @@ shielding = not_applied
 finalExposure = sum(contribution)
 ```
 
+Static block formula:
+
+```text
+distance = player position to block center
+active when distance <= rule.radius
+contribution = rule.strength
+shielding = not_applied
+```
+
+Vanilla container item formula:
+
+```text
+distance = player position to container block center
+active when distance <= itemRule.radius
+contribution = stack.count * itemRule.strength
+shielding = not_applied
+```
+
+The effective block command scan radius is:
+
+```text
+min(max active block rule radius, 8)
+```
+
+The effective container command scan radius is:
+
+```text
+min(max active item rule radius, 8)
+```
+
+Block and container scans are command-only and are not tick scans.
+
 Example:
 
 ```text
-RadWorks exposure for Dev: totalExposure=10.0 matchedStacks=1
-- minecraft:rotten_flesh slot=inventory.0 count=10 strength=1.0 radius=2.0 contribution=10.0 shielding=not_applied
+RadWorks exposure for Dev: totalExposure=25.0 matchedSources=3
+- type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 shielding=not_applied
+- type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 contribution=5.0 shielding=not_applied
+- type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 shielding=not_applied
 Note: diagnostic only, no gameplay effect
 ```
 
 Chat output is bounded to 10 source rows.
 
 ## `/radworks sources`
-Reports the inventory sources currently found for a player. Phase 3 uses only the existing Phase 2 player inventory provider.
+Reports the diagnostic sources currently found for a player. Phase 4B combines Phase 2 player inventory sources, Phase 4A static block sources and nearby vanilla `Container` block entity inventory sources.
 
 ```text
 /radworks sources
@@ -98,19 +136,24 @@ Difference from `/radworks exposure`:
 - `sources` shows found source rows and why they matched.
 - `exposure` shows the summed total and contribution math.
 
-Phase 3 `sources` scope:
+Phase 4B `sources` scope:
 - main inventory;
 - offhand;
-- active `type=item` rules only.
+- ordinary block states around the player;
+- vanilla block entities implementing `Container`;
+- active `type=item` and `type=block` rules only.
 
-It does not scan blocks, block entities, chests, containers, dropped items, entities, fluids, NBT/components, Create or Aeronautics.
+It does not use NeoForge capabilities or `IItemHandler`. It does not scan nested containers, shulker contents, backpacks, tanks, dropped items, entities, fluids, NBT/components, Create or Aeronautics.
 
 Example:
 
 ```text
-RadWorks sources for Dev: matchedSources=1 scope=player_inventory
-- minecraft:rotten_flesh type=player_inventory slot=inventory.0 count=10 strength=1.0 radius=2.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
-Note: diagnostic only, player inventory sources only
+RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers
+- type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh
+- type=block blockId=minecraft:gold_block position=10,64,10 distance=1.2 ruleRadius=6.0 ruleStrength=5.0 contribution=5.0 reason=active block rule matched type=block id=minecraft:gold_block
+- type=block_entity_inventory itemId=minecraft:rotten_flesh blockId=minecraft:chest containerPos=11,64,10 slot=container.0 count=10 distance=1.6 ruleRadius=2.0 ruleStrength=1.0 contribution=10.0 reason=vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh
+sourcesShown=3 sourcesOmitted=0
+Note: diagnostic only, player inventory, static block and vanilla Container sources only
 ```
 
 Chat output is bounded to 10 source rows.
@@ -176,8 +219,8 @@ If the command is run from a server console, the filename uses `server` and the 
     "loaded": true,
     "checksum": "full SHA-256",
     "validationMode": "lenient/dev",
-    "itemRules": 0,
-    "blockRules": 0,
+    "itemRules": 1,
+    "blockRules": 1,
     "fluidRules": 0,
     "disabledRules": 0,
     "errors": [],
@@ -218,6 +261,18 @@ If the command is run from a server console, the filename uses `server` and the 
       "averageMillis": 0,
       "maxMillis": 0
     },
+    "blockScan": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
+    "blockEntityInventoryScan": {
+      "lastMillis": 0,
+      "count": 0,
+      "averageMillis": 0,
+      "maxMillis": 0
+    },
     "dump": {
       "lastMillis": 0,
       "count": 0,
@@ -240,6 +295,7 @@ After `/radworks exposure`, `lastExposureSnapshot` becomes:
   "playerName": "Dev",
   "playerUuid": "uuid",
   "totalExposure": 10.0,
+  "matchedSources": 1,
   "matchedStacks": 1,
   "notes": "diagnostic only, no gameplay effect",
   "sources": [
@@ -258,6 +314,49 @@ After `/radworks exposure`, `lastExposureSnapshot` becomes:
   ],
   "sourcesShown": 1,
   "sourcesOmitted": 0
+}
+```
+
+After Phase 4A, source rows may include block sources:
+
+```json
+{
+  "type": "block",
+  "blockId": "minecraft:gold_block",
+  "position": {
+    "x": 10,
+    "y": 64,
+    "z": 10
+  },
+  "ruleStrength": 5.0,
+  "ruleRadius": 6.0,
+  "distance": 1.2,
+  "shielding": "not_applied",
+  "contribution": 5.0,
+  "matchReason": "active block rule matched type=block id=minecraft:gold_block"
+}
+```
+
+After Phase 4B, source rows may include vanilla container block entity inventory sources:
+
+```json
+{
+  "type": "block_entity_inventory",
+  "itemId": "minecraft:rotten_flesh",
+  "blockId": "minecraft:chest",
+  "slot": "container.0",
+  "count": 10,
+  "containerPos": {
+    "x": 11,
+    "y": 64,
+    "z": 10
+  },
+  "ruleStrength": 1.0,
+  "ruleRadius": 2.0,
+  "distance": 1.6,
+  "shielding": "not_applied",
+  "contribution": 10.0,
+  "matchReason": "vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh"
 }
 ```
 
@@ -292,6 +391,8 @@ Measured operations:
 - `validate`
 - `exposure`
 - `sources`
+- `blockScan`
+- `blockEntityInventoryScan`
 - `dump`
 
 Fields:
@@ -327,3 +428,7 @@ Phase 1 does not scan the world or apply these rules to gameplay.
 Phase 2 uses item rules only for `/radworks exposure` diagnostics.
 
 Phase 3 uses the same item-rule inventory provider for `/radworks sources` diagnostics.
+
+Phase 4A adds static block source diagnostics.
+
+Phase 4B adds vanilla `Container` block entity item source diagnostics.

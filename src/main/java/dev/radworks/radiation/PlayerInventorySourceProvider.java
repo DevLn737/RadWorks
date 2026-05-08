@@ -45,15 +45,12 @@ public final class PlayerInventorySourceProvider {
         }
 
         double contribution = stack.getCount() * rule.get().strength();
-        sources.add(new RadiationSource(
-                RadiationSourceType.PLAYER_INVENTORY,
+        sources.add(RadiationSource.playerInventory(
                 itemId,
                 slot,
                 stack.getCount(),
                 rule.get().strength(),
                 rule.get().radius(),
-                0.0D,
-                "not_applied",
                 contribution,
                 "active item rule matched type=item id=" + itemId));
     }

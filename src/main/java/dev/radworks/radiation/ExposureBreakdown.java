@@ -23,6 +23,7 @@ public record ExposureBreakdown(
         json.addProperty("playerName", playerName);
         json.addProperty("playerUuid", playerUuid.toString());
         json.addProperty("totalExposure", totalExposure);
+        json.addProperty("matchedSources", sources.size());
         json.addProperty("matchedStacks", matchedStacks);
         json.addProperty("notes", notes);
 

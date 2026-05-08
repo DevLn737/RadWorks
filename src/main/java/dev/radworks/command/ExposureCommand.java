@@ -40,32 +40,58 @@ public final class ExposureCommand {
                 + breakdown.playerName()
                 + ": totalExposure="
                 + breakdown.totalExposure()
-                + " matchedStacks="
-                + breakdown.matchedStacks()), false);
+                + " matchedSources="
+                + breakdown.sources().size()), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, breakdown.sources().size());
         for (int index = 0; index < shown; index++) {
             RadiationSource radiationSource = breakdown.sources().get(index);
-            source.sendSuccess(() -> Component.literal("- "
-                    + radiationSource.itemId()
-                    + " slot="
-                    + radiationSource.slot()
-                    + " count="
-                    + radiationSource.count()
-                    + " strength="
-                    + radiationSource.ruleStrength()
-                    + " radius="
-                    + radiationSource.ruleRadius()
-                    + " contribution="
-                    + radiationSource.contribution()
-                    + " shielding="
-                    + radiationSource.shielding()), false);
+            source.sendSuccess(() -> Component.literal("- " + sourceRow(radiationSource)), false);
         }
 
         if (breakdown.sources().size() > shown) {
             source.sendSuccess(() -> Component.literal("... and " + (breakdown.sources().size() - shown) + " more"), false);
         }
+        source.sendSuccess(() -> Component.literal("sourcesShown="
+                + shown
+                + " sourcesOmitted="
+                + (breakdown.sources().size() - shown)), false);
         source.sendSuccess(() -> Component.literal("Note: " + breakdown.notes()), false);
         return 1;
+    }
+
+    private static String sourceRow(RadiationSource source) {
+        StringBuilder row = new StringBuilder();
+        row.append("type=").append(source.type().id());
+        if (source.itemId() != null) {
+            row.append(" itemId=").append(source.itemId());
+        }
+        if (source.blockId() != null) {
+            row.append(" blockId=").append(source.blockId());
+        }
+        if (source.position() != null) {
+            if (source.type() == dev.radworks.radiation.RadiationSourceType.BLOCK_ENTITY_INVENTORY) {
+                row.append(" containerPos=");
+            } else {
+                row.append(" position=");
+            }
+            row.append(source.position().getX())
+                    .append(",")
+                    .append(source.position().getY())
+                    .append(",")
+                    .append(source.position().getZ());
+        }
+        if (source.slot() != null) {
+            row.append(" slot=").append(source.slot());
+        }
+        if (source.count() > 0) {
+            row.append(" count=").append(source.count());
+        }
+        row.append(" distance=").append(source.distance());
+        row.append(" ruleRadius=").append(source.ruleRadius());
+        row.append(" ruleStrength=").append(source.ruleStrength());
+        row.append(" contribution=").append(source.contribution());
+        row.append(" shielding=").append(source.shielding());
+        return row.toString();
     }
 }

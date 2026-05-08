@@ -31,3 +31,20 @@
 /radworks sources
 /radworks exposure
 /radworks dump
+/radworks sources
+/clear @s minecraft:rotten_flesh/setblock ~2 ~ ~ minecraft:gold_block/give @s minecraft:rotten_flesh 10/radworks sources/radworks exposure/radworks dump
+/clear @s minecraft:rotten_flesh
+/setblock ~2 ~ ~ minecraft:gold_block
+/give @s minecraft:rotten_flesh 10
+/radworks sources
+/radworks exposure
+/radworks dump
+/radworks exposure
+/radworks sources
+/clear @s minecraft:rotten_flesh
+/setblock ~2 ~ ~ minecraft:gold_block
+/setblock ~3 ~ ~ minecraft:chest
+/give @s minecraft:rotten_flesh 10
+/radworks sources
+/radworks exposure
+/radworks dump

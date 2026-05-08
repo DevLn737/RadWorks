@@ -1,0 +1,9 @@
+{
+  "type": "block",
+  "id": "minecraft:gold_block",
+  "strength": 5.0,
+  "radius": 6.0,
+  "respectsShielding": true,
+  "enabled": true,
+  "comment": "Temporary Phase 4A dev-only smoke rule"
+}

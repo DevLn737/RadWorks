@@ -34,6 +34,20 @@ Verified by user:
 - Gameplay effects are absent.
 
 ## Phase 3 - Exposure diagnostics framework
+Status: implemented and manually verified.
+
+Verified by user:
+- `/radworks debug` works.
+- `/radworks sources` works.
+- `/radworks exposure` works.
+- `/radworks dump` contains debug, performance, recentWarnings and lastExposureSnapshot.
+- 10 `minecraft:rotten_flesh` gives `totalExposure=10.0`.
+- Gameplay effects are absent.
+
+## Phase 4A - Static block radiation sources
+Status: implemented locally, build passed, pending manual Minecraft verification.
+
+## Phase 4B - Vanilla container block entity item sources
 Status: implemented locally, build passed, pending manual Minecraft verification.
 
 ## MIGRATION_DECISION_ACCEPTED
@@ -58,6 +72,8 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - `/radworks exposure`.
 - `/radworks sources`.
 - `/radworks debug on/off/status`.
+- Diagnostic-only static block source discovery for ordinary block states.
+- Diagnostic-only item source discovery inside nearby vanilla `Container` block entities.
 - Rules summary in `/radworks version`.
 - Rules validation summary in `/radworks dump`.
 - Last diagnostic-only exposure snapshot in `/radworks dump` after `/radworks exposure` runs.
@@ -70,6 +86,14 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - `src/main/resources/data/radworks/radiation_rules/dev_rotten_flesh.json`
 - Rule ID: `minecraft:rotten_flesh`
 - Purpose: smoke-test the loader and validation without requiring Create, Create Nuclear, TFMG or a full modpack.
+- Status: temporary/dev-only; not final gameplay balance.
+
+## Phase 4A temporary/dev-only rule
+- `src/main/resources/data/radworks/radiation_rules/dev_gold_block.json`
+- Rule ID: `minecraft:gold_block`
+- Strength: `5.0`
+- Radius: `6.0`
+- Purpose: smoke-test static block source diagnostics without requiring Create, Create Nuclear, TFMG or a full modpack.
 - Status: temporary/dev-only; not final gameplay balance.
 
 ## Explicitly not implemented in Phase 0
@@ -100,6 +124,12 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 3 must run `./gradlew build` after implementation.
 - Phase 3 `./gradlew build` passed on 2026-05-08.
 - Phase 3 `./gradlew runClient` was requested but not run because the approval flow rejected the launch.
+- Phase 4A must run `./gradlew build` after implementation.
+- Phase 4A `./gradlew build` passed on 2026-05-08.
+- Phase 4A `timeout 60s ./gradlew runClient` launched the client, listed `RadWorks 0.1.0`, and started an integrated server; the process then ended with timeout code `124`, so manual command verification is still pending.
+- Phase 4B must run `./gradlew build` after implementation.
+- Phase 4B `./gradlew build` passed on 2026-05-08.
+- Phase 4B `timeout 60s ./gradlew runClient` launched the client, listed `RadWorks 0.1.0`, and started an integrated server; the process then ended with timeout code `124`, so full manual command verification is still pending.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.
@@ -123,6 +153,31 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - `PerformanceStats` measures command diagnostics only: `validate`, `exposure`, `sources`, `dump`.
 - Performance stats are not TPS or server performance metrics.
 
+## Phase 4A implementation notes
+- Static block source discovery is command-only.
+- `/radworks sources` and `/radworks exposure` combine Phase 2 player inventory sources with Phase 4A static block sources.
+- Block discovery reads ordinary block states through `getBlockState`.
+- Block discovery does not read block entity data, inventories, fluids, NBT/components or capabilities.
+- Active block source formula: `distance = player position to block center`; source is active only when `distance <= rule.radius`.
+- Phase 4A block contribution is `rule.strength`; no falloff and no shielding result is applied.
+- Effective command scan radius is `min(max active block rule radius, 8)`.
+- Block scan timing is command diagnostics only and appears as `performance.blockScan`.
+- Chat output remains bounded to 10 source rows.
+- Dump `lastExposureSnapshot` remains bounded to 20 source rows and can include both inventory and block source rows.
+
+## Phase 4B implementation notes
+- Vanilla container item discovery is command-only.
+- `/radworks sources` and `/radworks exposure` combine player inventory, static block and vanilla `Container` block entity inventory sources.
+- Block entity inventory discovery scans nearby block positions and reads a block entity only when it implements `net.minecraft.world.Container`.
+- Container slots are read only through `getContainerSize()` and `getItem(slot)`.
+- No NeoForge capabilities, `IItemHandler`, modded capability containers, nested containers, shulker contents, backpacks, fluids, tanks, entities or dropped items are scanned.
+- Active container item source formula: `distance = player position to container block center`; source is active only when `distance <= item rule.radius`.
+- Phase 4B container contribution is `stack.count * itemRule.strength`; no falloff and no shielding result is applied.
+- Effective command scan radius is `min(max active item rule radius, 8)`.
+- Block entity inventory scan timing is command diagnostics only and appears as `performance.blockEntityInventoryScan`.
+- Chat output remains bounded to 10 source rows.
+- Dump `lastExposureSnapshot` remains bounded to 20 source rows and can include inventory, block and block entity inventory source rows.
+
 ## Phase 1 implementation notes
 - Reload implementation uses a direct `SimplePreparableReloadListener` instead of `SimpleJsonResourceReloadListener` so malformed external datapack JSON can be captured and reported by `/radworks validate`.
 - Unknown registry IDs are warnings in `lenient/dev`, not fatal errors.
@@ -140,3 +195,10 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Offhand is included, but armor, Curios/Trinkets and nested containers are not included.
 - Phase 3 debug state is not persisted.
 - Phase 3 warning/performance buffers are in-memory and reset on restart.
+- Phase 4A scans a bounded cube on command execution only; it is intentionally not cached.
+- Phase 4A does not scan block entities, containers, tanks, fluids, dropped items, entities, Create contraptions or Aeronautics ships.
+- Phase 4A does not implement shielding, damage, effects or exposure accumulation.
+- Phase 4B only supports vanilla-style `Container` block entities; capability-only modded inventories are intentionally unsupported for now.
+- Phase 4B scans a bounded cube on command execution only; it is intentionally not cached.
+- Phase 4B does not scan nested item contents, fluids, tanks, dropped items, entities, Create contraptions or Aeronautics ships.
+- Phase 4B does not implement shielding, damage, effects or exposure accumulation.

@@ -59,9 +59,10 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - Phase 1: `rules.loaded` is `true`;
    - Phase 1: `rules.validationMode` is `lenient/dev`;
    - Phase 1: `rules.itemRules` is `1`;
+   - Phase 4A: `rules.blockRules` is `1`;
    - Phase 1: `rules.checksum` is a full SHA-256 string;
    - Create and Aeronautics integrations are disabled;
-   - performance counters are zero.
+   - performance counters are present.
 
 ## Manual Minecraft test - clean `/radworks validate`
 1. Start the client:
@@ -79,8 +80,8 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 4. Confirm the output includes:
    - `mode=lenient/dev`;
-   - `loaded=1`;
-   - `enabled=1`;
+   - `loaded=2`;
+   - `enabled=2`;
    - `disabled=0`;
    - `errors=0`;
    - a short checksum;
@@ -113,7 +114,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `loaded: true`;
    - `validationMode: "lenient/dev"`;
    - `itemRules: 1`;
-   - `blockRules: 0`;
+   - `blockRules: 1`;
    - `fluidRules: 0`;
    - `disabledRules: 0`;
    - `errors: []`;
@@ -131,7 +132,7 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 3. Confirm output includes:
    - `totalExposure=0.0`;
-   - `matchedStacks=0`;
+   - `matchedSources=0`;
    - `diagnostic only, no gameplay effect`.
 
 ## Manual Minecraft test - `/radworks exposure` with 1 rotten flesh
@@ -144,12 +145,12 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 3. Confirm output includes:
    - `totalExposure=1.0`;
-   - `matchedStacks=1`;
+   - `matchedSources=1`;
    - `minecraft:rotten_flesh`;
    - the slot name;
    - `count=1`;
-   - `strength=1.0`;
-   - `radius=2.0`;
+   - `ruleStrength=1.0`;
+   - `ruleRadius=2.0`;
    - `contribution=1.0`;
    - `shielding=not_applied`.
 
@@ -217,16 +218,18 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 
 ## Manual Minecraft test - `/radworks sources` without rotten flesh
 1. Remove all `minecraft:rotten_flesh` from main inventory and offhand.
-2. Run:
+2. Make sure there is no `minecraft:gold_block` within 6 blocks of the player.
+3. Make sure there is no nearby chest or barrel containing `minecraft:rotten_flesh`.
+4. Run:
 
    ```text
    /radworks sources
    ```
 
-3. Confirm output includes:
+5. Confirm output includes:
    - `matchedSources=0`;
-   - `scope=player_inventory`;
-   - no world/block/container/entity/fluid sources.
+   - `scope=player_inventory+static_blocks+vanilla_containers`;
+   - no container/entity/fluid source rows.
 
 ## Manual Minecraft test - `/radworks sources` with 10 rotten flesh
 1. Put exactly 10 `minecraft:rotten_flesh` in main inventory.
@@ -239,13 +242,139 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
 3. Confirm output includes:
    - `matchedSources=1`;
    - `type=player_inventory`;
-   - `minecraft:rotten_flesh`;
+   - `itemId=minecraft:rotten_flesh`;
    - slot name;
    - `count=10`;
-   - `strength=1.0`;
-   - `radius=2.0`;
+   - `ruleStrength=1.0`;
+   - `ruleRadius=2.0`;
    - `contribution=10.0`;
    - `reason=active item rule matched type=item id=minecraft:rotten_flesh`.
+
+## Manual Minecraft test - `/radworks sources` with no gold block nearby
+1. Remove or move away from nearby `minecraft:gold_block` blocks.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm no row contains:
+   - `type=block`;
+   - `blockId=minecraft:gold_block`.
+
+## Manual Minecraft test - `/radworks sources` with nearby gold block
+1. Place one `minecraft:gold_block` within 6 blocks of the player.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm output includes:
+   - `type=block`;
+   - `blockId=minecraft:gold_block`;
+   - `position=`;
+   - `distance=`;
+   - `ruleRadius=6.0`;
+   - `ruleStrength=5.0`;
+   - `contribution=5.0`;
+   - `reason=active block rule matched type=block id=minecraft:gold_block`.
+
+## Manual Minecraft test - gold block outside radius
+1. Move more than 6 blocks away from the test `minecraft:gold_block`.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm the gold block source disappears.
+
+## Manual Minecraft test - combined inventory and block exposure
+1. Put exactly 10 `minecraft:rotten_flesh` in main inventory.
+2. Stand within 6 blocks of one `minecraft:gold_block`.
+3. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+4. Confirm output includes:
+   - `totalExposure=15.0`;
+   - one `type=player_inventory` row for `itemId=minecraft:rotten_flesh` with `contribution=10.0`;
+   - one `type=block` row for `blockId=minecraft:gold_block` with `contribution=5.0`;
+   - no damage, effects, hunger/exhaustion, particles, sounds or ticking accumulation.
+
+## Manual Minecraft test - no vanilla container nearby
+1. Remove nearby chests/barrels or make sure they contain no `minecraft:rotten_flesh`.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm no row contains:
+   - `type=block_entity_inventory`;
+   - `containerPos=`.
+
+## Manual Minecraft test - empty chest nearby
+1. Place an empty `minecraft:chest` or `minecraft:barrel` within 2 blocks of the player.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm there is no `type=block_entity_inventory` row.
+
+## Manual Minecraft test - chest with rotten flesh
+1. Place a `minecraft:chest` or `minecraft:barrel` within 2 blocks of the player.
+2. Put exactly 10 `minecraft:rotten_flesh` in one container slot.
+3. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+4. Confirm output includes:
+   - `type=block_entity_inventory`;
+   - `blockId=minecraft:chest` or `blockId=minecraft:barrel`;
+   - `containerPos=`;
+   - `slot=container.`;
+   - `itemId=minecraft:rotten_flesh`;
+   - `count=10`;
+   - `ruleStrength=1.0`;
+   - `ruleRadius=2.0`;
+   - `distance=`;
+   - `contribution=10.0`;
+   - `reason=vanilla Container slot matched active item rule type=item id=minecraft:rotten_flesh`.
+
+## Manual Minecraft test - combined inventory, block and container exposure
+1. Put exactly 10 `minecraft:rotten_flesh` in player inventory.
+2. Stand within 6 blocks of one `minecraft:gold_block`.
+3. Place a `minecraft:chest` or `minecraft:barrel` within 2 blocks of the player.
+4. Put exactly 10 `minecraft:rotten_flesh` in one container slot.
+5. Run:
+
+   ```text
+   /radworks exposure
+   ```
+
+6. Confirm output includes:
+   - `totalExposure=25.0`;
+   - one `type=player_inventory` row with `contribution=10.0`;
+   - one `type=block` row with `contribution=5.0`;
+   - one `type=block_entity_inventory` row with `contribution=10.0`.
+
+## Manual Minecraft test - container outside item radius
+1. Move more than 2 blocks away from the test chest or barrel that contains 10 `minecraft:rotten_flesh`.
+2. Run:
+
+   ```text
+   /radworks sources
+   ```
+
+3. Confirm the `block_entity_inventory` source disappears.
 
 ## Manual Minecraft test - exposure dump snapshot
 1. Before running `/radworks exposure`, run:
@@ -270,8 +399,47 @@ If `runServer` stops because the Minecraft EULA is not accepted, this is expecte
    - `totalExposure`;
    - `matchedStacks`;
    - `sources`;
+   - `sourcesShown`;
+   - `sourcesOmitted`;
    - `notes`;
    - `stale`.
+
+## Manual Minecraft test - Phase 4A dump source rows
+1. Put exactly 10 `minecraft:rotten_flesh` in main inventory.
+2. Stand within 6 blocks of one `minecraft:gold_block`.
+3. Run:
+
+   ```text
+   /radworks exposure
+   /radworks dump
+   ```
+
+4. Open the generated JSON under `radworks_dumps/`.
+5. Confirm `lastExposureSnapshot.sources` contains:
+   - one inventory row with `type: "player_inventory"` and `itemId: "minecraft:rotten_flesh"`;
+   - one block row with `type: "block"`, `blockId: "minecraft:gold_block"` and a `position` object;
+   - `sourcesShown`;
+   - `sourcesOmitted`.
+
+## Manual Minecraft test - Phase 4B dump source rows
+1. Put exactly 10 `minecraft:rotten_flesh` in player inventory.
+2. Stand within 6 blocks of one `minecraft:gold_block`.
+3. Place a `minecraft:chest` or `minecraft:barrel` within 2 blocks of the player.
+4. Put exactly 10 `minecraft:rotten_flesh` in one container slot.
+5. Run:
+
+   ```text
+   /radworks exposure
+   /radworks dump
+   ```
+
+6. Open the generated JSON under `radworks_dumps/`.
+7. Confirm `lastExposureSnapshot.sources` contains:
+   - one inventory row with `type: "player_inventory"` and `itemId: "minecraft:rotten_flesh"`;
+   - one block row with `type: "block"` and `blockId: "minecraft:gold_block"`;
+   - one container row with `type: "block_entity_inventory"`, `containerPos`, `blockId`, `itemId: "minecraft:rotten_flesh"`, `slot`, `count` and `contribution`;
+   - `sourcesShown`;
+   - `sourcesOmitted`.
 
 ## Manual Minecraft test - Phase 3 dump diagnostics
 1. Run:
@@ -407,4 +575,24 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `/radworks sources` with 10 rotten flesh reports one `player_inventory` source and match reason.
 - `/radworks exposure` still reports `totalExposure=10.0` for 10 rotten flesh.
 - `/radworks dump` includes debug state, command diagnostics performance stats, recent warnings and existing exposure snapshot.
-- No damage, effects, hunger/exhaustion, particles, sounds, ticking accumulation, shielding, fluids, world scan, block scan, container scan or entity scan exists.
+- No damage, effects, hunger/exhaustion, particles, sounds, ticking accumulation, shielding, fluids, block entity, container, tank, dropped item or entity scan exists.
+
+## Phase 4A acceptance
+- The project builds.
+- `/radworks validate` reports the dev-only item rule and dev-only block rule.
+- `/radworks sources` reports no block source when no `minecraft:gold_block` is nearby.
+- `/radworks sources` reports a `type=block` source when `minecraft:gold_block` is within radius.
+- Moving outside the rule radius removes the block source.
+- 10 `minecraft:rotten_flesh` plus one nearby `minecraft:gold_block` gives `totalExposure=15.0`.
+- `/radworks dump` after exposure includes bounded inventory and block source rows.
+- No damage, effects, hunger/exhaustion, particles, sounds, ticking accumulation, shielding, fluids, block entity, container, tank, dropped item, entity, Create, Aeronautics or KubeJS logic exists.
+
+## Phase 4B acceptance
+- The project builds.
+- `/radworks sources` reports no `block_entity_inventory` source when no chest/barrel is nearby.
+- `/radworks sources` reports no `block_entity_inventory` source for an empty nearby chest/barrel.
+- `/radworks sources` reports a `block_entity_inventory` source when a nearby chest/barrel contains 10 `minecraft:rotten_flesh`.
+- Moving outside the item rule radius removes the container contribution.
+- 10 `minecraft:rotten_flesh` in inventory plus one nearby `minecraft:gold_block` plus 10 `minecraft:rotten_flesh` in a nearby chest/barrel gives `totalExposure=25.0`.
+- `/radworks dump` after exposure includes bounded inventory, block and block entity inventory source rows.
+- No NeoForge capabilities, `IItemHandler`, modded capability containers, nested containers, shulker contents, backpacks, fluids, tanks, entities, dropped items, shielding, damage/effects, ticking accumulation, cache, Create, Aeronautics or KubeJS logic exists.
