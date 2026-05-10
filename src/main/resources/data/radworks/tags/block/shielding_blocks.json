@@ -1,6 +1,22 @@
 {
   "replace": false,
   "values": [
-    "minecraft:iron_block"
+    "minecraft:iron_block",
+    {
+      "id": "tfmg:raw_lead_block",
+      "required": false
+    },
+    {
+      "id": "tfmg:lead_block",
+      "required": false
+    },
+    {
+      "id": "tfmg:lead_ore",
+      "required": false
+    },
+    {
+      "id": "createnuclear:reinforced_glass",
+      "required": false
+    }
   ]
 }

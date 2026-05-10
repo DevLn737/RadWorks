@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.0 - Phase 5B real shielding rules + external tester package
+- Added optional real shielding candidates to `#radworks:shielding_blocks`: `tfmg:raw_lead_block`, `tfmg:lead_block`, `tfmg:lead_ore` and `createnuclear:reinforced_glass`.
+- Kept `minecraft:iron_block` as the dev/test shielding entry.
+- Used `required:false` for optional external shielding entries so missing TFMG/Create Nuclear blocks do not crash clean dev environments.
+- Added diagnostics-only shielding candidate reporting to `/radworks validate`.
+- Added compact shielding candidate diagnostics to `/radworks dump`.
+- Added `TESTER_HANDOFF.md` for external modpack testing.
+- Kept Phase 5B diagnostic-only: no shielding math changes, damage/effects, armor protection, ticking accumulation, cache/invalidation, custom blocks/items, Create, Aeronautics or KubeJS.
+
+## 0.1.0 - Phase 5A.1 shielding manual verification
+- Marked Phase 5A shielding diagnostics as manually verified.
+- Recorded successful no-shield dump review: `totalExposure=15.0`, gold block `finalContribution=5.0`, `shielding=clear`.
+- Recorded successful shielded dump review: `totalExposure=12.5`, gold block `rawContribution=5.0`, `finalContribution=2.5`, `shieldingBlocksHit=1`, `shieldingMultiplier=0.5`.
+- Confirmed player inventory shielding remains `not_applicable` and inventory contribution remains unchanged.
+- Kept Phase 5A.1 docs-only: no gameplay code changes, new features, damage/effects, ticking, cache, armor protection, Create, Aeronautics or KubeJS.
+
 ## 0.1.0 - Phase 5A shielding diagnostics
 - Added diagnostic-only shielding calculation for positioned source rows.
 - Added `#radworks:shielding_blocks` with temporary/dev-only `minecraft:iron_block`.

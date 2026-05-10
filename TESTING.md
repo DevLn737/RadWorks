@@ -726,6 +726,64 @@ If no such block exists, this is expected for the clean dev environment and is n
    - `shieldingBlocksHit`;
    - `shieldingSourcesReduced`.
 
+## Manual Minecraft test - Phase 5B shielding candidate validation
+1. Start a clean dev world without TFMG/Create Nuclear installed.
+2. Run:
+
+   ```text
+   /radworks validate
+   ```
+
+3. Confirm output includes:
+   - `RadWorks shielding candidates: tag=#radworks:shielding_blocks`;
+   - `minecraft:iron_block` reported as present;
+   - TFMG/Create Nuclear optional candidates reported as INFO, not ERROR;
+   - no crash and no hard dependency on optional mods.
+
+## Manual Minecraft test - Phase 5B dump shielding section
+1. Run:
+
+   ```text
+   /radworks dump
+   ```
+
+2. Open the generated JSON under `radworks_dumps/`.
+3. Confirm the dump contains `shielding` with:
+   - `tagId: "#radworks:shielding_blocks"`;
+   - `tagPath: "src/main/resources/data/radworks/tags/block/shielding_blocks.json"`;
+   - `devTestEntries` containing `minecraft:iron_block`;
+   - `optionalEntries` containing `tfmg:raw_lead_block`, `tfmg:lead_block`, `tfmg:lead_ore`, `createnuclear:reinforced_glass`;
+   - per-entry `status`;
+   - notes mentioning `required:false`.
+
+## Manual Minecraft test - Phase 5B external tester package
+1. Build the jar:
+
+   ```bash
+   ./gradlew build
+   ```
+
+2. Send the external tester:
+   - `build/libs/radworks-0.1.0.jar`;
+   - `TESTER_HANDOFF.md`.
+
+3. Ask the tester to run:
+   - startup check;
+   - `/radworks version`;
+   - `/radworks validate`;
+   - no-shield baseline;
+   - `minecraft:iron_block` shield;
+   - available real shielding blocks: `tfmg:lead_block`, `tfmg:raw_lead_block`, `tfmg:lead_ore`, `createnuclear:reinforced_glass`.
+
+4. Ask the tester to return:
+   - `/radworks version` output;
+   - `/radworks validate` output;
+   - one dump without shield;
+   - one dump with `minecraft:iron_block`;
+   - one dump per available real shielding block;
+   - installed mod versions if possible;
+   - `latest.log` only for crash, warnings, or confusing results.
+
 ## Manual Minecraft test - Phase 3 dump diagnostics
 1. Run:
 
@@ -917,3 +975,45 @@ The command should create a dump with `player` set to `null` and a filename endi
 - Container rows use `containerPos` for shielding.
 - `/radworks dump` includes shielding fields, `performance.shielding`, and shielding counters in `sourceScanSummary`.
 - No armor protection, damage/effects, hunger/exhaustion, particles, sounds, ticking accumulation, cache/invalidation, Create, Aeronautics or KubeJS logic exists.
+
+## Phase 5B acceptance
+- The project builds.
+- `src/main/resources/data/radworks/tags/block/shielding_blocks.json` uses the singular `tags/block` path.
+- `minecraft:iron_block` remains a dev/test shielding entry.
+- Optional real candidates are present in the shielding tag with `required:false`:
+  - `tfmg:raw_lead_block`;
+  - `tfmg:lead_block`;
+  - `tfmg:lead_ore`;
+  - `createnuclear:reinforced_glass`.
+- Clean local dev environment does not crash when optional mods are absent.
+- `/radworks validate` reports shielding candidate status without errors for absent optional mods.
+- `/radworks dump` includes compact shielding candidate diagnostics.
+- `TESTER_HANDOFF.md` exists and explains how an external tester should test and what to return.
+- No damage/effects, armor protection, ticking accumulation, cache/invalidation, custom blocks/items, external dependencies, Create/Aeronautics integration or KubeJS dependency exists.
+
+## Phase 5A.1 manual verification result
+- Status: DONE on 2026-05-10.
+- Shielded dump reviewed by user: `radworks-dump-20260510-070002-Dev.json`.
+- No-shield dump reviewed by user: `radworks-dump-20260510-070129-Dev.json`.
+- No-shield result:
+  - `totalExposure=15.0`;
+  - player inventory `minecraft:rotten_flesh` `finalContribution=10.0`;
+  - `minecraft:gold_block` `rawContribution=5.0`;
+  - `minecraft:gold_block` `finalContribution=5.0`;
+  - `shielding=clear`;
+  - `shieldingBlocksHit=0`;
+  - `shieldingMultiplier=1.0`;
+  - `sourceScanSummary.shieldingSourcesApplicable=1`;
+  - `sourceScanSummary.shieldingSourcesReduced=0`.
+- Shielded result:
+  - `totalExposure=12.5`;
+  - player inventory `minecraft:rotten_flesh` `finalContribution=10.0`;
+  - `minecraft:gold_block` `rawContribution=5.0`;
+  - `minecraft:gold_block` `finalContribution=2.5`;
+  - `shielding=reduced`;
+  - `shieldingBlocksHit=1`;
+  - `shieldingMultiplier=0.5`;
+  - `shieldingReduction=2.5`;
+  - `sourceScanSummary.shieldingSourcesApplicable=1`;
+  - `sourceScanSummary.shieldingSourcesReduced=1`.
+- Conclusion: Phase 5A shielding diagnostics are manually verified.

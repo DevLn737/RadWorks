@@ -79,7 +79,46 @@ Verified by user:
 - Gameplay effects are absent.
 
 ## Phase 5A - Shielding diagnostics
-Status: implemented locally, build passed, pending manual Minecraft verification.
+Status: implemented and manually verified.
+
+Verified by user in Phase 5A.1:
+- Shielded dump: `radworks-dump-20260510-070002-Dev.json`.
+- No-shield dump: `radworks-dump-20260510-070129-Dev.json`.
+- No-shield scenario: 10 `minecraft:rotten_flesh` plus nearby `minecraft:gold_block` gives `totalExposure=15.0`.
+- No-shield gold block row: `rawContribution=5.0`, `finalContribution=5.0`, `shielding=clear`, `shieldingBlocksHit=0`, `shieldingMultiplier=1.0`.
+- Shielded scenario with `minecraft:iron_block`: total exposure is reduced to `12.5`.
+- Shielded gold block row: `rawContribution=5.0`, `finalContribution=2.5`, `shielding=reduced`, `shieldingBlocksHit=1`, `shieldingMultiplier=0.5`, `shieldingReduction=2.5`.
+- Player inventory `minecraft:rotten_flesh` remains `finalContribution=10.0`.
+- `sourceScanSummary.shieldingSourcesApplicable=1` in both scenarios.
+- `sourceScanSummary.shieldingSourcesReduced=0` without shield and `1` with shield.
+
+## Phase 5A.1 - Shielding manual verification / dump review
+Status: complete.
+
+Conclusion:
+- Phase 5A shielding diagnostics are manually verified.
+- No gameplay code changes were required.
+- No docs-only limitations update, diagnostics-only fix, or bugfix was required from the reported results.
+
+## Phase 5B - Real shielding rules + external tester package
+Status: implemented locally, pending external modpack verification.
+
+Implemented:
+- Kept Phase 5A shielding algorithm unchanged.
+- Kept `minecraft:iron_block` as a temporary/dev-only shielding test entry.
+- Added optional real shielding candidates to `#radworks:shielding_blocks` using `required:false`:
+  - `tfmg:raw_lead_block`;
+  - `tfmg:lead_block`;
+  - `tfmg:lead_ore`;
+  - `createnuclear:reinforced_glass`.
+- Added diagnostics-only shielding candidate reporting to `/radworks validate`.
+- Added compact shielding candidate diagnostics to `/radworks dump`.
+- Added `TESTER_HANDOFF.md` for an external Minecraft/modpack-aware tester.
+
+Verification status:
+- Local clean dev environment is expected to report absent TFMG/Create Nuclear candidates as INFO, not ERROR.
+- External tester verification is required for real TFMG/Create Nuclear shielding blocks.
+- Phase 5B remains diagnostic-only.
 
 ## MIGRATION_DECISION_ACCEPTED
 - Minecraft version: `1.21.1`
@@ -108,6 +147,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Diagnostic-only item source discovery through NeoForge block `IItemHandler` capability.
 - Diagnostic-only fluid source discovery through NeoForge block `IFluidHandler` capability.
 - Diagnostic-only shielding calculation for positioned sources.
+- Diagnostics-only shielding candidate reporting for optional real shielding blocks.
 - Bounded `sourceScanSummary` diagnostics for the most recent `/radworks sources` or `/radworks exposure`.
 - Rules summary in `/radworks version`.
 - Rules validation summary in `/radworks dump`.
@@ -145,6 +185,14 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Temporary block: `minecraft:iron_block`
 - Purpose: smoke-test shielding diagnostics without requiring custom RadWorks shielding blocks or a full modpack.
 - Status: temporary/dev-only; not final gameplay balance.
+
+## Phase 5B optional real shielding candidates
+- `tfmg:raw_lead_block`
+- `tfmg:lead_block`
+- `tfmg:lead_ore`
+- `createnuclear:reinforced_glass`
+
+These entries are added to `#radworks:shielding_blocks` with `required:false`, so missing optional mods do not crash the local dev environment. They are final candidates from the old KubeJS content registry, pending external modpack verification.
 
 ## Explicitly not implemented in Phase 0
 - Radiation mechanics.
@@ -186,6 +234,8 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 4C.1 `./gradlew build` passed on 2026-05-08.
 - Phase 4D `./gradlew build` passed on 2026-05-08.
 - Phase 5A `./gradlew build` passed on 2026-05-08.
+- Phase 5A.1 manual verification was completed by user on 2026-05-10.
+- Phase 5B `./gradlew build` passed on 2026-05-10.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.
@@ -283,6 +333,9 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - `contribution` mirrors `finalContribution`.
 - Shielding timing is command diagnostics only and appears as `performance.shielding`.
 - `sourceScanSummary` includes shielding source, sample, block-hit and reduced-source counters.
+- Phase 5B adds shielding candidate diagnostics only; it does not change shielding math.
+- `/radworks validate` reports optional external shielding block status.
+- `/radworks dump` includes a compact `shielding` diagnostics section with tag id/path, dev/test entries, optional entries and required:false notes.
 
 ## Phase 1 implementation notes
 - Reload implementation uses a direct `SimplePreparableReloadListener` instead of `SimpleJsonResourceReloadListener` so malformed external datapack JSON can be captured and reported by `/radworks validate`.
@@ -319,3 +372,4 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - Phase 5A uses simple line sampling, not the old 3-ray binary model and not complex voxel raytracing.
 - Phase 5A does not implement armor protection, material-specific shielding strength, cache/invalidation, damage/effects or ticking accumulation.
 - Partial blocks, fluids and transparent-block behavior are not specially modeled in Phase 5A.
+- Phase 5B real shielding candidates require external TFMG/Create Nuclear testing because those mods are not installed in the local clean dev environment.

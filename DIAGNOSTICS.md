@@ -39,14 +39,26 @@ Clean output should look like:
 
 ```text
 RadWorks rules validation: loaded=3 enabled=3 disabled=0 errors=0 warnings=0 mode=lenient/dev checksum=<short>
+RadWorks shielding candidates: tag=#radworks:shielding_blocks present=1 missingOptionalMods=2 warnings=0
 ```
 
 Validation categories:
 - `UNKNOWN_REGISTRY_ID`: warning in `lenient/dev`.
+- `MISSING_OPTIONAL_MOD`: info when optional shielding mods such as TFMG/Create Nuclear are absent.
+- `OPTIONAL_SHIELDING_BLOCK_PRESENT`: info when an optional real shielding candidate is registered.
+- `OPTIONAL_SHIELDING_BLOCK_NOT_REGISTERED`: info when an optional candidate is not registered and the mod-loaded state cannot prove a missing optional mod.
+- `SHIELDING_BLOCK_PRESENT`: info for required/dev shielding entries such as `minecraft:iron_block`.
 - `INVALID_RULE_VALUE`: error for invalid fields like `radius <= 0` or `strength <= 0`.
 - `DUPLICATE_RULE`: error for duplicate enabled `type:id`; warning for duplicate disabled rules.
 - `MALFORMED_JSON`: error for malformed or unreadable JSON.
 - `DISABLED_RULE`: info; disabled rules are counted but not active.
+
+Phase 5B shielding candidate validation:
+- Uses `#radworks:shielding_blocks` from `data/radworks/tags/block/shielding_blocks.json`.
+- Keeps `minecraft:iron_block` as the required dev/test entry.
+- Adds optional real candidates with `required:false`: `tfmg:raw_lead_block`, `tfmg:lead_block`, `tfmg:lead_ore`, `createnuclear:reinforced_glass`.
+- Missing optional external IDs are not errors in a clean dev environment.
+- If an optional mod namespace is loaded but the expected block ID is missing, `/radworks validate` reports `WARNING UNKNOWN_REGISTRY_ID`.
 
 ## `/radworks exposure`
 Reports diagnostic-only exposure from active item rules in the executing player's server-side inventory, active static block rules around the player, active item rules inside nearby vanilla `Container` block entities, active item rules inside nearby block item handlers exposed through NeoForge `Capabilities.ItemHandler.BLOCK`, and active fluid rules inside nearby block fluid handlers exposed through NeoForge `Capabilities.FluidHandler.BLOCK`.
@@ -319,6 +331,13 @@ If the command is run from a server console, the filename uses `server` and the 
     "errors": [],
     "warnings": [],
     "infos": []
+  },
+  "shielding": {
+    "tagId": "#radworks:shielding_blocks",
+    "tagPath": "src/main/resources/data/radworks/tags/block/shielding_blocks.json",
+    "devTestEntries": [],
+    "optionalEntries": [],
+    "notes": []
   },
   "debug": {
     "enabled": false
@@ -607,6 +626,27 @@ For source discovery bugs, send Codex:
 - player position, nearby relevant blocks, and inventory/container contents;
 - expected source row and actual source row or missing row.
 
+## Shielding candidate diagnostics
+Phase 5B adds a compact `shielding` section to `/radworks dump`.
+
+It contains:
+- `tagId`;
+- `tagPath`;
+- `devTestEntries`;
+- `optionalEntries`;
+- per-entry `id`, `required`, `role`, `optionalModId`, `modLoaded`, `registered`, `status`;
+- notes explaining that optional external entries use `required:false`.
+
+Expected local clean-dev statuses:
+- `minecraft:iron_block`: `present`;
+- TFMG candidates: `missing_optional_mod` if TFMG is absent;
+- `createnuclear:reinforced_glass`: `missing_optional_mod` if Create Nuclear is absent.
+
+External testers should use this section to answer:
+- whether real shielding block IDs are registered in their modpack;
+- whether missing optional mods are reported safely;
+- which block IDs should be tested with `/radworks exposure`.
+
 ## Recent warnings
 `recentWarnings` is an in-memory bounded ring buffer with a maximum of 100 entries.
 
@@ -686,3 +726,19 @@ Phase 4C adds NeoForge block `IItemHandler` capability item source diagnostics.
 Phase 4D adds NeoForge block `IFluidHandler` capability fluid source diagnostics.
 
 Phase 5A adds diagnostic-only shielding calculation for positioned sources.
+
+## Phase 5A.1 verification notes
+Manual dump review completed successfully on 2026-05-10.
+
+Verified dumps:
+- Shielded: `radworks-dump-20260510-070002-Dev.json`.
+- No shield: `radworks-dump-20260510-070129-Dev.json`.
+
+Verified diagnostic behavior:
+- No-shield case: `totalExposure=15.0`; gold block `rawContribution=5.0`, `finalContribution=5.0`, `shielding=clear`, `shieldingBlocksHit=0`, `shieldingMultiplier=1.0`.
+- Shielded case: `totalExposure=12.5`; gold block `rawContribution=5.0`, `finalContribution=2.5`, `shielding=reduced`, `shieldingBlocksHit=1`, `shieldingMultiplier=0.5`, `shieldingReduction=2.5`.
+- Player inventory `minecraft:rotten_flesh` remained `finalContribution=10.0`.
+- `sourceScanSummary.shieldingSourcesApplicable=1` in both cases.
+- `sourceScanSummary.shieldingSourcesReduced=0` without shield and `1` with shield.
+
+Conclusion: Phase 5A shielding diagnostics are manually verified. No gameplay effects, damage, ticking, cache, armor protection, Create, Aeronautics or KubeJS behavior was added by this verification.

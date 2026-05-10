@@ -5,6 +5,7 @@ import dev.radworks.diagnostics.WarningBuffer;
 import dev.radworks.radiation.RadiationRuleValidationResult;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
+import dev.radworks.radiation.shielding.ShieldingDiagnostics;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
@@ -28,7 +29,9 @@ public final class ValidateCommand {
         }
 
         RadiationRuleValidationResult validation = rules.validationResult();
+        ShieldingDiagnostics.Report shieldingReport = ShieldingDiagnostics.report();
         recordValidationIssues(validation);
+        recordShieldingWarnings(shieldingReport);
         source.sendSuccess(() -> Component.literal("RadWorks rules validation: loaded="
                 + (rules.activeRules().size() + rules.disabledRules())
                 + " enabled="
@@ -43,10 +46,20 @@ public final class ValidateCommand {
                 + RadiationRules.VALIDATION_MODE
                 + " checksum="
                 + rules.shortChecksum()), false);
+        source.sendSuccess(() -> Component.literal("RadWorks shielding candidates: tag=#"
+                + ShieldingDiagnostics.TAG_ID
+                + " present="
+                + shieldingReport.presentCount()
+                + " missingOptionalMods="
+                + shieldingReport.missingOptionalModCount()
+                + " warnings="
+                + shieldingReport.warnings().size()), false);
 
         sendIssues(source, "ERROR", validation.errors());
         sendIssues(source, "WARNING", validation.warnings());
         sendIssues(source, "INFO", validation.infos());
+        sendIssues(source, "SHIELDING WARNING", shieldingReport.warnings());
+        sendIssues(source, "SHIELDING INFO", shieldingReport.infos());
         return validation.hasErrors() ? 0 : 1;
     }
 
@@ -55,6 +68,12 @@ public final class ValidateCommand {
             WarningBuffer.add(issue.category(), "validate:" + issue.source(), issue.message());
         }
         for (RadiationRuleValidationResult.Issue issue : validation.warnings()) {
+            WarningBuffer.add(issue.category(), "validate:" + issue.source(), issue.message());
+        }
+    }
+
+    private static void recordShieldingWarnings(ShieldingDiagnostics.Report report) {
+        for (RadiationRuleValidationResult.Issue issue : report.warnings()) {
             WarningBuffer.add(issue.category(), "validate:" + issue.source(), issue.message());
         }
     }
