@@ -2,6 +2,8 @@ package dev.radworks.radiation;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import dev.radworks.radiation.armor.ArmorProtectionResult;
+import dev.radworks.radiation.effects.EffectPreviewResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +16,8 @@ public record ExposureBreakdown(
         double totalExposure,
         int matchedStacks,
         List<RadiationSource> sources,
+        ArmorProtectionResult armorProtection,
+        EffectPreviewResult effectPreview,
         String notes) {
     public JsonObject toJson(int maxSources, String currentRulesChecksum) {
         JsonObject json = new JsonObject();
@@ -26,6 +30,8 @@ public record ExposureBreakdown(
         json.addProperty("matchedSources", sources.size());
         json.addProperty("matchedStacks", matchedStacks);
         json.addProperty("notes", notes);
+        json.add("armorProtection", armorProtection.toJson());
+        json.add("effectPreview", effectPreview.toJson());
 
         JsonArray sourceRows = new JsonArray();
         int shown = Math.min(maxSources, sources.size());

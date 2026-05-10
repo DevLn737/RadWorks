@@ -1,6 +1,10 @@
 package dev.radworks.radiation;
 
 import dev.radworks.diagnostics.SourceScanSummary;
+import dev.radworks.radiation.armor.ArmorProtectionResult;
+import dev.radworks.radiation.armor.ArmorProtectionService;
+import dev.radworks.radiation.effects.EffectPreviewResult;
+import dev.radworks.radiation.effects.EffectStrategyService;
 import dev.radworks.radiation.shielding.ShieldingEngine;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -21,6 +25,8 @@ public final class ExposureEngine {
         for (RadiationSource source : sources) {
             totalExposure += source.contribution();
         }
+        ArmorProtectionResult armorProtection = ArmorProtectionService.evaluate(player, totalExposure);
+        EffectPreviewResult effectPreview = EffectStrategyService.preview(totalExposure, armorProtection);
 
         ExposureBreakdown breakdown = new ExposureBreakdown(
                 Instant.now(),
@@ -30,6 +36,8 @@ public final class ExposureEngine {
                 totalExposure,
                 sources.size(),
                 sources,
+                armorProtection,
+                effectPreview,
                 DIAGNOSTIC_ONLY_NOTE);
         lastExposureSnapshot = breakdown;
         return breakdown;

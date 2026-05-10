@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.1.0 - Phase 6T automated test harness / regression tests
+- Added JUnit 5 + NeoForge unit-test harness configuration for local automated regression checks.
+- Added effect preview regression tests for:
+  - below-threshold block behavior;
+  - threshold behavior with no/partial armor;
+  - full-armor block behavior.
+- Added shielding math regression tests for:
+  - single-hit multiplier (`0.5`);
+  - minimum multiplier cap (`0.1`).
+- Added bundled data smoke tests for:
+  - `dev_rotten_flesh.json`;
+  - `dev_gold_block.json`;
+  - `dev_water.json`.
+- Added shielding tag and shielding diagnostics contract tests for dev + optional shielding candidate semantics.
+- Updated local test policy to automation-first for core logic; repeated manual local Minecraft checks are no longer default.
+- Kept Phase 6T non-goals: no gameplay mechanics, no auto-apply changes, no damage/exhaustion, no ticking accumulation, no cache/invalidation, and no optional integration/dependency additions.
+
+## 0.1.0 - Phase 6E controlled manual radiation effect application command
+- Added `/radworks effect` subcommands:
+  - `apply`, `apply <player>`
+  - `clear`, `clear <player>`
+  - `status`, `status <player>`
+- `apply/clear` require permission level 2; `status` is available to normal players.
+- Added graceful console errors for missing target player:
+  - `player required; use /radworks effect <subcommand> <player>`.
+- `apply` now uses preview-gated control:
+  - blocks when `effectPreview.wouldApply=false` with preview reason;
+  - applies only `radworks:radiation` with `durationTicks=20`, `amplifier=0` when preview allows.
+- `clear` removes only `radworks:radiation`.
+- `status` reports registration state, active state, remaining duration/amplifier when active, and preview gate fields.
+- Added command diagnostics timings: `performance.effect_apply`, `performance.effect_clear`, `performance.effect_status`.
+- Kept Phase 6E non-goals: no auto-apply, no damage/effects gameplay logic, no ticking accumulation, no cache/invalidation, no source-provider changes, no shielding math changes, and no optional integration/dependency changes.
+
 ## 0.1.0 - Phase 5B real shielding rules + external tester package
 - Added optional real shielding candidates to `#radworks:shielding_blocks`: `tfmg:raw_lead_block`, `tfmg:lead_block`, `tfmg:lead_ore` and `createnuclear:reinforced_glass`.
 - Kept `minecraft:iron_block` as the dev/test shielding entry.

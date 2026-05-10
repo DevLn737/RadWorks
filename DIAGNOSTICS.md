@@ -2,6 +2,12 @@
 
 Phase 0 diagnostics exist so users and future Codex sessions can inspect the mod before radiation gameplay is implemented.
 
+## Automation policy (Phase 6T)
+- Local diagnostics regressions are now validated by automated tests where practical.
+- Repeated manual local Minecraft verification is no longer default for core logic changes.
+- Manual local testing remains for UX sanity and cases automation cannot cover reliably.
+- External-mod behavior (TFMG/Create Nuclear/Create/Aeronautics/Sophisticated/etc.) remains external-tester scope.
+
 ## `/radworks version`
 Prints:
 
@@ -40,6 +46,7 @@ Clean output should look like:
 ```text
 RadWorks rules validation: loaded=3 enabled=3 disabled=0 errors=0 warnings=0 mode=lenient/dev checksum=<short>
 RadWorks shielding candidates: tag=#radworks:shielding_blocks present=1 missingOptionalMods=2 warnings=0
+RadWorks effect strategy: mode=preview_only selectedEffectId=radworks:radiation selectedEffectRegistered=true externalEffectId=createnuclear:radiation externalEffectPresent=<true|false> threshold=10.0
 ```
 
 Validation categories:
@@ -214,6 +221,18 @@ Note: diagnostic only, no gameplay effect
 
 Chat output is bounded to 10 source rows.
 
+Phase 6A adds an armor diagnostics summary line in `/radworks exposure`:
+- `status`: `none`, `partial`, `full`, `unknown`;
+- `protectionSource`: `tag`, `dev_diamond_set`, `unknown`;
+- `requiredPieces`, `equippedPieces`, `missingPieces`;
+- `wouldBlockExposure`, `wouldReduceExposure`;
+- `applied=false`;
+- `hypotheticalExposureIfArmorApplied`.
+
+Important:
+- Phase 6A does not change `totalExposure`.
+- Armor diagnostics are hypothetical only and do not apply gameplay protection.
+
 ## `/radworks sources`
 Reports the diagnostic sources currently found for a player. Phase 4D combines Phase 2 player inventory sources, Phase 4A static block sources, Phase 4B nearby vanilla `Container` block entity inventory sources, nearby block item handler sources and nearby block fluid handler sources.
 
@@ -278,6 +297,43 @@ Rules:
 - Console can use all three commands if permission allows.
 - Debug state resets on server restart.
 - Debug state does not change gameplay balance or calculations.
+
+## `/radworks effect`
+Controlled manual effect command group:
+
+```text
+/radworks effect apply
+/radworks effect apply <player>
+/radworks effect clear
+/radworks effect clear <player>
+/radworks effect status
+/radworks effect status <player>
+```
+
+Rules:
+- `apply/clear` require permission level 2.
+- `status` is available to normal players.
+- Console without target fails with:
+  - `player required; use /radworks effect apply <player>`
+  - `player required; use /radworks effect clear <player>`
+  - `player required; use /radworks effect status <player>`
+
+Behavior:
+- `apply` is controlled by current preview gate (`effectPreview`):
+  - if `wouldApply=false`, it does not apply and reports reason such as `below_threshold` or `blocked_by_full_armor`;
+  - if `wouldApply=true`, it applies only `radworks:radiation` with `durationTicks=20`, `amplifier=0`.
+- `clear` removes only `radworks:radiation`.
+- `status` reports:
+  - `effectId`;
+  - `selectedEffectRegistered`;
+  - `active`;
+  - `durationTicks`/`amplifier` if active;
+  - preview gate fields (`wouldApply`, `reason`, `blockedByArmor`, `applied=false`).
+
+Non-goals preserved:
+- no auto-apply from `/radworks exposure`;
+- no damage, hunger/exhaustion, particles/sounds, ticking accumulation or cache logic;
+- no source-provider or shielding-math changes.
 
 ## `/radworks dump`
 Creates a JSON diagnostics file in:
@@ -450,7 +506,18 @@ After `/radworks exposure`, `lastExposureSnapshot` becomes:
     }
   ],
   "sourcesShown": 1,
-  "sourcesOmitted": 0
+  "sourcesOmitted": 0,
+  "armorProtection": {
+    "status": "none",
+    "requiredPieces": ["head", "chest", "legs", "feet"],
+    "equippedPieces": [],
+    "missingPieces": ["head", "chest", "legs", "feet"],
+    "protectionSource": "tag",
+    "wouldBlockExposure": false,
+    "wouldReduceExposure": false,
+    "applied": false,
+    "hypotheticalExposureIfArmorApplied": 10.0
+  }
 }
 ```
 
@@ -676,6 +743,9 @@ Measured operations:
 - `validate`
 - `exposure`
 - `sources`
+- `effect_apply`
+- `effect_clear`
+- `effect_status`
 - `blockScan`
 - `blockEntityInventoryScan`
 - `itemHandlerScan`

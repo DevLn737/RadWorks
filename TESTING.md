@@ -1,11 +1,32 @@
 # Testing
 
+## Local testing policy (Phase 6T)
+- Repeated manual local Minecraft testing is no longer the default.
+- For core logic changes, automated tests are required when practical.
+- Manual local Minecraft testing is now reserved for:
+  - command/UX sanity checks;
+  - scenarios that cannot be covered reliably by local automation.
+- External modpack and optional dependency behavior remains external-tester responsibility.
+
 ## Automated checks
 Run:
 
 ```bash
+./gradlew test
 ./gradlew build
 ```
+
+Phase 6T minimum local gate for new logic phases:
+- `./gradlew test` must execute real tests (not `NO-SOURCE`);
+- `./gradlew build` must pass.
+
+## Phase 6T automated regression suite
+Automated local coverage now includes:
+- effect preview policy thresholds and armor gate;
+- shielding reduction math and multiplier cap;
+- radiation rules JSON smoke for bundled dev files;
+- shielding tag data contract for dev + optional entries;
+- shielding diagnostics contract for optional candidates in clean-dev semantics.
 
 Optional smoke runs:
 
@@ -784,6 +805,62 @@ If no such block exists, this is expected for the clean dev environment and is n
    - installed mod versions if possible;
    - `latest.log` only for crash, warnings, or confusing results.
 
+## Manual Minecraft test - Phase 6A armor protection diagnostics
+1. No armor:
+
+   ```text
+   /radworks exposure
+   ```
+
+   Expected:
+   - `armorProtection.status=none`;
+   - `wouldBlockExposure=false`;
+   - `applied=false`;
+   - `totalExposure` unchanged.
+
+2. Full diamond armor:
+
+   ```text
+   /item replace entity @s armor.head with minecraft:diamond_helmet
+   /item replace entity @s armor.chest with minecraft:diamond_chestplate
+   /item replace entity @s armor.legs with minecraft:diamond_leggings
+   /item replace entity @s armor.feet with minecraft:diamond_boots
+   /radworks exposure
+   ```
+
+   Expected:
+   - `armorProtection.status=full`;
+   - `missingPieces=[]`;
+   - `wouldBlockExposure=true`;
+   - `applied=false`;
+   - `totalExposure` unchanged;
+   - `hypotheticalExposureIfArmorApplied=0.0`.
+
+3. Partial diamond armor:
+
+   ```text
+   /item replace entity @s armor.chest with air
+   /radworks exposure
+   ```
+
+   Expected:
+   - `armorProtection.status=partial`;
+   - `missingPieces` includes `chest`;
+   - `wouldBlockExposure=false`;
+   - `applied=false`;
+   - `totalExposure` unchanged.
+
+4. Dump:
+
+   ```text
+   /radworks exposure
+   /radworks dump
+   ```
+
+   Expected:
+   - `lastExposureSnapshot.armorProtection` exists;
+   - no gameplay damage/effects/ticking behavior is active.
+
 ## Manual Minecraft test - Phase 3 dump diagnostics
 1. Run:
 
@@ -990,6 +1067,150 @@ The command should create a dump with `player` set to `null` and a filename endi
 - `/radworks dump` includes compact shielding candidate diagnostics.
 - `TESTER_HANDOFF.md` exists and explains how an external tester should test and what to return.
 - No damage/effects, armor protection, ticking accumulation, cache/invalidation, custom blocks/items, external dependencies, Create/Aeronautics integration or KubeJS dependency exists.
+
+## Phase 6A acceptance
+- The project builds.
+- `/radworks exposure` includes a compact `armorProtection` diagnostics line.
+- No armor reports `status=none`.
+- Full diamond armor reports `status=full`.
+- Partial diamond armor reports `status=partial` and a missing slot.
+- `totalExposure` remains unchanged by armor in Phase 6A.
+- `/radworks dump` includes `lastExposureSnapshot.armorProtection`.
+- No gameplay effects, damage, ticking accumulation, cache/invalidation, source provider changes, or integrations are added.
+
+## Phase 6E acceptance
+- The project builds.
+- `/radworks validate` still reports:
+  - `selectedEffectId=radworks:radiation`;
+  - `selectedEffectRegistered=true`;
+  - no new errors when `createnuclear:radiation` is absent.
+- `/radworks effect apply` below threshold does not apply and returns reason `below_threshold`.
+- `/radworks effect apply` at/above threshold with no armor applies `radworks:radiation` for `20` ticks at amplifier `0`.
+- `/radworks effect apply` at/above threshold with full armor does not apply and returns reason `blocked_by_full_armor`.
+- `/radworks effect clear` removes only `radworks:radiation`.
+- `/radworks effect status` reports effect id, registration status, active state, active duration/amplifier when present, and preview gate fields.
+- `/radworks exposure` remains diagnostic-only and does not auto-apply the effect.
+- `/radworks dump.performance` includes `effect_apply`, `effect_clear`, and `effect_status`.
+- No damage, hunger/exhaustion, particles/sounds, ticking accumulation, cache/invalidation, source provider changes, shielding math changes, or optional integration changes are introduced.
+
+## Phase 6T acceptance
+- `./gradlew test` runs real test classes (not `NO-SOURCE`).
+- `./gradlew build` passes after test harness setup.
+- Effect preview regression tests cover:
+  - below threshold -> blocked;
+  - threshold with no/partial armor -> would apply;
+  - full armor -> blocked by armor.
+- Shielding regression tests cover:
+  - single-hit 0.5 multiplier behavior;
+  - minimum 0.1 multiplier cap behavior.
+- Bundled rule JSON smoke tests pass for:
+  - `dev_rotten_flesh.json`;
+  - `dev_gold_block.json`;
+  - `dev_water.json`.
+- Shielding tag and shielding diagnostics data-contract tests pass.
+- Local policy is automation-first; repeated manual local testing is not default.
+
+## Manual Minecraft test - `/radworks effect`
+1. Build:
+
+   ```bash
+   ./gradlew build
+   ```
+
+2. Validate strategy registration:
+
+   ```text
+   /radworks validate
+   ```
+
+3. Below-threshold blocked apply:
+
+   ```text
+   /clear @s
+   /item replace entity @s armor.head with air
+   /item replace entity @s armor.chest with air
+   /item replace entity @s armor.legs with air
+   /item replace entity @s armor.feet with air
+   /give @s minecraft:rotten_flesh 1
+   /radworks effect apply
+   ```
+
+   Expected:
+   - apply blocked with `reason=below_threshold`;
+   - no active `radworks:radiation`.
+
+4. Threshold apply without armor:
+
+   ```text
+   /clear @s
+   /item replace entity @s armor.head with air
+   /item replace entity @s armor.chest with air
+   /item replace entity @s armor.legs with air
+   /item replace entity @s armor.feet with air
+   /give @s minecraft:rotten_flesh 10
+   /radworks effect apply
+   /radworks effect status
+   ```
+
+   Expected:
+   - apply succeeds;
+   - `active=true`;
+   - active effect is `radworks:radiation`;
+   - status includes preview gate with `wouldApply=true`, `reason=exposure_at_or_above_threshold`, `applied=false`.
+
+5. Threshold blocked by full armor:
+
+   ```text
+   /item replace entity @s armor.head with minecraft:diamond_helmet
+   /item replace entity @s armor.chest with minecraft:diamond_chestplate
+   /item replace entity @s armor.legs with minecraft:diamond_leggings
+   /item replace entity @s armor.feet with minecraft:diamond_boots
+   /radworks effect apply
+   ```
+
+   Expected:
+   - apply blocked with `reason=blocked_by_full_armor`.
+
+6. Clear and status:
+
+   ```text
+   /radworks effect clear
+   /radworks effect status
+   ```
+
+   Expected:
+   - clear reports `removed=true` if active, otherwise `removed=false`;
+   - status reports `active=false`.
+
+7. Console target requirement:
+   - from console, `/radworks effect apply` must fail with:
+
+   ```text
+   player required; use /radworks effect apply <player>
+   ```
+
+   - from console, `/radworks effect clear` must fail with:
+
+   ```text
+   player required; use /radworks effect clear <player>
+   ```
+
+   - from console, `/radworks effect status` must fail with:
+
+   ```text
+   player required; use /radworks effect status <player>
+   ```
+
+8. Optional manual sanity check:
+
+   ```text
+   /radworks effect apply
+   /radworks exposure
+   ```
+
+   Expected:
+   - `/radworks exposure` does not apply effects automatically;
+   - no gameplay damage/effects logic is triggered by exposure diagnostics.
 
 ## Phase 5A.1 manual verification result
 - Status: DONE on 2026-05-10.

@@ -12,6 +12,9 @@ public final class PerformanceStats {
         STATS.put("validate", new OperationStats());
         STATS.put("exposure", new OperationStats());
         STATS.put("sources", new OperationStats());
+        STATS.put("effect_apply", new OperationStats());
+        STATS.put("effect_clear", new OperationStats());
+        STATS.put("effect_status", new OperationStats());
         STATS.put("blockScan", new OperationStats());
         STATS.put("blockEntityInventoryScan", new OperationStats());
         STATS.put("itemHandlerScan", new OperationStats());

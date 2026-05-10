@@ -37,6 +37,27 @@ public final class RadWorksCommands {
                                 .executes(context -> SourcesCommand.run(
                                         context.getSource(),
                                         EntityArgument.getPlayer(context, "player")))))
+                .then(Commands.literal("effect")
+                        .then(Commands.literal("apply")
+                                .requires(source -> source.hasPermission(2))
+                                .executes(context -> EffectCommand.applySelf(context.getSource()))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> EffectCommand.apply(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player")))))
+                        .then(Commands.literal("clear")
+                                .requires(source -> source.hasPermission(2))
+                                .executes(context -> EffectCommand.clearSelf(context.getSource()))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> EffectCommand.clear(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player")))))
+                        .then(Commands.literal("status")
+                                .executes(context -> EffectCommand.statusSelf(context.getSource()))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> EffectCommand.status(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player"))))))
                 .then(Commands.literal("debug")
                         .then(Commands.literal("status")
                                 .executes(context -> DebugCommand.status(context.getSource())))

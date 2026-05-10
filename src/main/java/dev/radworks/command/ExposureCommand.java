@@ -6,6 +6,8 @@ import dev.radworks.diagnostics.WarningBuffer;
 import dev.radworks.radiation.ExposureBreakdown;
 import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationSource;
+import dev.radworks.radiation.armor.ArmorProtectionResult;
+import dev.radworks.radiation.effects.EffectPreviewResult;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,8 +60,50 @@ public final class ExposureCommand {
                 + shown
                 + " sourcesOmitted="
                 + (breakdown.sources().size() - shown)), false);
+        source.sendSuccess(() -> Component.literal("armorProtection: " + armorSummary(breakdown.armorProtection())), false);
+        source.sendSuccess(() -> Component.literal("effectPreview: " + effectSummary(breakdown.effectPreview())), false);
         source.sendSuccess(() -> Component.literal("Note: " + breakdown.notes()), false);
         return 1;
+    }
+
+    private static String armorSummary(ArmorProtectionResult armorProtection) {
+        return "status="
+                + armorProtection.status()
+                + " protectionSource="
+                + armorProtection.protectionSource()
+                + " equippedPieces="
+                + armorProtection.equippedPieces()
+                + " missingPieces="
+                + armorProtection.missingPieces()
+                + " wouldBlockExposure="
+                + armorProtection.wouldBlockExposure()
+                + " wouldReduceExposure="
+                + armorProtection.wouldReduceExposure()
+                + " applied="
+                + armorProtection.applied()
+                + " hypotheticalExposureIfArmorApplied="
+                + armorProtection.hypotheticalExposureIfArmorApplied();
+    }
+
+    private static String effectSummary(EffectPreviewResult effectPreview) {
+        return "wouldApply="
+                + effectPreview.wouldApply()
+                + " reason="
+                + effectPreview.reason()
+                + " durationTicks="
+                + effectPreview.durationTicks()
+                + " amplifier="
+                + effectPreview.amplifier()
+                + " blockedByArmor="
+                + effectPreview.blockedByArmor()
+                + " applied="
+                + effectPreview.applied()
+                + " threshold="
+                + effectPreview.threshold()
+                + " exposureUsed="
+                + effectPreview.exposureUsed()
+                + " armorStatus="
+                + effectPreview.armorStatus();
     }
 
     private static String sourceRow(RadiationSource source) {

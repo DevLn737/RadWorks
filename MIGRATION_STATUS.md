@@ -120,6 +120,161 @@ Verification status:
 - External tester verification is required for real TFMG/Create Nuclear shielding blocks.
 - Phase 5B remains diagnostic-only.
 
+## Phase 6A - Armor protection diagnostics only
+Status: implemented and manually verified.
+
+Implemented:
+- Added diagnostic-only armor protection evaluation from server-side armor slots: `head`, `chest`, `legs`, `feet`.
+- Added `ArmorProtectionResult` and `ArmorProtectionService`.
+- Added primary item tag definition: `#radworks:radiation_protection_armor`.
+- Added fallback to `dev_diamond_set` only when armor tag is missing/empty/unreadable.
+- Added armor protection summary to `/radworks exposure`.
+- Added `lastExposureSnapshot.armorProtection` to `/radworks dump`.
+
+Verified by user:
+- No armor dump: `radworks-dump-20260510-095915-Dev.json`.
+  - `status=none`;
+  - `equippedPieces=[]`;
+  - `missingPieces=head,chest,legs,feet`;
+  - `wouldBlockExposure=false`;
+  - `wouldReduceExposure=false`;
+  - `applied=false`;
+  - `hypotheticalExposureIfArmorApplied=15.0`;
+  - `totalExposure=15.0` unchanged.
+- Full diamond dump: `radworks-dump-20260510-095941-Dev.json`.
+  - `status=full`;
+  - `equippedPieces=head,chest,legs,feet`;
+  - `missingPieces=[]`;
+  - `wouldBlockExposure=true`;
+  - `wouldReduceExposure=true`;
+  - `applied=false`;
+  - `hypotheticalExposureIfArmorApplied=0.0`;
+  - `totalExposure=15.0` unchanged.
+- Partial diamond dump: `radworks-dump-20260510-095953-Dev.json`.
+  - `status=partial`;
+  - `equippedPieces=head,legs,feet`;
+  - `missingPieces=chest`;
+  - `wouldBlockExposure=false`;
+  - `wouldReduceExposure=false`;
+  - `applied=false`;
+  - `hypotheticalExposureIfArmorApplied=15.0`;
+  - `totalExposure=15.0` unchanged.
+
+Constraints preserved:
+- No gameplay effects or damage.
+- No ticking accumulation.
+- No cache/invalidation.
+- No Create/Aeronautics integration.
+- No new source providers.
+
+## Phase 6C - Effect preview diagnostics only
+Status: implemented and manually verified.
+
+Implemented:
+- Added preview-only `effectStrategy` diagnostics.
+- Added preview-only `effectPreview` diagnostics in `/radworks exposure` and dump snapshots.
+- Kept `totalExposure` unchanged.
+- Kept `applied=false` for both armor protection and effect preview.
+- Did not register or apply any MobEffect.
+
+Verified by user:
+- Below threshold with no armor:
+  - `totalExposure=1.0`;
+  - `effectPreview.wouldApply=false`;
+  - `reason=below_threshold`;
+  - `blockedByArmor=false`;
+  - `applied=false`.
+- At threshold with no armor:
+  - `totalExposure=10.0`;
+  - `effectPreview.wouldApply=true`;
+  - `reason=exposure_at_or_above_threshold`;
+  - `blockedByArmor=false`;
+  - `applied=false`.
+- At threshold with full armor:
+  - `totalExposure=10.0`;
+  - `effectPreview.wouldApply=false`;
+  - `reason=blocked_by_full_armor`;
+  - `blockedByArmor=true`;
+  - `applied=false`.
+
+Constraints preserved:
+- No gameplay effects or damage.
+- No exhaustion/hunger changes.
+- No ticking accumulation.
+- No cache/invalidation.
+- No Create/Aeronautics integration.
+
+## Phase 6D - Register own `radworks:radiation` MobEffect, no auto-apply
+Status: implemented locally, build passed, manual runtime verification pending.
+
+Implemented:
+- Registered own `MobEffect` id: `radworks:radiation` via NeoForge `DeferredRegister`.
+- Wired effect registry registration on the mod event bus in `RadWorks` constructor.
+- Kept effect implementation inert/minimal for this phase.
+- Kept preview diagnostics flow:
+  - `effectStrategy.selectedEffectId=radworks:radiation`;
+  - `effectStrategy.selectedEffectRegistered` from runtime registry presence;
+  - `effectPreview.applied=false` always.
+
+Constraints preserved:
+- No automatic effect application.
+- No damage, exhaustion, hunger changes, or ticking accumulation.
+- No cache/invalidation.
+- No Create/Aeronautics integration.
+- No Create Nuclear dependency or override usage.
+- No source provider or shielding math changes.
+
+## Phase 6E - Controlled manual radiation effect application command
+Status: implemented locally, build passed, manual runtime verification pending.
+
+Implemented:
+- Added `/radworks effect` command group:
+  - `/radworks effect apply`
+  - `/radworks effect apply <player>`
+  - `/radworks effect clear`
+  - `/radworks effect clear <player>`
+  - `/radworks effect status`
+  - `/radworks effect status <player>`
+- Permissions:
+  - `apply/clear` require permission level 2;
+  - `status` is available to normal players.
+- Console without target now fails gracefully with:
+  - `player required; use /radworks effect <subcommand> <player>`.
+- `apply` is controlled by existing preview gate:
+  - blocked when `effectPreview.wouldApply=false` with preview reason;
+  - applies only `radworks:radiation` with `durationTicks=20` and `amplifier=0` when preview allows.
+- `clear` removes only `radworks:radiation`.
+- `status` reports effect id, registration status, active state, remaining duration/amplifier when active, and preview gate fields.
+- Added command diagnostics timings:
+  - `performance.effect_apply`
+  - `performance.effect_clear`
+  - `performance.effect_status`
+
+Constraints preserved:
+- No auto-apply from `/radworks exposure`.
+- No damage/effects gameplay logic, hunger/exhaustion changes, particles/sounds, ticking accumulation or cache/invalidation.
+- No source provider, shielding math or total exposure formula changes.
+- No Create/Aeronautics/KubeJS integration or new external dependencies.
+
+## Phase 6T - Automated test harness / regression tests
+Status: implemented locally, build passed, automated tests enabled.
+
+Implemented:
+- Enabled local unit-test harness with JUnit 5 and NeoForge `unitTest` integration.
+- Added regression tests for:
+  - effect preview threshold/armor gate behavior;
+  - shielding multiplier and minimum-cap math;
+  - bundled radiation rule JSON smoke validation (`dev_rotten_flesh`, `dev_gold_block`, `dev_water`);
+  - shielding tag data contract (`minecraft:iron_block` + optional `required:false` candidates);
+  - shielding diagnostics optional-candidate contract (non-fatal clean-dev semantics).
+- Updated project testing policy to automation-first local validation for core logic.
+
+Constraints preserved:
+- No gameplay feature additions.
+- No auto-apply changes, damage, exhaustion/hunger logic, ticking accumulation, or cache/invalidation.
+- No source provider, shielding engine math, or exposure formula changes.
+- No Create/Aeronautics/KubeJS/optional-mod dependency additions.
+
 ## MIGRATION_DECISION_ACCEPTED
 - Minecraft version: `1.21.1`
 - NeoForge version: `21.1.228`
@@ -142,6 +297,7 @@ These choices are accepted for Phase 0. They can be revisited if the target modp
 - `/radworks exposure`.
 - `/radworks sources`.
 - `/radworks debug on/off/status`.
+- `/radworks effect apply/clear/status`.
 - Diagnostic-only static block source discovery for ordinary block states.
 - Diagnostic-only item source discovery inside nearby vanilla `Container` block entities.
 - Diagnostic-only item source discovery through NeoForge block `IItemHandler` capability.
@@ -236,6 +392,9 @@ These entries are added to `#radworks:shielding_blocks` with `required:false`, s
 - Phase 5A `./gradlew build` passed on 2026-05-08.
 - Phase 5A.1 manual verification was completed by user on 2026-05-10.
 - Phase 5B `./gradlew build` passed on 2026-05-10.
+- Phase 6A `./gradlew build` passed on 2026-05-10.
+- Phase 6C `./gradlew build` passed on 2026-05-10.
+- Phase 6D must run `./gradlew build` after implementation.
 
 ## Phase 2 implementation notes
 - `/radworks exposure` scans only server-side player main inventory and offhand.

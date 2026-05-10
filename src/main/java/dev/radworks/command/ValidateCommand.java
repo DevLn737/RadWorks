@@ -5,6 +5,8 @@ import dev.radworks.diagnostics.WarningBuffer;
 import dev.radworks.radiation.RadiationRuleValidationResult;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
+import dev.radworks.radiation.effects.EffectStrategyResult;
+import dev.radworks.radiation.effects.EffectStrategyService;
 import dev.radworks.radiation.shielding.ShieldingDiagnostics;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -30,6 +32,7 @@ public final class ValidateCommand {
 
         RadiationRuleValidationResult validation = rules.validationResult();
         ShieldingDiagnostics.Report shieldingReport = ShieldingDiagnostics.report();
+        EffectStrategyResult effectStrategy = EffectStrategyService.strategy();
         recordValidationIssues(validation);
         recordShieldingWarnings(shieldingReport);
         source.sendSuccess(() -> Component.literal("RadWorks rules validation: loaded="
@@ -54,6 +57,18 @@ public final class ValidateCommand {
                 + shieldingReport.missingOptionalModCount()
                 + " warnings="
                 + shieldingReport.warnings().size()), false);
+        source.sendSuccess(() -> Component.literal("RadWorks effect strategy: mode="
+                + effectStrategy.mode()
+                + " selectedEffectId="
+                + effectStrategy.selectedEffectId()
+                + " selectedEffectRegistered="
+                + effectStrategy.selectedEffectRegistered()
+                + " externalEffectId="
+                + effectStrategy.externalEffectId()
+                + " externalEffectPresent="
+                + effectStrategy.externalEffectPresent()
+                + " threshold="
+                + effectStrategy.threshold()), false);
 
         sendIssues(source, "ERROR", validation.errors());
         sendIssues(source, "WARNING", validation.warnings());

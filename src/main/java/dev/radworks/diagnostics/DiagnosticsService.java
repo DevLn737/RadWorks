@@ -10,6 +10,7 @@ import dev.radworks.radiation.ExposureBreakdown;
 import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
+import dev.radworks.radiation.effects.EffectStrategyService;
 import dev.radworks.radiation.shielding.ShieldingDiagnostics;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -78,6 +79,7 @@ public final class DiagnosticsService {
         root.add("player", player == null ? JsonNull.INSTANCE : playerInfo(player));
         root.add("rules", rulesInfo());
         root.add("shielding", shieldingInfo());
+        root.add("effectStrategy", effectStrategyInfo());
         root.add("debug", DiagnosticsState.toJson());
         root.add("integrations", integrationsInfo());
         root.add("performance", performanceInfo());
@@ -126,6 +128,10 @@ public final class DiagnosticsService {
 
     private static JsonObject shieldingInfo() {
         return ShieldingDiagnostics.toJson();
+    }
+
+    private static JsonObject effectStrategyInfo() {
+        return EffectStrategyService.strategy().toJson();
     }
 
     private static JsonObject integrationsInfo() {

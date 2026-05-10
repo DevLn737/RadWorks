@@ -8,7 +8,7 @@ The old KubeJS project is a source of behavior, requirements, bugs and migration
 ## User context
 The project owner is not a Java programmer.
 
-Codex must keep the project understandable, documented, testable and diagnosable. Prefer explicit status updates, small phases and manual Minecraft tests.
+Codex must keep the project understandable, documented, testable and diagnosable. Prefer explicit status updates, small phases and automation-first local testing.
 
 ## Core rules
 - Work in small phases.
@@ -17,6 +17,7 @@ Codex must keep the project understandable, documented, testable and diagnosable
 - Always update `TESTING.md` when behavior changes.
 - Always update `DIAGNOSTICS.md` when debug output changes.
 - Prefer diagnostic-first development.
+- Prefer automated local regression checks for core logic; repeated manual local Minecraft testing is no longer the default.
 - Do not require KubeJS as a runtime dependency.
 - Do not copy KubeJS architecture blindly.
 - Do not implement Create/Aeronautics before core radiation works.
@@ -24,6 +25,11 @@ Codex must keep the project understandable, documented, testable and diagnosable
 - If something is unknown, write UNKNOWN/TODO instead of guessing.
 - If something is buggy in the old project, do not preserve the bug unless explicitly required.
 - If behavior is unclear, mark `MIGRATION_DECISION_REQUIRED`.
+
+## Testing policy
+- For new core logic, add or update automated tests when practical.
+- Reserve manual local Minecraft testing for UX sanity or cases automation cannot cover reliably.
+- Keep external modpack and optional dependency verification delegated to the external tester workflow.
 
 ## Phase 0 status
 Phase 0 only includes:
@@ -77,3 +83,14 @@ Use `migration_export/` as the specification, especially:
 - Prefer explicit names over clever abstractions.
 - Keep optional integrations isolated from core code.
 - Add comments only where they explain non-obvious migration or compatibility decisions.
+
+
+External Mod Integration Rule:
+Do not implement integrations against Create, TFMG, Create Nuclear, Sophisticated, Aeronautics, or any optional mod from memory.
+Before coding an integration:
+1. create a research/diagnostics phase;
+2. identify target mod version;
+3. inspect official docs/source/API if available;
+4. add runtime diagnostics;
+5. require user/tester dump from real modpack;
+6. only then implement provider logic.

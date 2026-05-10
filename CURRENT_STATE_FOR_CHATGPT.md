@@ -2,7 +2,7 @@
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. The new mod is intentionally diagnostic-first: it loads data-driven radiation rules, discovers radiation sources through explicit command-only scans, reports exposure/shielding diagnostics, and still does not apply gameplay damage or effects. The latest manually verified phase is Phase 5A; Phase 5B adds real optional shielding candidates and an external tester handoff package, pending modpack verification.
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. The new mod is intentionally diagnostic-first: it loads data-driven radiation rules, discovers radiation sources through explicit command-only scans, reports exposure/shielding/armor/effect diagnostics, and still does not auto-apply gameplay radiation logic. Phase 6E adds controlled manual `/radworks effect` commands, and Phase 6T introduces automation-first local regression tests so repeated local manual checks are no longer the default.
 
 ## 2. Target environment
 
@@ -53,7 +53,7 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 | Phase 5A — Shielding diagnostics | DONE / DIAGNOSTIC_ONLY / DEV_ONLY | Diagnostic shielding engine, dev `minecraft:iron_block` tag, shielding fields/counters, manual dump review passed | No final balance model |
 | Phase 5A.1 — Shielding manual verification / dump review | DONE | Confirmed no-shield total `15.0`, shielded total `12.5`, and expected shielding counters | Nothing further planned for 5A.1 |
 | Phase 5B — Real shielding rules + external tester package | PARTIAL / DIAGNOSTIC_ONLY | Optional TFMG/Create Nuclear shielding candidates, validate/dump candidate diagnostics, `TESTER_HANDOFF.md` | External modpack verification pending |
-| Phase 6 candidate | NOT_STARTED / BLOCKED_BY_DECISION | Candidate for armor protection diagnostics or effect strategy docs | Armor/effect strategy not decided |
+| Phase 6 (6A/6C/6D/6E/6T) | PARTIAL / DIAGNOSTIC_ONLY | Armor diagnostics (6A), effect preview diagnostics (6C), own `radworks:radiation` registration (6D), controlled manual effect command (6E), automated local regression harness (6T) | Auto-apply gameplay behavior and final effect strategy still not implemented |
 | Phase 7 candidate | NOT_STARTED | Candidate for performance/cache planning before gameplay tick logic | Cache/invalidation strategy not decided |
 | Phase 8+ Create/Aeronautics future work | NOT_STARTED / BLOCKED_BY_DECISION | No integrations yet | Requires optional integration architecture and API research |
 
@@ -68,6 +68,12 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 | `/radworks sources <player>` | DONE | Same as sources, targeting an online server player | target player, bounded rows |
 | `/radworks exposure` | DONE | Calculate diagnostic exposure for command player | total exposure, matched stacks/sources, bounded source rows |
 | `/radworks exposure <player>` | DONE | Calculate diagnostic exposure for an online server player | target player, total exposure, bounded rows |
+| `/radworks effect apply` | DONE | Controlled manual apply of `radworks:radiation` for command player (preview-gated) | reason if blocked; duration/amplifier when applied |
+| `/radworks effect apply <player>` | DONE | Controlled manual apply for an online server player | target player, gate reason, applied/changed |
+| `/radworks effect clear` | DONE | Remove only `radworks:radiation` from command player | removed flag |
+| `/radworks effect clear <player>` | DONE | Remove only `radworks:radiation` from an online server player | target player, removed flag |
+| `/radworks effect status` | DONE | Show runtime effect status and preview gate for command player | selectedEffectRegistered, active, duration/amplifier, wouldApply/reason |
+| `/radworks effect status <player>` | DONE | Same status for an online server player | target player, active + preview gate |
 | `/radworks debug status` | DONE | Show server-wide in-memory debug state | enabled/disabled |
 | `/radworks debug on` | DONE | Enable server-wide debug state; permission level 2 | debug enabled |
 | `/radworks debug off` | DONE | Disable server-wide debug state; permission level 2 | debug disabled |
@@ -218,6 +224,7 @@ Missing by design:
 | Test | Status | Expected result | Last known result |
 |---|---|---|---|
 | `./gradlew build` | DONE | Build succeeds | Last known builds passed; rerun after this handoff doc update |
+| `./gradlew test` | DONE | Local automated regression suite executes real tests | Phase 6T adds non-`NO-SOURCE` unit tests for core diagnostics logic/data contracts |
 | `./gradlew runClient` smoke | DONE as smoke | Client launches enough to confirm mod loads | Previously started client/integrated server; timeout smoke is not full manual verification |
 | `/radworks validate` | DONE | Rules loaded, no validation errors for dev rules | User verified through Phase 4D |
 | Inventory-only exposure | DONE | 10 `minecraft:rotten_flesh` gives `totalExposure=10.0` | User verified |
