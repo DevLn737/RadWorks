@@ -1,16 +1,30 @@
 .gradle/
 .gradle-user/
 build/
-runs/
 out/
+target/
+runs/
+run/
 *.class
-run
-# Local IDE state
+*.iml
+
+# Local IDE/editor state
 .idea/
 .vscode/
+*.swp
+*~
+
+# Environment/local config
+.env
+.env.*
+*.local
 
 # Minecraft generated files
 eula.txt
 logs/
 crash-reports/
 radworks_dumps/
+
+# OS noise
+.DS_Store
+Thumbs.db

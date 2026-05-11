@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+- Repository hardening for public GitHub publication:
+  - expanded `.gitignore` baseline for build/runtime/IDE/temp artifacts;
+  - added `CONTRIBUTING.md`, `SECURITY.md`, and issue templates;
+  - added `LICENSE_PLACEHOLDER.md` and aligned mod metadata away from implicit MIT claim;
+  - updated README to current beta-state build/run/install guidance.
+
 ## 0.1.0 - Post-Beta 3 Create transient/internal carrier sources
 - Added optional-safe Create transient/internal carrier provider with no hard Create API dependency.
 - Added new source types:

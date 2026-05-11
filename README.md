@@ -1,57 +1,65 @@
-# RadWorks
+# RadWorks (NeoForge)
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS radiation prototype.
+RadWorks is a data-driven radiation mod for NeoForge, migrated from an earlier KubeJS prototype into standalone Java mod architecture.  
+Current project status is **beta**: core source detection, diagnostics, and controlled gameplay effect application are implemented, while deep cross-mod integrations remain post-beta work.
 
-Phase 0 is intentionally small: it creates the repository foundation, documentation and diagnostics commands. It does not implement radiation gameplay.
-
-## Phase 0 Features
-- Minimal NeoForge mod metadata.
-- `/radworks version`.
-- `/radworks dump`.
-- Basic documentation for migration, diagnostics and manual testing.
-
-## Phase 0 Non-goals
-- No radiation mechanics.
-- No radioactive items, blocks, fluids or effects.
-- No shielding.
-- No capabilities or attachments.
-- No radiation rules or configs.
-- No KubeJS dependency.
-- No Create, Create Nuclear or Aeronautics dependencies.
-
-## Accepted Baseline
+## Supported Environment
 - Minecraft: `1.21.1`
-- NeoForge: `21.1.228`
+- Loader: `NeoForge 21.1.228`
 - Java: `21`
 - Mod ID: `radworks`
-- Java package: `dev.radworks`
-- Mod version: `0.1.0`
 
-These versions are accepted for Phase 0 and may be revisited if the target modpack uses a different Minecraft/NeoForge version.
+## What It Does (Beta)
+- Loads radiation rules from datapack JSON files (`data/radworks/radiation_rules`).
+- Detects radiation sources from:
+  - player inventory,
+  - static blocks,
+  - vanilla containers/block entities,
+  - NeoForge block item/fluid capabilities,
+  - Create transient/internal carrier data paths (optional, guarded).
+- Applies shielding attenuation using `#radworks:shielding_blocks`.
+- Computes armor/effect diagnostics and runtime effect strategy.
+- Can auto-apply a runtime radiation effect (config-gated, no damage loop in beta).
+- Provides command diagnostics:
+  - `/radworks version`
+  - `/radworks validate`
+  - `/radworks sources`
+  - `/radworks exposure`
+  - `/radworks dump`
+  - `/radworks effect ...`
+  - `/radworks radius ...`
 
 ## Build
 ```bash
+./gradlew test
 ./gradlew build
 ```
 
-## Run
+## Development Run
 ```bash
 ./gradlew runClient
 ./gradlew runServer
 ```
 
-If `runServer` stops because the Minecraft EULA is not accepted, follow the generated `eula.txt` instructions in the run directory and rerun the command.
+## Install (User)
+1. Build the mod (`./gradlew build`).
+2. Take the jar from `build/libs/` (typically `radworks-0.1.0.jar`).
+3. Place it into your NeoForge instance `mods/` folder.
+4. Start the game and run `/radworks version`.
 
-## Diagnostics
-In Minecraft:
+## Known Limitations (Beta)
+- No hard dependencies on Create/Create Nuclear/TFMG/Aeronautics/Sophisticated: optional content is handled safely via diagnostics when absent.
+- No deep Create contraption/train internals yet.
+- No Aeronautics/Simulated deep integration yet.
+- No persistent accumulated dose system yet.
+- Damage/exhaustion balancing is not enabled for beta gameplay loop.
 
-```text
-/radworks version
-/radworks dump
-```
+## Developer Quick Map
+- Entry point: `src/main/java/dev/radworks/RadWorks.java`
+- Commands: `src/main/java/dev/radworks/command/`
+- Source/rules/exposure logic: `src/main/java/dev/radworks/radiation/`
+- Gameplay loop/config: `src/main/java/dev/radworks/gameplay/`, `src/main/java/dev/radworks/config/`
+- Diagnostics and dumps: `src/main/java/dev/radworks/diagnostics/`
 
-Dump files are written under the active Minecraft instance working directory:
-
-```text
-radworks_dumps/radworks-dump-YYYYMMDD-HHMMSS-<player>.json
-```
+## License Status
+License is **not finalized yet**. See `LICENSE_PLACEHOLDER.md` before publishing.
