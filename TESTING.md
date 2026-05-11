@@ -35,6 +35,15 @@ Phase 6T minimum local gate for new logic phases:
   - dynamic context fields (`baseRadius`, `effectiveRadius`, `distance`) are present in diagnostics samples.
 - Existing effect strategy, shielding and rules smoke tests remain green.
 
+## Post-Beta 2V radius visualization note
+- Radius visualization is a debug UX tool for external modpack validation.
+- It is not required for local manual default testing.
+- External tester can use:
+  - `/radworks radius show 10`
+  - `/radworks radius status`
+  - `/radworks radius clear`
+  together with `/radworks sources` and `/radworks exposure`.
+
 ## Phase 6T automated regression suite
 Automated local coverage now includes:
 - effect preview policy thresholds and armor gate;

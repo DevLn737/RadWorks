@@ -11,6 +11,7 @@ public final class RadWorksConfig {
     public static final int DEFAULT_EFFECT_DURATION_TICKS = 120;
     public static final int DEFAULT_SCAN_INTERVAL_TICKS = 40;
     public static final boolean DEFAULT_DAMAGE_ENABLED = false;
+    public static final boolean DEFAULT_ALWAYS_SHOW_RADIUS_VISUALIZATION = false;
     public static final boolean DEFAULT_ENABLE_DEV_RULES = false;
     public static final EffectMode DEFAULT_EFFECT_MODE = EffectMode.EXTERNAL_IF_PRESENT;
     public static final boolean DEFAULT_DYNAMIC_RADIUS_ENABLED = true;
@@ -26,6 +27,7 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.IntValue EFFECT_DURATION_TICKS;
     private static final ModConfigSpec.IntValue SCAN_INTERVAL_TICKS;
     private static final ModConfigSpec.BooleanValue DAMAGE_ENABLED;
+    private static final ModConfigSpec.BooleanValue ALWAYS_SHOW_RADIUS_VISUALIZATION;
     private static final ModConfigSpec.EnumValue<EffectMode> EFFECT_MODE;
     private static final ModConfigSpec.BooleanValue ENABLE_DEV_RULES;
     private static final ModConfigSpec.BooleanValue DYNAMIC_RADIUS_ENABLED;
@@ -54,6 +56,9 @@ public final class RadWorksConfig {
         DAMAGE_ENABLED = builder
                 .comment("Reserved for POST_BETA. Damage is not implemented in beta.")
                 .define("damageEnabled", DEFAULT_DAMAGE_ENABLED);
+        ALWAYS_SHOW_RADIUS_VISUALIZATION = builder
+                .comment("When true, radiation radius visualization is shown continuously without /radworks radius show.")
+                .define("alwaysShowRadiusVisualization", DEFAULT_ALWAYS_SHOW_RADIUS_VISUALIZATION);
         EFFECT_MODE = builder
                 .comment("Runtime effect compatibility mode: own | external_if_present | external_only | disabled")
                 .defineEnum("effectMode", DEFAULT_EFFECT_MODE);
@@ -105,6 +110,10 @@ public final class RadWorksConfig {
         return getBoolean(DAMAGE_ENABLED, DEFAULT_DAMAGE_ENABLED);
     }
 
+    public static boolean alwaysShowRadiusVisualization() {
+        return getBoolean(ALWAYS_SHOW_RADIUS_VISUALIZATION, DEFAULT_ALWAYS_SHOW_RADIUS_VISUALIZATION);
+    }
+
     public static EffectMode effectMode() {
         return getEnum(EFFECT_MODE, DEFAULT_EFFECT_MODE);
     }
@@ -137,6 +146,7 @@ public final class RadWorksConfig {
         json.addProperty("effectDurationTicks", effectDurationTicks());
         json.addProperty("scanIntervalTicks", scanIntervalTicks());
         json.addProperty("damageEnabled", damageEnabled());
+        json.addProperty("alwaysShowRadiusVisualization", alwaysShowRadiusVisualization());
         json.addProperty("effectMode", effectMode().id());
         json.addProperty("enableDevRules", enableDevRules());
         json.addProperty("dynamicRadiusEnabled", dynamicRadiusEnabled());

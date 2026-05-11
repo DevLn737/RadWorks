@@ -1,6 +1,6 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-11): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows. See `MIGRATION_STATUS.md` latest section and `CHANGELOG.md` Post-Beta 2 entry.
+> Update (2026-05-11): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows; Post-Beta 2V added `/radworks radius` debug visualization using effective radius from current source rows.
 
 ## 1. One-paragraph summary
 

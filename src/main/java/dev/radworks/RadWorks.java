@@ -2,6 +2,7 @@ package dev.radworks;
 
 import dev.radworks.command.RadWorksCommands;
 import dev.radworks.config.RadWorksConfig;
+import dev.radworks.diagnostics.RadiusVisualizationService;
 import dev.radworks.gameplay.RadiationGameplayService;
 import dev.radworks.radiation.RadiationRulesLoader;
 import dev.radworks.registry.RadWorksEffects;
@@ -22,5 +23,6 @@ public final class RadWorks {
         NeoForge.EVENT_BUS.addListener(RadWorksCommands::register);
         NeoForge.EVENT_BUS.addListener(RadiationRulesLoader::addReloadListener);
         NeoForge.EVENT_BUS.addListener(RadiationGameplayService::onPlayerTickPost);
+        NeoForge.EVENT_BUS.addListener(RadiusVisualizationService::onPlayerTickPost);
     }
 }

@@ -16,6 +16,7 @@ class RadWorksConfigTest {
         assertEquals(120, RadWorksConfig.effectDurationTicks());
         assertEquals(40, RadWorksConfig.scanIntervalTicks());
         assertFalse(RadWorksConfig.damageEnabled());
+        assertFalse(RadWorksConfig.alwaysShowRadiusVisualization());
         assertEquals(EffectMode.EXTERNAL_IF_PRESENT, RadWorksConfig.effectMode());
         assertFalse(RadWorksConfig.enableDevRules());
         assertTrue(RadWorksConfig.dynamicRadiusEnabled());

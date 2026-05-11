@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.0 - Post-Beta 2V dynamic radius debug visualization
+- Added `/radworks radius` command group:
+  - `show`
+  - `show <seconds>`
+  - `clear`
+  - `status`
+- Added server-side vanilla particle visualization (`END_ROD`) for positioned sources using existing `effectiveRadius` from the exposure pipeline.
+- Added bounded visualization limits:
+  - max 8 visualized sources per run;
+  - max 64 particles per source burst;
+  - default duration 5 seconds;
+  - max duration 30 seconds.
+- Added `radiusVisualization` section to dump diagnostics and `performance.radius_visualization` timing.
+- Kept this phase diagnostic-only: no gameplay math changes, no damage/exhaustion, no new source providers.
+
 ## 0.1.0 - Post-Beta 2 dynamic source radius model
 - Added dynamic radius model for aggregate item/fluid sources:
   - `effectiveRadius = min(radiusMaxCap, baseRadius + radiusScale * log2(max(1.0, aggregateUnits)))`.

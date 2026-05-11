@@ -273,6 +273,31 @@ It does not scan entity capabilities, item stack capabilities, item fluid capabi
 
 Example:
 
+## `/radworks radius`
+Debug visualization command for effective source radius:
+
+```text
+/radworks radius show
+/radworks radius show <seconds>
+/radworks radius clear
+/radworks radius status
+```
+
+Behavior:
+- Uses current `ExposureEngine` source rows (no separate radius math path).
+- Visualizes only positioned sources with `effectiveRadius > 0`.
+- Skips `player_inventory` rows with no world position.
+- Uses vanilla server-side particles (`END_ROD`) with bounded sampling.
+- Default duration is 5 seconds, max duration is 30 seconds.
+- Visualization is diagnostic-only and does not change gameplay.
+
+Dump section:
+- `radiusVisualization.active`
+- `radiusVisualization.remainingTicks/remainingSeconds`
+- `radiusVisualization.lastVisualizedSources`
+- `radiusVisualization.lastSkippedSources`
+- `radiusVisualization.maxRadiusSeen`
+
 ```text
 RadWorks sources for Dev: matchedSources=3 scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers+block_fluid_handlers
 - type=player_inventory itemId=minecraft:rotten_flesh slot=inventory.0 count=10 distance=0.0 ruleRadius=2.0 ruleStrength=1.0 respectsShielding=true rawContribution=10.0 shielding=not_applicable shieldingBlocksHit=0 shieldingMultiplier=1.0 shieldingReduction=0.0 finalContribution=10.0 contribution=10.0 reason=active item rule matched type=item id=minecraft:rotten_flesh

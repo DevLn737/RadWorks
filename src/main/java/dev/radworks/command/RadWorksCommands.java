@@ -1,6 +1,7 @@
 package dev.radworks.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.radworks.diagnostics.DiagnosticsService;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.io.IOException;
@@ -37,6 +38,17 @@ public final class RadWorksCommands {
                                 .executes(context -> SourcesCommand.run(
                                         context.getSource(),
                                         EntityArgument.getPlayer(context, "player")))))
+                .then(Commands.literal("radius")
+                        .then(Commands.literal("show")
+                                .executes(context -> RadiusCommand.showDefault(context.getSource()))
+                                .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 600))
+                                        .executes(context -> RadiusCommand.show(
+                                                context.getSource(),
+                                                IntegerArgumentType.getInteger(context, "seconds")))))
+                        .then(Commands.literal("clear")
+                                .executes(context -> RadiusCommand.clear(context.getSource())))
+                        .then(Commands.literal("status")
+                                .executes(context -> RadiusCommand.status(context.getSource()))))
                 .then(Commands.literal("effect")
                         .then(Commands.literal("apply-self")
                                 .requires(source -> source.hasPermission(2))

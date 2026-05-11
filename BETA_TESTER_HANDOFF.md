@@ -17,6 +17,7 @@ Run:
 /radworks exposure
 /radworks sources
 /radworks effect status
+/radworks radius show 10
 /radworks dump
 ```
 
@@ -48,6 +49,10 @@ Run:
    - Create item vault with uranium: capture close / medium / just-outside distance dumps;
    - uranium bucket or uranium tank if available: capture close / medium / just-outside distance dumps.
    - verify reasons use `outside_dynamic_radius` where applicable.
+9. Radius visualization sanity:
+   - run `/radworks radius show 10`;
+   - compare visual rings with `/radworks sources` `effectiveRadius` values;
+   - use close/medium/outside positions for chest/vault/tank cases.
 
 ## Optional Shielding Checks
 If TFMG/Create Nuclear are installed, test available shielding blocks:

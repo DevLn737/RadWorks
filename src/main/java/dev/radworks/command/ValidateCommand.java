@@ -75,6 +75,8 @@ public final class ValidateCommand {
                 + RadWorksConfig.gameplayEnabled()
                 + " autoApply="
                 + RadWorksConfig.autoApplyEffect()
+                + " alwaysRadiusVisual="
+                + RadWorksConfig.alwaysShowRadiusVisualization()
                 + " threshold="
                 + RadWorksConfig.exposureThreshold()
                 + " interval="

@@ -552,3 +552,20 @@ These entries are added to `#radworks:shielding_blocks` with `required:false`, s
 - Contribution formulas are unchanged; only active distance checks now use `effectiveRadius`.
 - Dump/source rows include dynamic radius fields and aggregate counters.
 - Handler non-matching diagnostics include dynamic radius context and `outside_dynamic_radius`.
+
+## Post-Beta 2V implementation notes
+- Added diagnostic-only dynamic radius visualization command set:
+  - `/radworks radius show`
+  - `/radworks radius show <seconds>`
+  - `/radworks radius clear`
+  - `/radworks radius status`
+- Visualization uses existing `ExposureEngine` source rows and `effectiveRadius`.
+- Only positioned sources are visualized; `player_inventory` sources are skipped (`player_inventory_has_no_world_radius_visual`).
+- Particles are server-side vanilla `END_ROD`.
+- Limits:
+  - max 8 sources per visualization pulse;
+  - max 64 particles per source burst;
+  - default duration 5 seconds;
+  - max duration 30 seconds.
+- Added `radiusVisualization` diagnostics section in dumps.
+- Phase remains debug/diagnostic-only and does not alter radiation contribution or auto-apply math.

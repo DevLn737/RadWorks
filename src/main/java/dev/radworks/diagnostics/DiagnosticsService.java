@@ -88,6 +88,7 @@ public final class DiagnosticsService {
         root.add("lastExposureSnapshot", lastExposureSnapshotInfo());
         root.add("sourceScanSummary", SourceScanSummary.lastToJson());
         root.add("handlerDiagnostics", HandlerDiagnostics.lastToJson());
+        root.add("radiusVisualization", RadiusVisualizationService.toJson(player));
         root.add("recentWarnings", WarningBuffer.toJson());
         return root;
     }
