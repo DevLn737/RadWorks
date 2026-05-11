@@ -9,6 +9,10 @@ public record RadiationRule(
         double radius,
         boolean respectsShielding,
         boolean enabled,
+        RadiationRuleProfile profile,
+        boolean required,
+        String optionalModId,
+        String role,
         String comment,
         String source) {
     public String key() {

@@ -1,10 +1,14 @@
 package dev.radworks.radiation;
 
+import dev.radworks.config.RadWorksConfig;
+import dev.radworks.diagnostics.HandlerDiagnostics;
 import dev.radworks.diagnostics.PerformanceStats;
 import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
@@ -38,20 +42,29 @@ public final class BlockItemHandlerSourceProvider {
     }
 
     public static List<RadiationSource> collect(ServerPlayer player, RadiationRules rules) {
-        return collect(player, rules, SourceScanSummary.builder());
+        return collect(player, rules, SourceScanSummary.builder(), HandlerDiagnostics.builder());
     }
 
     public static List<RadiationSource> collect(
             ServerPlayer player,
             RadiationRules rules,
             SourceScanSummary.Builder summary) {
-        return PerformanceStats.timeValue("itemHandlerScan", () -> collectTimed(player, rules, summary));
+        return collect(player, rules, summary, HandlerDiagnostics.builder());
+    }
+
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics) {
+        return PerformanceStats.timeValue("itemHandlerScan", () -> collectTimed(player, rules, summary, handlerDiagnostics));
     }
 
     private static List<RadiationSource> collectTimed(
             ServerPlayer player,
             RadiationRules rules,
-            SourceScanSummary.Builder summary) {
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.itemRules() == 0) {
             return sources;
@@ -87,7 +100,16 @@ public final class BlockItemHandlerSourceProvider {
             BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
-            collectHandlerSlots(blockId, pos, distance, lookup, rules, sources, summary);
+            HandlerScanResult scanResult = collectHandlerSlots(blockId, pos, distance, lookup, rules, sources, summary);
+            if (scanResult.matches() == 0) {
+                handlerDiagnostics.addItemHandlerSample(
+                        blockId,
+                        pos,
+                        lookup.capabilityContext(),
+                        scanResult.slotsChecked(),
+                        scanResult.matches(),
+                        scanResult.contents());
+            }
         }
 
         return List.copyOf(sources);
@@ -108,7 +130,7 @@ public final class BlockItemHandlerSourceProvider {
         return null;
     }
 
-    private static void collectHandlerSlots(
+    private static HandlerScanResult collectHandlerSlots(
             ResourceLocation blockId,
             BlockPos pos,
             double distance,
@@ -116,16 +138,23 @@ public final class BlockItemHandlerSourceProvider {
             RadiationRules rules,
             List<RadiationSource> sources,
             SourceScanSummary.Builder summary) {
+        final int maxContents = 5;
+        int slotsChecked = 0;
+        int matches = 0;
+        List<HandlerDiagnostics.ContentSample> contents = new ArrayList<>(maxContents);
+        Map<Key, AggregatedSourceAccumulator.ItemAggregate> aggregates = new LinkedHashMap<>();
+
         int slots;
         try {
             slots = lookup.handler().getSlots();
         } catch (RuntimeException exception) {
             warnScanFailure(blockId, pos, lookup.capabilityContext(), "getSlots failed: " + exception.getMessage());
-            return;
+            return new HandlerScanResult(slotsChecked, matches, contents);
         }
 
         for (int slot = 0; slot < slots; slot++) {
             summary.itemHandlerSlotChecked();
+            slotsChecked++;
             ItemStack stack;
             try {
                 stack = lookup.handler().getStackInSlot(slot);
@@ -139,35 +168,107 @@ public final class BlockItemHandlerSourceProvider {
             }
 
             if (stack.isEmpty()) {
+                addItemSample(contents, maxContents, slot, null, 0, "empty", distance, null, null, null);
                 continue;
             }
 
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
             RadiationRule rule = rules.itemRule(itemId).orElse(null);
-            if (rule == null || distance > rule.radius()) {
+            if (rule == null) {
+                addItemSample(contents, maxContents, slot, itemId, stack.getCount(), "no_active_rule", distance, null, null, null);
+                continue;
+            }
+            Key key = new Key(itemId, rule.key());
+            AggregatedSourceAccumulator.ItemAggregate aggregate = aggregates.computeIfAbsent(
+                    key,
+                    ignored -> AggregatedSourceAccumulator.newItemAggregate(
+                            new AggregatedSourceAccumulator.ItemGroupKey(
+                                    RadiationSourceType.BLOCK_ITEM_HANDLER,
+                                    pos.immutable(),
+                                    blockId,
+                                    lookup.capabilityContext(),
+                                    itemId,
+                                    rule.key()),
+                            rule,
+                            distance));
+            AggregatedSourceAccumulator.addItemStack(aggregate, stack.getCount());
+        }
+
+        for (AggregatedSourceAccumulator.ItemAggregate aggregate : aggregates.values()) {
+            double baseRadius = aggregate.rule().radius();
+            double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
+            double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
+            if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+                addItemSample(
+                        contents,
+                        maxContents,
+                        -1,
+                        aggregate.key().itemId(),
+                        aggregate.aggregateCount(),
+                        DynamicRadiusModel.outsideDynamicRadiusReason(),
+                        distance,
+                        baseRadius,
+                        effectiveRadius,
+                        units);
                 continue;
             }
 
-            double contribution = stack.getCount() * rule.strength();
             summary.itemHandlerMatch();
-            sources.add(RadiationSource.blockItemHandler(
+            summary.aggregateRowProduced();
+            matches++;
+            sources.add(RadiationSource.blockItemHandlerAggregate(
                     blockId,
                     pos,
                     lookup.capabilityContext(),
-                    "item_handler." + slot,
-                    itemId,
-                    stack.getCount(),
-                    rule.strength(),
-                    rule.radius(),
+                    aggregate.key().itemId(),
+                    aggregate.aggregateCount(),
+                    aggregate.contributingStacks(),
+                    aggregate.rule().strength(),
+                    baseRadius,
+                    effectiveRadius,
                     distance,
-                    rule.respectsShielding(),
-                    contribution,
-                    "NeoForge ItemHandler block capability matched active item rule type=item id=" + itemId));
+                    aggregate.rule().respectsShielding(),
+                    aggregate.rawContribution(),
+                    "NeoForge ItemHandler aggregated source matched active item rule id="
+                            + aggregate.key().itemId()
+                            + " units="
+                            + aggregate.aggregateCount()));
         }
+        return new HandlerScanResult(slotsChecked, matches, contents);
+    }
+
+    private static void addItemSample(
+            List<HandlerDiagnostics.ContentSample> contents,
+            int maxContents,
+            int slot,
+            ResourceLocation itemId,
+            int count,
+            String reason,
+            Double distance,
+            Double baseRadius,
+            Double effectiveRadius,
+            Double aggregateUnitsSnapshot) {
+        if (contents.size() >= maxContents) {
+            return;
+        }
+        String slotLabel = slot < 0 ? null : "item_handler." + slot;
+        contents.add(HandlerDiagnostics.ContentSample.item(
+                slotLabel,
+                itemId,
+                count,
+                reason,
+                distance,
+                baseRadius,
+                effectiveRadius,
+                aggregateUnitsSnapshot));
     }
 
     private static int effectiveScanRadius(RadiationRules rules) {
-        return (int) Math.ceil(Math.min(rules.maxActiveItemRuleRadius(), MAX_SCAN_RADIUS));
+        double baseMax = rules.maxActiveItemRuleRadius();
+        double dynamicMax = RadWorksConfig.dynamicRadiusEnabled()
+                ? Math.max(baseMax, RadWorksConfig.dynamicRadiusMaxCap())
+                : baseMax;
+        return (int) Math.ceil(Math.min(dynamicMax, MAX_SCAN_RADIUS));
     }
 
     private static void warnForClampedRules(RadiationRules rules) {
@@ -227,5 +328,14 @@ public final class BlockItemHandlerSourceProvider {
     }
 
     private record HandlerLookup(IItemHandler handler, String capabilityContext) {
+    }
+
+    private record HandlerScanResult(
+            int slotsChecked,
+            int matches,
+            List<HandlerDiagnostics.ContentSample> contents) {
+    }
+
+    private record Key(ResourceLocation itemId, String ruleKey) {
     }
 }

@@ -20,6 +20,21 @@ Phase 6T minimum local gate for new logic phases:
 - `./gradlew test` must execute real tests (not `NO-SOURCE`);
 - `./gradlew build` must pass.
 
+## Post-Beta 2 automated regression checks
+- Dynamic radius model:
+  - 1 unit keeps base-like radius;
+  - 64 units yields larger radius than 1 unit;
+  - cap enforcement works;
+  - fluid amount-to-units conversion works.
+- Aggregation:
+  - multiple stacks/tanks aggregate into canonical rows;
+  - contribution sum is preserved;
+  - `contributingStacks` is correct.
+- Handler diagnostics:
+  - non-matching samples can report `outside_dynamic_radius`;
+  - dynamic context fields (`baseRadius`, `effectiveRadius`, `distance`) are present in diagnostics samples.
+- Existing effect strategy, shielding and rules smoke tests remain green.
+
 ## Phase 6T automated regression suite
 Automated local coverage now includes:
 - effect preview policy thresholds and armor gate;

@@ -1,0 +1,64 @@
+# RadWorks Beta Tester Handoff
+
+## Target
+- Minecraft: `1.21.1`
+- NeoForge: `21.1.228`
+- Java: `21`
+- Jar: `build/libs/radworks-0.1.0.jar`
+- KubeJS is not required.
+- Create, Create Nuclear, TFMG, Sophisticated and Aeronautics are optional for this beta.
+
+## Basic Commands
+Run:
+
+```text
+/radworks version
+/radworks validate
+/radworks exposure
+/radworks sources
+/radworks effect status
+/radworks dump
+```
+
+## Gameplay Smoke
+1. Beta default has dev vanilla radiation rules OFF (`rules.enableDevRules=false`), so rotten flesh/gold block/water are not expected to irradiate.
+2. Effect runtime mode default is `external_if_present`:
+   - if `createnuclear:radiation` exists, RadWorks auto-apply should use it;
+   - otherwise RadWorks should fall back to `radworks:radiation`.
+3. Run `/radworks validate` and note which Create Nuclear/Create IDs are present or missing.
+3. If present in this modpack, test actual radioactive candidates:
+   - Create Nuclear items in player inventory.
+   - Create Nuclear blocks near player.
+   - `createnuclear:uranium` in a modded tank/fluid handler.
+4. For each scenario, run:
+   - `/radworks sources`
+   - `/radworks exposure`
+   - `/radworks effect status`
+   - `/radworks dump`
+   Confirm chat output is readable/compact (details should stay in dump).
+5. Clear effect between scenarios:
+   - `/radworks effect clear-self`
+6. Equip full diamond armor and repeat one positive exposure scenario.
+   Expected: full armor blocks auto-apply.
+7. If item/fluid handlers are found but no match appears, inspect dump section:
+   - `handlerDiagnostics.itemHandlerNonMatchingSamples`
+   - `handlerDiagnostics.fluidHandlerNonMatchingSamples`
+8. Dynamic radius retest is required:
+   - chest full of `createnuclear:raw_uranium`: capture close / medium / just-outside distance dumps;
+   - Create item vault with uranium: capture close / medium / just-outside distance dumps;
+   - uranium bucket or uranium tank if available: capture close / medium / just-outside distance dumps.
+   - verify reasons use `outside_dynamic_radius` where applicable.
+
+## Optional Shielding Checks
+If TFMG/Create Nuclear are installed, test available shielding blocks:
+- `tfmg:raw_lead_block`
+- `tfmg:lead_block`
+- `tfmg:lead_ore`
+- `createnuclear:reinforced_glass`
+
+## Return to Codex/User
+- `/radworks validate` output.
+- Dumps for: baseline, positive item/block/fluid scenario, armor-blocked scenario, shielding scenario.
+- Include close/medium/outside dumps for chest/vault/tank dynamic radius checks.
+- `latest.log` only if there is a crash/warning/confusing behavior.
+- Installed mod versions if optional mods are involved.

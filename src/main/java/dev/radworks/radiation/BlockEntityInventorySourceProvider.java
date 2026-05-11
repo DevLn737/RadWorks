@@ -1,10 +1,13 @@
 package dev.radworks.radiation;
 
+import dev.radworks.config.RadWorksConfig;
 import dev.radworks.diagnostics.PerformanceStats;
 import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
@@ -81,6 +84,7 @@ public final class BlockEntityInventorySourceProvider {
             RadiationRules rules,
             List<RadiationSource> sources,
             SourceScanSummary.Builder summary) {
+        Map<Key, AggregatedSourceAccumulator.ItemAggregate> aggregates = new LinkedHashMap<>();
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
             summary.containerSlotChecked();
             ItemStack stack = container.getItem(slot);
@@ -90,29 +94,60 @@ public final class BlockEntityInventorySourceProvider {
 
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
             RadiationRule rule = rules.itemRule(itemId).orElse(null);
-            if (rule == null || distance > rule.radius()) {
+            if (rule == null) {
                 continue;
             }
 
-            double contribution = stack.getCount() * rule.strength();
-            summary.containerMatch();
-            sources.add(RadiationSource.blockEntityInventory(
+            Key key = new Key(itemId, rule.key());
+            AggregatedSourceAccumulator.ItemAggregate aggregate = aggregates.computeIfAbsent(
+                    key,
+                    ignored -> AggregatedSourceAccumulator.newItemAggregate(
+                            new AggregatedSourceAccumulator.ItemGroupKey(
+                                    RadiationSourceType.BLOCK_ENTITY_INVENTORY,
+                                    containerPos.immutable(),
+                                    blockId,
+                                    null,
+                                    itemId,
+                                    rule.key()),
+                            rule,
+                            distance));
+            AggregatedSourceAccumulator.addItemStack(aggregate, stack.getCount());
+        }
+
+        for (AggregatedSourceAccumulator.ItemAggregate aggregate : aggregates.values()) {
+            double baseRadius = aggregate.rule().radius();
+            double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
+            double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
+            if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+                continue;
+            }
+            sources.add(RadiationSource.blockEntityInventoryAggregate(
                     blockId,
                     containerPos,
-                    "container." + slot,
-                    itemId,
-                    stack.getCount(),
-                    rule.strength(),
-                    rule.radius(),
+                    aggregate.key().itemId(),
+                    aggregate.aggregateCount(),
+                    aggregate.contributingStacks(),
+                    aggregate.rule().strength(),
+                    baseRadius,
+                    effectiveRadius,
                     distance,
-                    rule.respectsShielding(),
-                    contribution,
-                    "vanilla Container slot matched active item rule type=item id=" + itemId));
+                    aggregate.rule().respectsShielding(),
+                    aggregate.rawContribution(),
+                    "vanilla Container aggregated item source units="
+                            + aggregate.aggregateCount()
+                            + " id="
+                            + aggregate.key().itemId()));
+            summary.containerMatch();
+            summary.aggregateRowProduced();
         }
     }
 
     private static int effectiveScanRadius(RadiationRules rules) {
-        return (int) Math.ceil(Math.min(rules.maxActiveItemRuleRadius(), MAX_SCAN_RADIUS));
+        double baseMax = rules.maxActiveItemRuleRadius();
+        double dynamicMax = RadWorksConfig.dynamicRadiusEnabled()
+                ? Math.max(baseMax, RadWorksConfig.dynamicRadiusMaxCap())
+                : baseMax;
+        return (int) Math.ceil(Math.min(dynamicMax, MAX_SCAN_RADIUS));
     }
 
     private static void warnForClampedRules(RadiationRules rules) {
@@ -135,5 +170,8 @@ public final class BlockEntityInventorySourceProvider {
                                 + "; command scan is clamped");
             }
         }
+    }
+
+    private record Key(ResourceLocation itemId, String ruleKey) {
     }
 }

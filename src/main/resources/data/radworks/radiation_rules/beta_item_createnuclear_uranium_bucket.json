@@ -1,0 +1,13 @@
+{
+  "type": "item",
+  "id": "createnuclear:uranium_bucket",
+  "strength": 6.0,
+  "radius": 8.0,
+  "respectsShielding": true,
+  "enabled": true,
+  "profile": "beta",
+  "required": false,
+  "optionalModId": "createnuclear",
+  "role": "real_candidate",
+  "comment": "Beta candidate from migration_export; beta_balance placeholder for RC playability."
+}

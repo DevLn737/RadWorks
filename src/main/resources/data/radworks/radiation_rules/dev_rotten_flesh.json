@@ -5,5 +5,8 @@
   "radius": 2.0,
   "respectsShielding": true,
   "enabled": true,
+  "profile": "dev",
+  "required": false,
+  "role": "dev_smoke",
   "comment": "Temporary Phase 1 dev-only smoke rule. Not final gameplay balance."
 }

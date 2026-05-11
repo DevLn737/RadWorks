@@ -47,28 +47,27 @@ public final class SourcesCommand {
         }
 
         List<RadiationSource> sources = ExposureEngine.collectSources(player, rules);
-        source.sendSuccess(() -> Component.literal("RadWorks sources for "
-                + player.getGameProfile().getName()
-                + ": matchedSources="
+        source.sendSuccess(() -> Component.literal("[RadWorks] Sources"), false);
+        source.sendSuccess(() -> Component.literal("Total sources: "
                 + sources.size()
-                + " scope=player_inventory+static_blocks+vanilla_containers+block_item_handlers+block_fluid_handlers"), false);
+                + " scope=player_inventory+block+block_entity_inventory+block_item_handler+block_fluid_handler"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
+        source.sendSuccess(() -> Component.literal("Rows:"), false);
         for (int index = 0; index < shown; index++) {
             RadiationSource radiationSource = sources.get(index);
             source.sendSuccess(() -> Component.literal("- " + sourceRow(radiationSource)), false);
         }
 
         if (sources.size() > shown) {
-            source.sendSuccess(() -> Component.literal("... and " + (sources.size() - shown) + " more"), false);
+            source.sendSuccess(() -> Component.literal("... and " + (sources.size() - shown) + " more (see /radworks dump)"), false);
         }
         SourceScanSummary.updateOutputBounds(shown, sources.size() - shown);
-        source.sendSuccess(() -> Component.literal("sourcesShown="
+        source.sendSuccess(() -> Component.literal("Output: sourcesShown="
                 + shown
                 + " sourcesOmitted="
                 + (sources.size() - shown)), false);
-        source.sendSuccess(() -> Component.literal("Note: diagnostic only, player inventory, static block, vanilla Container, block ItemHandler and block FluidHandler sources only"), false);
-        source.sendSuccess(() -> Component.literal("Note: vanilla Container block entities are skipped by itemHandlerScan to avoid double counting"), false);
+        source.sendSuccess(() -> Component.literal("Note: use /radworks dump for full rule + handler diagnostics"), false);
         return 1;
     }
 
@@ -111,18 +110,24 @@ public final class SourcesCommand {
         if (source.amountMb() > 0) {
             row.append(" amountMb=").append(source.amountMb());
         }
-        row.append(" distance=").append(source.distance());
-        row.append(" ruleRadius=").append(source.ruleRadius());
-        row.append(" ruleStrength=").append(source.ruleStrength());
-        row.append(" respectsShielding=").append(source.respectsShielding());
-        row.append(" rawContribution=").append(source.rawContribution());
-        row.append(" shielding=").append(source.shielding());
-        row.append(" shieldingBlocksHit=").append(source.shieldingBlocksHit());
-        row.append(" shieldingMultiplier=").append(source.shieldingMultiplier());
-        row.append(" shieldingReduction=").append(source.shieldingReduction());
-        row.append(" finalContribution=").append(source.finalContribution());
-        row.append(" contribution=").append(source.contribution());
+        if (source.aggregateCount() > 0) {
+            row.append(" aggregateCount=").append(source.aggregateCount());
+        }
+        if (source.aggregateAmountMb() > 0) {
+            row.append(" aggregateAmountMb=").append(source.aggregateAmountMb());
+        }
+        if (source.contributingStacks() > 0) {
+            row.append(" contributingStacks=").append(source.contributingStacks());
+        }
+        row.append(" distance=").append(round(source.distance()));
+        row.append(" effectiveRadius=").append(round(source.effectiveRadius()));
+        row.append(" strength=").append(source.ruleStrength());
+        row.append(" final=").append(source.finalContribution());
         row.append(" reason=").append(source.matchReason());
         return row.toString();
+    }
+
+    private static double round(double value) {
+        return Math.round(value * 100.0D) / 100.0D;
     }
 }

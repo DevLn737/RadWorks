@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.0 - Post-Beta 2 dynamic source radius model
+- Added dynamic radius model for aggregate item/fluid sources:
+  - `effectiveRadius = min(radiusMaxCap, baseRadius + radiusScale * log2(max(1.0, aggregateUnits)))`.
+- Added rules config fields:
+  - `dynamicRadiusEnabled`,
+  - `dynamicRadiusScale`,
+  - `dynamicRadiusMaxCap`,
+  - `dynamicRadiusFormula` (diagnostics label).
+- Converted canonical source rows to aggregate output for:
+  - `player_inventory`,
+  - `block_entity_inventory`,
+  - `block_item_handler`,
+  - `block_fluid_handler`.
+- Preserved contribution formulas; only active distance checks now use `effectiveRadius`.
+- Added dynamic radius fields to source rows and dump snapshots.
+- Extended handler non-matching diagnostics with dynamic context and `outside_dynamic_radius`.
+- Added automated tests for dynamic radius math, aggregation behavior and handler diagnostics contract.
+
 ## 0.1.0 - Phase 6T automated test harness / regression tests
 - Added JUnit 5 + NeoForge unit-test harness configuration for local automated regression checks.
 - Added effect preview regression tests for:

@@ -2,6 +2,7 @@ package dev.radworks.command;
 
 import dev.radworks.diagnostics.PerformanceStats;
 import dev.radworks.diagnostics.WarningBuffer;
+import dev.radworks.config.RadWorksConfig;
 import dev.radworks.radiation.RadiationRuleValidationResult;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
@@ -35,21 +36,54 @@ public final class ValidateCommand {
         EffectStrategyResult effectStrategy = EffectStrategyService.strategy();
         recordValidationIssues(validation);
         recordShieldingWarnings(shieldingReport);
-        source.sendSuccess(() -> Component.literal("RadWorks rules validation: loaded="
-                + (rules.activeRules().size() + rules.disabledRules())
-                + " enabled="
-                + rules.activeRules().size()
-                + " disabled="
-                + rules.disabledRules()
+        int totalRules = rules.activeRules().size() + rules.disabledRules() + rules.suppressedDevRules();
+        int optionalPresent = rules.candidateCount("present");
+        int optionalMissing = rules.candidateCount("missing_optional_mod");
+        int optionalWarnings = rules.candidateCount("not_registered_optional");
+        String devRulesState = RadWorksConfig.enableDevRules() ? "ON" : "OFF";
+
+        source.sendSuccess(() -> Component.literal("[RadWorks] Validate"), false);
+        source.sendSuccess(() -> Component.literal("Rules: "
+                + (validation.hasErrors() ? "FAILED" : "OK")
                 + " errors="
                 + validation.errors().size()
                 + " warnings="
                 + validation.warnings().size()
-                + " mode="
-                + RadiationRules.VALIDATION_MODE
-                + " checksum="
-                + rules.shortChecksum()), false);
-        source.sendSuccess(() -> Component.literal("RadWorks shielding candidates: tag=#"
+                + " infos="
+                + validation.infos().size()
+                + " active="
+                + rules.activeRules().size()
+                + " total="
+                + totalRules
+                + " devRules="
+                + devRulesState
+                + " activeDev="
+                + rules.activeDevRules()
+                + " suppressedDev="
+                + rules.suppressedDevRules()), false);
+        source.sendSuccess(() -> Component.literal("Effects: mode="
+                + effectStrategy.effectMode()
+                + " selected="
+                + valueOrDash(effectStrategy.selectedRuntimeEffectId())
+                + " registered="
+                + effectStrategy.selectedRuntimeEffectRegistered()
+                + " externalPresent="
+                + effectStrategy.externalEffectPresent()
+                + " fallback="
+                + effectStrategy.fallbackReason()), false);
+        source.sendSuccess(() -> Component.literal("Gameplay: enabled="
+                + RadWorksConfig.gameplayEnabled()
+                + " autoApply="
+                + RadWorksConfig.autoApplyEffect()
+                + " threshold="
+                + RadWorksConfig.exposureThreshold()
+                + " interval="
+                + RadWorksConfig.scanIntervalTicks()
+                + "t duration="
+                + RadWorksConfig.effectDurationTicks()
+                + "t damage="
+                + RadWorksConfig.damageEnabled()), false);
+        source.sendSuccess(() -> Component.literal("Shielding: tag=#"
                 + ShieldingDiagnostics.TAG_ID
                 + " present="
                 + shieldingReport.presentCount()
@@ -57,18 +91,21 @@ public final class ValidateCommand {
                 + shieldingReport.missingOptionalModCount()
                 + " warnings="
                 + shieldingReport.warnings().size()), false);
-        source.sendSuccess(() -> Component.literal("RadWorks effect strategy: mode="
-                + effectStrategy.mode()
-                + " selectedEffectId="
-                + effectStrategy.selectedEffectId()
-                + " selectedEffectRegistered="
-                + effectStrategy.selectedEffectRegistered()
-                + " externalEffectId="
-                + effectStrategy.externalEffectId()
-                + " externalEffectPresent="
-                + effectStrategy.externalEffectPresent()
-                + " threshold="
-                + effectStrategy.threshold()), false);
+        source.sendSuccess(() -> Component.literal("Optional candidates: present="
+                + optionalPresent
+                + " missingOptional="
+                + optionalMissing
+                + " warnings="
+                + optionalWarnings), false);
+        source.sendSuccess(() -> Component.literal("Dynamic radius: enabled="
+                + RadWorksConfig.dynamicRadiusEnabled()
+                + " scale="
+                + RadWorksConfig.dynamicRadiusScale()
+                + " maxCap="
+                + RadWorksConfig.dynamicRadiusMaxCap()
+                + " formula="
+                + RadWorksConfig.dynamicRadiusFormulaLabel()), false);
+        source.sendSuccess(() -> Component.literal("Dump: use /radworks dump for full details"), false);
 
         sendIssues(source, "ERROR", validation.errors());
         sendIssues(source, "WARNING", validation.warnings());
@@ -76,6 +113,10 @@ public final class ValidateCommand {
         sendIssues(source, "SHIELDING WARNING", shieldingReport.warnings());
         sendIssues(source, "SHIELDING INFO", shieldingReport.infos());
         return validation.hasErrors() ? 0 : 1;
+    }
+
+    private static String valueOrDash(String value) {
+        return value == null ? "-" : value;
     }
 
     private static void recordValidationIssues(RadiationRuleValidationResult validation) {

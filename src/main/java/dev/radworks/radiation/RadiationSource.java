@@ -18,7 +18,15 @@ public record RadiationSource(
         String capabilityContext,
         double ruleStrength,
         double ruleRadius,
+        double baseRadius,
+        double effectiveRadius,
+        double dynamicRadiusBonus,
+        String radiusFormula,
+        int aggregateCount,
+        int aggregateAmountMb,
+        int contributingStacks,
         double distance,
+        boolean activeBecause,
         boolean respectsShielding,
         double rawContribution,
         String shielding,
@@ -27,13 +35,13 @@ public record RadiationSource(
         double shieldingReduction,
         double finalContribution,
         String matchReason) {
-    public static RadiationSource playerInventory(
+    public static RadiationSource playerInventoryAggregate(
             ResourceLocation itemId,
-            String slot,
-            int count,
+            int aggregateCount,
+            int contributingStacks,
             double ruleStrength,
-            double ruleRadius,
-            boolean respectsShielding,
+            double baseRadius,
+            double effectiveRadius,
             double contribution,
             String matchReason) {
         return new RadiationSource(
@@ -41,16 +49,24 @@ public record RadiationSource(
                 itemId,
                 null,
                 null,
-                slot,
                 null,
-                count,
+                null,
+                aggregateCount,
                 0,
                 null,
                 null,
                 ruleStrength,
-                ruleRadius,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                aggregateCount,
+                0,
+                contributingStacks,
                 0.0D,
-                respectsShielding,
+                true,
+                true,
                 contribution,
                 "not_applicable",
                 0,
@@ -82,7 +98,15 @@ public record RadiationSource(
                 null,
                 ruleStrength,
                 ruleRadius,
+                ruleRadius,
+                ruleRadius,
+                0.0D,
+                "static",
+                0,
+                0,
+                1,
                 distance,
+                distance <= ruleRadius,
                 respectsShielding,
                 contribution,
                 respectsShielding ? "clear" : "not_applicable",
@@ -93,14 +117,15 @@ public record RadiationSource(
                 matchReason);
     }
 
-    public static RadiationSource blockEntityInventory(
+    public static RadiationSource blockEntityInventoryAggregate(
             ResourceLocation blockId,
             BlockPos containerPos,
-            String slot,
             ResourceLocation itemId,
-            int count,
+            int aggregateCount,
+            int contributingStacks,
             double ruleStrength,
-            double ruleRadius,
+            double baseRadius,
+            double effectiveRadius,
             double distance,
             boolean respectsShielding,
             double contribution,
@@ -110,15 +135,23 @@ public record RadiationSource(
                 itemId,
                 null,
                 blockId,
-                slot,
                 null,
-                count,
+                null,
+                aggregateCount,
                 0,
                 containerPos.immutable(),
                 null,
                 ruleStrength,
-                ruleRadius,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                aggregateCount,
+                0,
+                contributingStacks,
                 distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
                 respectsShielding,
                 contribution,
                 respectsShielding ? "clear" : "not_applicable",
@@ -129,15 +162,16 @@ public record RadiationSource(
                 matchReason);
     }
 
-    public static RadiationSource blockItemHandler(
+    public static RadiationSource blockItemHandlerAggregate(
             ResourceLocation blockId,
             BlockPos position,
             String capabilityContext,
-            String slot,
             ResourceLocation itemId,
-            int count,
+            int aggregateCount,
+            int contributingStacks,
             double ruleStrength,
-            double ruleRadius,
+            double baseRadius,
+            double effectiveRadius,
             double distance,
             boolean respectsShielding,
             double contribution,
@@ -147,15 +181,23 @@ public record RadiationSource(
                 itemId,
                 null,
                 blockId,
-                slot,
                 null,
-                count,
+                null,
+                aggregateCount,
                 0,
                 position.immutable(),
                 capabilityContext,
                 ruleStrength,
-                ruleRadius,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                aggregateCount,
+                0,
+                contributingStacks,
                 distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
                 respectsShielding,
                 contribution,
                 respectsShielding ? "clear" : "not_applicable",
@@ -166,15 +208,16 @@ public record RadiationSource(
                 matchReason);
     }
 
-    public static RadiationSource blockFluidHandler(
+    public static RadiationSource blockFluidHandlerAggregate(
             ResourceLocation blockId,
             BlockPos position,
             String capabilityContext,
-            String tank,
             ResourceLocation fluidId,
-            int amountMb,
+            int aggregateAmountMb,
+            int contributingStacks,
             double ruleStrength,
-            double ruleRadius,
+            double baseRadius,
+            double effectiveRadius,
             double distance,
             boolean respectsShielding,
             double contribution,
@@ -185,14 +228,22 @@ public record RadiationSource(
                 fluidId,
                 blockId,
                 null,
-                tank,
+                null,
                 0,
-                amountMb,
+                aggregateAmountMb,
                 position.immutable(),
                 capabilityContext,
                 ruleStrength,
-                ruleRadius,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                0,
+                aggregateAmountMb,
+                contributingStacks,
                 distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
                 respectsShielding,
                 contribution,
                 respectsShielding ? "clear" : "not_applicable",
@@ -217,7 +268,15 @@ public record RadiationSource(
                 capabilityContext,
                 ruleStrength,
                 ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
                 distance,
+                activeBecause,
                 respectsShielding,
                 rawContribution,
                 result.shielding(),
@@ -268,7 +327,19 @@ public record RadiationSource(
         }
         json.addProperty("ruleStrength", ruleStrength);
         json.addProperty("ruleRadius", ruleRadius);
+        json.addProperty("baseRadius", baseRadius);
+        json.addProperty("effectiveRadius", effectiveRadius);
+        json.addProperty("dynamicRadiusBonus", dynamicRadiusBonus);
+        json.addProperty("radiusFormula", radiusFormula);
+        if (aggregateCount > 0) {
+            json.addProperty("aggregateCount", aggregateCount);
+        }
+        if (aggregateAmountMb > 0) {
+            json.addProperty("aggregateAmountMb", aggregateAmountMb);
+        }
+        json.addProperty("contributingStacks", contributingStacks);
         json.addProperty("distance", distance);
+        json.addProperty("activeBecause", activeBecause);
         json.addProperty("respectsShielding", respectsShielding);
         json.addProperty("rawContribution", rawContribution);
         json.addProperty("shielding", shielding);

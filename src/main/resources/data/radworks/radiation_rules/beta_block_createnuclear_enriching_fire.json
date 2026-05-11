@@ -1,0 +1,13 @@
+{
+  "type": "block",
+  "id": "createnuclear:enriching_fire",
+  "strength": 5.0,
+  "radius": 4.0,
+  "respectsShielding": true,
+  "enabled": true,
+  "profile": "beta",
+  "required": false,
+  "optionalModId": "createnuclear",
+  "role": "real_candidate",
+  "comment": "Beta candidate from migration_export; beta_balance placeholder for RC playability."
+}

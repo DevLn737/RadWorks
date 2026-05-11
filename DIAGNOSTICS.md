@@ -221,6 +221,21 @@ Note: diagnostic only, no gameplay effect
 
 Chat output is bounded to 10 source rows.
 
+Post-Beta 2 dynamic radius model:
+- Aggregate sources now expose:
+  - `baseRadius`,
+  - `effectiveRadius`,
+  - `dynamicRadiusBonus`,
+  - `radiusFormula`,
+  - `aggregateCount` or `aggregateAmountMb`,
+  - `contributingStacks`,
+  - `activeBecause`.
+- `ruleRadius` remains present for compatibility and mirrors base rule radius.
+- `contribution` still mirrors `finalContribution`.
+- For handler non-matching diagnostics, reasons may include `outside_dynamic_radius`.
+- `handlerDiagnostics` content samples can include dynamic context:
+  - `distance`, `baseRadius`, `effectiveRadius`, `aggregateUnitsSnapshot`.
+
 Phase 6A adds an armor diagnostics summary line in `/radworks exposure`:
 - `status`: `none`, `partial`, `full`, `unknown`;
 - `protectionSource`: `tag`, `dev_diamond_set`, `unknown`;

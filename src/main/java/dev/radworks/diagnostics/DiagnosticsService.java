@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.radworks.RadWorks;
+import dev.radworks.gameplay.RadiationGameplayService;
 import dev.radworks.radiation.ExposureBreakdown;
 import dev.radworks.radiation.ExposureEngine;
 import dev.radworks.radiation.RadiationRules;
@@ -80,11 +81,13 @@ public final class DiagnosticsService {
         root.add("rules", rulesInfo());
         root.add("shielding", shieldingInfo());
         root.add("effectStrategy", effectStrategyInfo());
+        root.add("gameplay", gameplayInfo());
         root.add("debug", DiagnosticsState.toJson());
         root.add("integrations", integrationsInfo());
         root.add("performance", performanceInfo());
         root.add("lastExposureSnapshot", lastExposureSnapshotInfo());
         root.add("sourceScanSummary", SourceScanSummary.lastToJson());
+        root.add("handlerDiagnostics", HandlerDiagnostics.lastToJson());
         root.add("recentWarnings", WarningBuffer.toJson());
         return root;
     }
@@ -132,6 +135,10 @@ public final class DiagnosticsService {
 
     private static JsonObject effectStrategyInfo() {
         return EffectStrategyService.strategy().toJson();
+    }
+
+    private static JsonObject gameplayInfo() {
+        return RadiationGameplayService.toJson();
     }
 
     private static JsonObject integrationsInfo() {

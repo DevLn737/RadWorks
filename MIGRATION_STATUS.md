@@ -532,3 +532,23 @@ These entries are added to `#radworks:shielding_blocks` with `required:false`, s
 - Phase 5A does not implement armor protection, material-specific shielding strength, cache/invalidation, damage/effects or ticking accumulation.
 - Partial blocks, fluids and transparent-block behavior are not specially modeled in Phase 5A.
 - Phase 5B real shielding candidates require external TFMG/Create Nuclear testing because those mods are not installed in the local clean dev environment.
+- Post-Beta 2 dynamic radius model is implemented locally and needs external modpack re-verification for chest/vault/tank distance behavior.
+
+## Post-Beta 2 implementation notes
+- Dynamic radius is enabled by default for aggregate item/fluid sources.
+- Formula:
+  - `effectiveRadius = min(radiusMaxCap, baseRadius + radiusScale * log2(max(1.0, aggregateUnits)))`.
+  - Items use `aggregateUnits=aggregateCount`; fluids use `aggregateUnits=aggregateAmountMb/1000.0`.
+- Config defaults:
+  - `rules.dynamicRadiusEnabled=true`;
+  - `rules.dynamicRadiusScale=0.5`;
+  - `rules.dynamicRadiusMaxCap=8.0`;
+  - `rules.dynamicRadiusFormula=log2_scaled` (diagnostics label).
+- Canonical source rows are now aggregated for:
+  - `player_inventory`,
+  - `block_entity_inventory`,
+  - `block_item_handler`,
+  - `block_fluid_handler`.
+- Contribution formulas are unchanged; only active distance checks now use `effectiveRadius`.
+- Dump/source rows include dynamic radius fields and aggregate counters.
+- Handler non-matching diagnostics include dynamic radius context and `outside_dynamic_radius`.

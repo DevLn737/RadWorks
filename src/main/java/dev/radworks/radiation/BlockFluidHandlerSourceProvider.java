@@ -1,10 +1,14 @@
 package dev.radworks.radiation;
 
+import dev.radworks.config.RadWorksConfig;
+import dev.radworks.diagnostics.HandlerDiagnostics;
 import dev.radworks.diagnostics.PerformanceStats;
 import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WarningBuffer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
@@ -36,20 +40,29 @@ public final class BlockFluidHandlerSourceProvider {
     }
 
     public static List<RadiationSource> collect(ServerPlayer player, RadiationRules rules) {
-        return collect(player, rules, SourceScanSummary.builder());
+        return collect(player, rules, SourceScanSummary.builder(), HandlerDiagnostics.builder());
     }
 
     public static List<RadiationSource> collect(
             ServerPlayer player,
             RadiationRules rules,
             SourceScanSummary.Builder summary) {
-        return PerformanceStats.timeValue("fluidHandlerScan", () -> collectTimed(player, rules, summary));
+        return collect(player, rules, summary, HandlerDiagnostics.builder());
+    }
+
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics) {
+        return PerformanceStats.timeValue("fluidHandlerScan", () -> collectTimed(player, rules, summary, handlerDiagnostics));
     }
 
     private static List<RadiationSource> collectTimed(
             ServerPlayer player,
             RadiationRules rules,
-            SourceScanSummary.Builder summary) {
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.fluidRules() == 0) {
             return sources;
@@ -79,7 +92,16 @@ public final class BlockFluidHandlerSourceProvider {
             BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
-            collectTanks(blockId, pos, distance, lookup, rules, sources, summary);
+            HandlerScanResult scanResult = collectTanks(blockId, pos, distance, lookup, rules, sources, summary);
+            if (scanResult.matches() == 0) {
+                handlerDiagnostics.addFluidHandlerSample(
+                        blockId,
+                        pos,
+                        lookup.capabilityContext(),
+                        scanResult.tanksChecked(),
+                        scanResult.matches(),
+                        scanResult.contents());
+            }
         }
 
         return List.copyOf(sources);
@@ -100,7 +122,7 @@ public final class BlockFluidHandlerSourceProvider {
         return null;
     }
 
-    private static void collectTanks(
+    private static HandlerScanResult collectTanks(
             ResourceLocation blockId,
             BlockPos pos,
             double distance,
@@ -108,16 +130,23 @@ public final class BlockFluidHandlerSourceProvider {
             RadiationRules rules,
             List<RadiationSource> sources,
             SourceScanSummary.Builder summary) {
+        final int maxContents = 5;
+        int tanksChecked = 0;
+        int matches = 0;
+        List<HandlerDiagnostics.ContentSample> contents = new ArrayList<>(maxContents);
+        Map<Key, AggregatedSourceAccumulator.FluidAggregate> aggregates = new LinkedHashMap<>();
+
         int tanks;
         try {
             tanks = lookup.handler().getTanks();
         } catch (RuntimeException exception) {
             warnScanFailure(blockId, pos, lookup.capabilityContext(), "getTanks failed: " + exception.getMessage());
-            return;
+            return new HandlerScanResult(tanksChecked, matches, contents);
         }
 
         for (int tank = 0; tank < tanks; tank++) {
             summary.fluidTankChecked();
+            tanksChecked++;
             FluidStack stack;
             try {
                 stack = lookup.handler().getFluidInTank(tank);
@@ -131,36 +160,107 @@ public final class BlockFluidHandlerSourceProvider {
             }
 
             if (stack.isEmpty()) {
+                addFluidSample(contents, maxContents, tank, null, 0, "empty", distance, null, null, null);
                 continue;
             }
 
             ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(stack.getFluid());
             RadiationRule rule = rules.fluidRule(fluidId).orElse(null);
-            if (rule == null || distance > rule.radius()) {
+            if (rule == null) {
+                addFluidSample(contents, maxContents, tank, fluidId, stack.getAmount(), "no_active_rule", distance, null, null, null);
+                continue;
+            }
+            Key key = new Key(fluidId, rule.key());
+            AggregatedSourceAccumulator.FluidAggregate aggregate = aggregates.computeIfAbsent(
+                    key,
+                    ignored -> AggregatedSourceAccumulator.newFluidAggregate(
+                            new AggregatedSourceAccumulator.FluidGroupKey(
+                                    RadiationSourceType.BLOCK_FLUID_HANDLER,
+                                    pos.immutable(),
+                                    blockId,
+                                    lookup.capabilityContext(),
+                                    fluidId,
+                                    rule.key()),
+                            rule,
+                            distance));
+            AggregatedSourceAccumulator.addFluidStack(aggregate, stack.getAmount());
+        }
+
+        for (AggregatedSourceAccumulator.FluidAggregate aggregate : aggregates.values()) {
+            double baseRadius = aggregate.rule().radius();
+            double units = DynamicRadiusModel.aggregateUnitsForFluids(aggregate.aggregateAmountMb());
+            double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
+            if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+                addFluidSample(
+                        contents,
+                        maxContents,
+                        -1,
+                        aggregate.key().fluidId(),
+                        aggregate.aggregateAmountMb(),
+                        DynamicRadiusModel.outsideDynamicRadiusReason(),
+                        distance,
+                        baseRadius,
+                        effectiveRadius,
+                        units);
                 continue;
             }
 
-            int amountMb = stack.getAmount();
-            double contribution = rule.strength() * amountMb / 1000.0D;
             summary.fluidMatch();
-            sources.add(RadiationSource.blockFluidHandler(
+            summary.aggregateRowProduced();
+            matches++;
+            sources.add(RadiationSource.blockFluidHandlerAggregate(
                     blockId,
                     pos,
                     lookup.capabilityContext(),
-                    "fluid_handler." + tank,
-                    fluidId,
-                    amountMb,
-                    rule.strength(),
-                    rule.radius(),
+                    aggregate.key().fluidId(),
+                    aggregate.aggregateAmountMb(),
+                    aggregate.contributingStacks(),
+                    aggregate.rule().strength(),
+                    baseRadius,
+                    effectiveRadius,
                     distance,
-                    rule.respectsShielding(),
-                    contribution,
-                    "NeoForge FluidHandler block capability matched active fluid rule type=fluid id=" + fluidId));
+                    aggregate.rule().respectsShielding(),
+                    aggregate.rawContribution(),
+                    "NeoForge FluidHandler aggregated source matched active fluid rule id="
+                            + aggregate.key().fluidId()
+                            + " amountMb="
+                            + aggregate.aggregateAmountMb()));
         }
+        return new HandlerScanResult(tanksChecked, matches, contents);
+    }
+
+    private static void addFluidSample(
+            List<HandlerDiagnostics.ContentSample> contents,
+            int maxContents,
+            int tank,
+            ResourceLocation fluidId,
+            int amountMb,
+            String reason,
+            Double distance,
+            Double baseRadius,
+            Double effectiveRadius,
+            Double aggregateUnitsSnapshot) {
+        if (contents.size() >= maxContents) {
+            return;
+        }
+        String tankLabel = tank < 0 ? null : "fluid_handler." + tank;
+        contents.add(HandlerDiagnostics.ContentSample.fluid(
+                tankLabel,
+                fluidId,
+                amountMb,
+                reason,
+                distance,
+                baseRadius,
+                effectiveRadius,
+                aggregateUnitsSnapshot));
     }
 
     private static int effectiveScanRadius(RadiationRules rules) {
-        return (int) Math.ceil(Math.min(rules.maxActiveFluidRuleRadius(), MAX_SCAN_RADIUS));
+        double baseMax = rules.maxActiveFluidRuleRadius();
+        double dynamicMax = RadWorksConfig.dynamicRadiusEnabled()
+                ? Math.max(baseMax, RadWorksConfig.dynamicRadiusMaxCap())
+                : baseMax;
+        return (int) Math.ceil(Math.min(dynamicMax, MAX_SCAN_RADIUS));
     }
 
     private static void warnForClampedRules(RadiationRules rules) {
@@ -220,5 +320,14 @@ public final class BlockFluidHandlerSourceProvider {
     }
 
     private record HandlerLookup(IFluidHandler handler, String capabilityContext) {
+    }
+
+    private record HandlerScanResult(
+            int tanksChecked,
+            int matches,
+            List<HandlerDiagnostics.ContentSample> contents) {
+    }
+
+    private record Key(ResourceLocation fluidId, String ruleKey) {
     }
 }

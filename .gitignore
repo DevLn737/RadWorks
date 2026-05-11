@@ -4,7 +4,7 @@ build/
 runs/
 out/
 *.class
-
+run
 # Local IDE state
 .idea/
 .vscode/

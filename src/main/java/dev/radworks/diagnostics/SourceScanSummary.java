@@ -29,6 +29,7 @@ public record SourceScanSummary(
         int shieldingSamplesChecked,
         int shieldingBlocksHit,
         int shieldingSourcesReduced,
+        int aggregateRowsProduced,
         int sourcesShown,
         int sourcesOmitted) {
     private static volatile SourceScanSummary lastSummary;
@@ -69,6 +70,7 @@ public record SourceScanSummary(
                 lastSummary.shieldingSamplesChecked,
                 lastSummary.shieldingBlocksHit,
                 lastSummary.shieldingSourcesReduced,
+                lastSummary.aggregateRowsProduced,
                 sourcesShown,
                 sourcesOmitted);
     }
@@ -105,6 +107,7 @@ public record SourceScanSummary(
         json.addProperty("shieldingSamplesChecked", shieldingSamplesChecked);
         json.addProperty("shieldingBlocksHit", shieldingBlocksHit);
         json.addProperty("shieldingSourcesReduced", shieldingSourcesReduced);
+        json.addProperty("aggregateRowsProduced", aggregateRowsProduced);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
 
@@ -139,6 +142,7 @@ public record SourceScanSummary(
         private int shieldingSamplesChecked;
         private int shieldingBlocksHit;
         private int shieldingSourcesReduced;
+        private int aggregateRowsProduced;
 
         public void inventoryStackChecked() {
             inventoryStacksChecked++;
@@ -228,6 +232,10 @@ public record SourceScanSummary(
             shieldingSourcesReduced++;
         }
 
+        public void aggregateRowProduced() {
+            aggregateRowsProduced++;
+        }
+
         private SourceScanSummary build(int sourcesShown, int sourcesOmitted) {
             return new SourceScanSummary(
                     Instant.now(),
@@ -253,6 +261,7 @@ public record SourceScanSummary(
                     shieldingSamplesChecked,
                     shieldingBlocksHit,
                     shieldingSourcesReduced,
+                    aggregateRowsProduced,
                     sourcesShown,
                     sourcesOmitted);
         }

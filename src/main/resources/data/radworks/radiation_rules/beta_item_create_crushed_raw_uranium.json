@@ -1,0 +1,13 @@
+{
+  "type": "item",
+  "id": "create:crushed_raw_uranium",
+  "strength": 1.0,
+  "radius": 2.0,
+  "respectsShielding": true,
+  "enabled": true,
+  "profile": "beta",
+  "required": false,
+  "optionalModId": "create",
+  "role": "real_candidate",
+  "comment": "Beta candidate from migration_export; conservative placeholder strength."
+}
