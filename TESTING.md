@@ -16,6 +16,21 @@ Run:
 ./gradlew build
 ```
 
+## Post-Beta 3 automated checks
+- Create transient extraction parsing:
+  - placard `Item`;
+  - mechanical arm `HeldItem`;
+  - fluid pipe `side.Flow.Fluid`;
+  - malformed payload handling.
+- Create transient aggregation:
+  - contribution sum preserved;
+  - dynamic radius behavior retained;
+  - 1 item produces descriptor;
+  - 1 mB fluid produces descriptor.
+- Fluid rule resolution:
+  - exact `createnuclear:flowing_uranium`;
+  - fallback `flowing_x -> x` when exact missing.
+
 Phase 6T minimum local gate for new logic phases:
 - `./gradlew test` must execute real tests (not `NO-SOURCE`);
 - `./gradlew build` must pass.

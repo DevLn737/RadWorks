@@ -61,7 +61,8 @@ class RulesDataFilesSmokeTest {
                 "data/radworks/radiation_rules/beta_block_createnuclear_enriched_soul_soil.json",
                 "data/radworks/radiation_rules/beta_block_createnuclear_enriching_fire.json",
                 "data/radworks/radiation_rules/beta_block_createnuclear_enriching_campfire.json",
-                "data/radworks/radiation_rules/beta_fluid_createnuclear_uranium.json");
+                "data/radworks/radiation_rules/beta_fluid_createnuclear_uranium.json",
+                "data/radworks/radiation_rules/beta_fluid_createnuclear_flowing_uranium.json");
 
         for (String path : betaRulePaths) {
             JsonObject rule = readJson(path);

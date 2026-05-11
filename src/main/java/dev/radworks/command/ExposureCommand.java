@@ -111,6 +111,12 @@ public final class ExposureCommand {
         if (source.capabilityContext() != null) {
             row.append(" capabilityContext=").append(source.capabilityContext());
         }
+        if (source.carrierKind() != null) {
+            row.append(" carrierKind=").append(source.carrierKind());
+        }
+        if (source.dataPath() != null) {
+            row.append(" dataPath=").append(source.dataPath());
+        }
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }
@@ -136,6 +142,9 @@ public final class ExposureCommand {
         row.append(" effectiveRadius=").append(round(source.effectiveRadius()));
         row.append(" strength=").append(source.ruleStrength());
         row.append(" final=").append(source.finalContribution());
+        if (source.ruleMatchMode() != null && !source.ruleMatchMode().isBlank()) {
+            row.append(" ruleMatch=").append(source.ruleMatchMode());
+        }
         row.append(" shielding=").append(source.shielding());
         return row.toString();
     }

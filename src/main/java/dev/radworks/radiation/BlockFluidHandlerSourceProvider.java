@@ -165,11 +165,12 @@ public final class BlockFluidHandlerSourceProvider {
             }
 
             ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(stack.getFluid());
-            RadiationRule rule = rules.fluidRule(fluidId).orElse(null);
-            if (rule == null) {
+            RadiationRules.FluidRuleMatch ruleMatch = rules.resolveFluidRule(fluidId).orElse(null);
+            if (ruleMatch == null) {
                 addFluidSample(contents, maxContents, tank, fluidId, stack.getAmount(), "no_active_rule", distance, null, null, null);
                 continue;
             }
+            RadiationRule rule = ruleMatch.rule();
             Key key = new Key(fluidId, rule.key());
             AggregatedSourceAccumulator.FluidAggregate aggregate = aggregates.computeIfAbsent(
                     key,
@@ -221,12 +222,27 @@ public final class BlockFluidHandlerSourceProvider {
                     distance,
                     aggregate.rule().respectsShielding(),
                     aggregate.rawContribution(),
-                    "NeoForge FluidHandler aggregated source matched active fluid rule id="
+                    ruleMatchModeForGroup(aggregate.key().fluidId(), rules),
+                    "NeoForge FluidHandler aggregated source matched "
+                            + ruleMatchModeForGroup(aggregate.key().fluidId(), rules)
+                            + " fluid rule id="
+                            + matchedFluidRuleIdForGroup(aggregate.key().fluidId(), rules)
+                            + " observedFluidId="
                             + aggregate.key().fluidId()
                             + " amountMb="
                             + aggregate.aggregateAmountMb()));
         }
         return new HandlerScanResult(tanksChecked, matches, contents);
+    }
+
+    private static String ruleMatchModeForGroup(ResourceLocation fluidId, RadiationRules rules) {
+        RadiationRules.FluidRuleMatch match = rules.resolveFluidRule(fluidId).orElse(null);
+        return match == null ? "exact" : match.mode();
+    }
+
+    private static ResourceLocation matchedFluidRuleIdForGroup(ResourceLocation fluidId, RadiationRules rules) {
+        RadiationRules.FluidRuleMatch match = rules.resolveFluidRule(fluidId).orElse(null);
+        return match == null ? fluidId : match.matchedRuleId();
     }
 
     private static void addFluidSample(

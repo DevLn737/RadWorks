@@ -9,6 +9,7 @@ import dev.radworks.radiation.RadiationRulesLoader;
 import dev.radworks.radiation.effects.EffectStrategyResult;
 import dev.radworks.radiation.effects.EffectStrategyService;
 import dev.radworks.radiation.shielding.ShieldingDiagnostics;
+import net.neoforged.fml.ModList;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
@@ -107,6 +108,25 @@ public final class ValidateCommand {
                 + RadWorksConfig.dynamicRadiusMaxCap()
                 + " formula="
                 + RadWorksConfig.dynamicRadiusFormulaLabel()), false);
+        source.sendSuccess(() -> Component.literal("Create transient carriers: createLoaded="
+                + ModList.get().isLoaded("create")
+                + " enabled="
+                + RadWorksConfig.createTransientCarriersEnabled()
+                + " nbtScan="
+                + RadWorksConfig.createTransientCarrierNbtScanEnabled()
+                + " maxScanRadius="
+                + RadWorksConfig.createTransientCarrierMaxScanRadius()
+                + " diagCap="
+                + RadWorksConfig.createTransientCarrierDiagnosticSampleCap()
+                + " pathCap="
+                + RadWorksConfig.createTransientCarrierPathSampleCap()), false);
+        source.sendSuccess(() -> Component.literal(
+                "Create patterns: placard(Item), mechanical_arm(HeldItem), fluid_pipe(side.Flow.Fluid), glass_fluid_pipe(side.Flow.Fluid), pipette(known paths)"),
+                false);
+        source.sendSuccess(() -> Component.literal("Fluid coverage: createnuclear:uranium="
+                + candidateStatus(rules, "fluid", "createnuclear:uranium")
+                + " createnuclear:flowing_uranium="
+                + candidateStatus(rules, "fluid", "createnuclear:flowing_uranium")), false);
         source.sendSuccess(() -> Component.literal("Dump: use /radworks dump for full details"), false);
 
         sendIssues(source, "ERROR", validation.errors());
@@ -119,6 +139,15 @@ public final class ValidateCommand {
 
     private static String valueOrDash(String value) {
         return value == null ? "-" : value;
+    }
+
+    private static String candidateStatus(RadiationRules rules, String type, String id) {
+        for (var candidate : rules.candidateStatuses()) {
+            if (candidate.type().equals(type) && candidate.id().equals(id)) {
+                return candidate.status();
+            }
+        }
+        return "missing_rule";
     }
 
     private static void recordValidationIssues(RadiationRuleValidationResult validation) {

@@ -1,5 +1,15 @@
 # Migration Status
 
+## Post-Beta 3 - Create transient/internal carrier sources
+Status: implemented locally, automated checks pending in this step, external modpack verification required.
+
+Implemented:
+- Added optional-safe `CreateTransientCarrierSourceProvider`.
+- Added source types: `create_transient_item`, `create_transient_fluid`.
+- Added guarded Create transient scan via config + `ModList` check (no hard Create API dependency).
+- Added flowing fluid coverage (`createnuclear:flowing_uranium`) with exact+fallback diagnostics behavior.
+- Added dedicated dump diagnostics section: `createCarrierDiagnostics`.
+
 ## Phase 0 - Repository foundation
 Status: implemented and manually verified.
 

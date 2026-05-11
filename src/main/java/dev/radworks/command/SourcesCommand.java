@@ -50,7 +50,7 @@ public final class SourcesCommand {
         source.sendSuccess(() -> Component.literal("[RadWorks] Sources"), false);
         source.sendSuccess(() -> Component.literal("Total sources: "
                 + sources.size()
-                + " scope=player_inventory+block+block_entity_inventory+block_item_handler+block_fluid_handler"), false);
+                + " scope=player_inventory+block+block_entity_inventory+block_item_handler+block_fluid_handler+create_transient_item+create_transient_fluid"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
         source.sendSuccess(() -> Component.literal("Rows:"), false);
@@ -98,6 +98,12 @@ public final class SourcesCommand {
         if (source.capabilityContext() != null) {
             row.append(" capabilityContext=").append(source.capabilityContext());
         }
+        if (source.carrierKind() != null) {
+            row.append(" carrierKind=").append(source.carrierKind());
+        }
+        if (source.dataPath() != null) {
+            row.append(" dataPath=").append(source.dataPath());
+        }
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }
@@ -123,6 +129,9 @@ public final class SourcesCommand {
         row.append(" effectiveRadius=").append(round(source.effectiveRadius()));
         row.append(" strength=").append(source.ruleStrength());
         row.append(" final=").append(source.finalContribution());
+        if (source.ruleMatchMode() != null && !source.ruleMatchMode().isBlank()) {
+            row.append(" ruleMatch=").append(source.ruleMatchMode());
+        }
         row.append(" reason=").append(source.matchReason());
         return row.toString();
     }

@@ -24,6 +24,10 @@ public record SourceScanSummary(
         int fluidHandlersFound,
         int fluidTanksChecked,
         int fluidMatches,
+        int createCarrierBlocksChecked,
+        int createCarrierItemMatches,
+        int createCarrierFluidMatches,
+        int createCarrierUnexpectedStructures,
         int shieldingSourcesChecked,
         int shieldingSourcesApplicable,
         int shieldingSamplesChecked,
@@ -65,6 +69,10 @@ public record SourceScanSummary(
                 lastSummary.fluidHandlersFound,
                 lastSummary.fluidTanksChecked,
                 lastSummary.fluidMatches,
+                lastSummary.createCarrierBlocksChecked,
+                lastSummary.createCarrierItemMatches,
+                lastSummary.createCarrierFluidMatches,
+                lastSummary.createCarrierUnexpectedStructures,
                 lastSummary.shieldingSourcesChecked,
                 lastSummary.shieldingSourcesApplicable,
                 lastSummary.shieldingSamplesChecked,
@@ -102,6 +110,10 @@ public record SourceScanSummary(
         json.addProperty("fluidHandlersFound", fluidHandlersFound);
         json.addProperty("fluidTanksChecked", fluidTanksChecked);
         json.addProperty("fluidMatches", fluidMatches);
+        json.addProperty("createCarrierBlocksChecked", createCarrierBlocksChecked);
+        json.addProperty("createCarrierItemMatches", createCarrierItemMatches);
+        json.addProperty("createCarrierFluidMatches", createCarrierFluidMatches);
+        json.addProperty("createCarrierUnexpectedStructures", createCarrierUnexpectedStructures);
         json.addProperty("shieldingSourcesChecked", shieldingSourcesChecked);
         json.addProperty("shieldingSourcesApplicable", shieldingSourcesApplicable);
         json.addProperty("shieldingSamplesChecked", shieldingSamplesChecked);
@@ -137,6 +149,10 @@ public record SourceScanSummary(
         private int fluidHandlersFound;
         private int fluidTanksChecked;
         private int fluidMatches;
+        private int createCarrierBlocksChecked;
+        private int createCarrierItemMatches;
+        private int createCarrierFluidMatches;
+        private int createCarrierUnexpectedStructures;
         private int shieldingSourcesChecked;
         private int shieldingSourcesApplicable;
         private int shieldingSamplesChecked;
@@ -212,6 +228,22 @@ public record SourceScanSummary(
             fluidMatches++;
         }
 
+        public void createCarrierBlockChecked() {
+            createCarrierBlocksChecked++;
+        }
+
+        public void createCarrierItemMatch() {
+            createCarrierItemMatches++;
+        }
+
+        public void createCarrierFluidMatch() {
+            createCarrierFluidMatches++;
+        }
+
+        public void createCarrierUnexpectedStructure() {
+            createCarrierUnexpectedStructures++;
+        }
+
         public void shieldingSourceChecked() {
             shieldingSourcesChecked++;
         }
@@ -256,6 +288,10 @@ public record SourceScanSummary(
                     fluidHandlersFound,
                     fluidTanksChecked,
                     fluidMatches,
+                    createCarrierBlocksChecked,
+                    createCarrierItemMatches,
+                    createCarrierFluidMatches,
+                    createCarrierUnexpectedStructures,
                     shieldingSourcesChecked,
                     shieldingSourcesApplicable,
                     shieldingSamplesChecked,

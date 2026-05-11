@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.0 - Post-Beta 3 Create transient/internal carrier sources
+- Added optional-safe Create transient/internal carrier provider with no hard Create API dependency.
+- Added new source types:
+  - `create_transient_item`
+  - `create_transient_fluid`
+- Added known-path extraction for:
+  - `create:placard` (`Item`)
+  - `create:mechanical_arm` (`HeldItem`)
+  - `create:fluid_pipe` / `create:glass_fluid_pipe` (`side.Flow.Fluid`)
+  - `fluid:pipette` known-path attempts.
+- Added `createnuclear:flowing_uranium` optional beta fluid rule.
+- Added fluid rule fallback resolution for `flowing_x -> x` (fluids only), with diagnostics for exact vs fallback rule match mode.
+- Added `createCarrierDiagnostics` dump section and create carrier counters in `sourceScanSummary`.
+
 ## 0.1.0 - Post-Beta 2V dynamic radius debug visualization
 - Added `/radworks radius` command group:
   - `show`

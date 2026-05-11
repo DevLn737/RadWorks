@@ -142,6 +142,25 @@ public final class RadiationRules {
         return Optional.empty();
     }
 
+    public Optional<FluidRuleMatch> resolveFluidRule(ResourceLocation fluidId) {
+        Optional<RadiationRule> exact = fluidRule(fluidId);
+        if (exact.isPresent()) {
+            return Optional.of(new FluidRuleMatch(exact.get(), fluidId, "exact"));
+        }
+
+        String path = fluidId.getPath();
+        if (!path.startsWith("flowing_") || path.length() <= "flowing_".length()) {
+            return Optional.empty();
+        }
+
+        ResourceLocation fallbackId = fluidId.withPath(path.substring("flowing_".length()));
+        Optional<RadiationRule> fallback = fluidRule(fallbackId);
+        if (fallback.isPresent()) {
+            return Optional.of(new FluidRuleMatch(fallback.get(), fallbackId, "fallback"));
+        }
+        return Optional.empty();
+    }
+
     public List<RadiationRule> activeBlockRules() {
         return activeRules.stream()
                 .filter(rule -> rule.type() == RadiationRuleType.BLOCK)
@@ -238,5 +257,8 @@ public final class RadiationRules {
             }
         }
         return count;
+    }
+
+    public record FluidRuleMatch(RadiationRule rule, ResourceLocation matchedRuleId, String mode) {
     }
 }

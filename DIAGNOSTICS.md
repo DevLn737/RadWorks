@@ -92,6 +92,19 @@ Phase 4C item handler scan includes only block capabilities queried through `Cap
 
 Phase 4D fluid handler scan includes only block capabilities queried through `Capabilities.FluidHandler.BLOCK`. It does not scan item fluid capabilities, entity fluid capabilities, buckets or fluid containers in player inventory.
 
+Post-Beta 3 adds optional Create transient/internal carrier scan (no hard Create API dependency):
+- source types:
+  - `create_transient_item`
+  - `create_transient_fluid`
+- known safe paths:
+  - `create:placard` -> `Item`
+  - `create:mechanical_arm` -> `HeldItem`
+  - `create:fluid_pipe` / `create:glass_fluid_pipe` -> `side.Flow.Fluid`
+  - `fluid:pipette` known-path attempts only
+- extraction mode is reported as `safe_data_path`.
+- flow fluid rule matching reports `ruleMatchMode=exact|fallback`.
+- dump includes `createCarrierDiagnostics` with bounded unexpected structure samples.
+
 Phase 5A shielding uses the block tag:
 
 ```text

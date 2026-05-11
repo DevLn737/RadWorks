@@ -21,6 +21,7 @@ public final class PerformanceStats {
         STATS.put("blockEntityInventoryScan", new OperationStats());
         STATS.put("itemHandlerScan", new OperationStats());
         STATS.put("fluidHandlerScan", new OperationStats());
+        STATS.put("createTransientCarrierScan", new OperationStats());
         STATS.put("shielding", new OperationStats());
         STATS.put("dump", new OperationStats());
     }

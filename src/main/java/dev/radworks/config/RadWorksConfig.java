@@ -18,6 +18,11 @@ public final class RadWorksConfig {
     public static final double DEFAULT_DYNAMIC_RADIUS_SCALE = 0.5D;
     public static final double DEFAULT_DYNAMIC_RADIUS_MAX_CAP = 8.0D;
     public static final String DEFAULT_DYNAMIC_RADIUS_FORMULA = "log2_scaled";
+    public static final boolean DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED = true;
+    public static final boolean DEFAULT_CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED = true;
+    public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS = 8;
+    public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP = 20;
+    public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP = 5;
 
     public static final ModConfigSpec SPEC;
 
@@ -34,6 +39,11 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.DoubleValue DYNAMIC_RADIUS_SCALE;
     private static final ModConfigSpec.DoubleValue DYNAMIC_RADIUS_MAX_CAP;
     private static final ModConfigSpec.ConfigValue<String> DYNAMIC_RADIUS_FORMULA;
+    private static final ModConfigSpec.BooleanValue CREATE_TRANSIENT_CARRIERS_ENABLED;
+    private static final ModConfigSpec.BooleanValue CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED;
+    private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS;
+    private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP;
+    private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -79,6 +89,35 @@ public final class RadWorksConfig {
         DYNAMIC_RADIUS_FORMULA = builder
                 .comment("Diagnostics-only label for dynamic radius formula.")
                 .define("dynamicRadiusFormula", DEFAULT_DYNAMIC_RADIUS_FORMULA);
+        builder.pop();
+        builder.push("integrations");
+        CREATE_TRANSIENT_CARRIERS_ENABLED = builder
+                .comment("Enable optional Create transient/internal carrier source scanning.")
+                .define("createTransientCarriersEnabled", DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED);
+        CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED = builder
+                .comment("Enable safe known-path block entity tag extraction for Create transient carriers.")
+                .define("createTransientCarrierNbtScanEnabled", DEFAULT_CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED);
+        CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS = builder
+                .comment("Maximum scan radius for Create transient carrier provider.")
+                .defineInRange(
+                        "createTransientCarrierMaxScanRadius",
+                        DEFAULT_CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS,
+                        1,
+                        64);
+        CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP = builder
+                .comment("Maximum number of Create transient diagnostic block samples in dump.")
+                .defineInRange(
+                        "createTransientCarrierDiagnosticSampleCap",
+                        DEFAULT_CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP,
+                        1,
+                        200);
+        CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP = builder
+                .comment("Maximum number of path/content entries per Create transient diagnostic sample.")
+                .defineInRange(
+                        "createTransientCarrierPathSampleCap",
+                        DEFAULT_CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP,
+                        1,
+                        20);
         builder.pop();
         SPEC = builder.build();
     }
@@ -138,6 +177,34 @@ public final class RadWorksConfig {
         return getString(DYNAMIC_RADIUS_FORMULA, DEFAULT_DYNAMIC_RADIUS_FORMULA);
     }
 
+    public static boolean createTransientCarriersEnabled() {
+        return getBoolean(CREATE_TRANSIENT_CARRIERS_ENABLED, DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED);
+    }
+
+    public static boolean createTransientCarrierNbtScanEnabled() {
+        return getBoolean(
+                CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED,
+                DEFAULT_CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED);
+    }
+
+    public static int createTransientCarrierMaxScanRadius() {
+        return getInt(
+                CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS,
+                DEFAULT_CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS);
+    }
+
+    public static int createTransientCarrierDiagnosticSampleCap() {
+        return getInt(
+                CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP,
+                DEFAULT_CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP);
+    }
+
+    public static int createTransientCarrierPathSampleCap() {
+        return getInt(
+                CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP,
+                DEFAULT_CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP);
+    }
+
     public static JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("gameplayEnabled", gameplayEnabled());
@@ -153,6 +220,11 @@ public final class RadWorksConfig {
         json.addProperty("dynamicRadiusScale", dynamicRadiusScale());
         json.addProperty("dynamicRadiusMaxCap", dynamicRadiusMaxCap());
         json.addProperty("dynamicRadiusFormula", dynamicRadiusFormulaLabel());
+        json.addProperty("createTransientCarriersEnabled", createTransientCarriersEnabled());
+        json.addProperty("createTransientCarrierNbtScanEnabled", createTransientCarrierNbtScanEnabled());
+        json.addProperty("createTransientCarrierMaxScanRadius", createTransientCarrierMaxScanRadius());
+        json.addProperty("createTransientCarrierDiagnosticSampleCap", createTransientCarrierDiagnosticSampleCap());
+        json.addProperty("createTransientCarrierPathSampleCap", createTransientCarrierPathSampleCap());
         return json;
     }
 

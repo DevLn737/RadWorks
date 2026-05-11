@@ -34,6 +34,10 @@ public record RadiationSource(
         double shieldingMultiplier,
         double shieldingReduction,
         double finalContribution,
+        String carrierKind,
+        String dataPath,
+        String extractionMode,
+        String ruleMatchMode,
         String matchReason) {
     public static RadiationSource playerInventoryAggregate(
             ResourceLocation itemId,
@@ -73,6 +77,10 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
+                "exact",
                 matchReason);
     }
 
@@ -114,6 +122,10 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
+                "exact",
                 matchReason);
     }
 
@@ -159,6 +171,10 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
+                "exact",
                 matchReason);
     }
 
@@ -205,6 +221,10 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
+                "exact",
                 matchReason);
     }
 
@@ -221,6 +241,7 @@ public record RadiationSource(
             double distance,
             boolean respectsShielding,
             double contribution,
+            String ruleMatchMode,
             String matchReason) {
         return new RadiationSource(
                 RadiationSourceType.BLOCK_FLUID_HANDLER,
@@ -251,6 +272,113 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
+                ruleMatchMode,
+                matchReason);
+    }
+
+    public static RadiationSource createTransientItemAggregate(
+            ResourceLocation blockId,
+            BlockPos position,
+            String carrierKind,
+            String dataPath,
+            ResourceLocation itemId,
+            int aggregateCount,
+            int contributingStacks,
+            double ruleStrength,
+            double baseRadius,
+            double effectiveRadius,
+            double distance,
+            boolean respectsShielding,
+            double contribution,
+            String matchReason) {
+        return new RadiationSource(
+                RadiationSourceType.CREATE_TRANSIENT_ITEM,
+                itemId,
+                null,
+                blockId,
+                null,
+                null,
+                aggregateCount,
+                0,
+                position.immutable(),
+                "internal",
+                ruleStrength,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                aggregateCount,
+                0,
+                contributingStacks,
+                distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                carrierKind,
+                dataPath,
+                "safe_data_path",
+                "exact",
+                matchReason);
+    }
+
+    public static RadiationSource createTransientFluidAggregate(
+            ResourceLocation blockId,
+            BlockPos position,
+            String carrierKind,
+            String dataPath,
+            ResourceLocation fluidId,
+            int aggregateAmountMb,
+            int contributingStacks,
+            double ruleStrength,
+            double baseRadius,
+            double effectiveRadius,
+            double distance,
+            boolean respectsShielding,
+            double contribution,
+            String ruleMatchMode,
+            String matchReason) {
+        return new RadiationSource(
+                RadiationSourceType.CREATE_TRANSIENT_FLUID,
+                null,
+                fluidId,
+                blockId,
+                null,
+                null,
+                0,
+                aggregateAmountMb,
+                position.immutable(),
+                "internal",
+                ruleStrength,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                0,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                carrierKind,
+                dataPath,
+                "safe_data_path",
+                ruleMatchMode,
                 matchReason);
     }
 
@@ -284,6 +412,10 @@ public record RadiationSource(
                 result.shieldingMultiplier(),
                 result.shieldingReduction(),
                 result.finalContribution(),
+                carrierKind,
+                dataPath,
+                extractionMode,
+                ruleMatchMode,
                 matchReason);
     }
 
@@ -324,6 +456,18 @@ public record RadiationSource(
         }
         if (capabilityContext != null) {
             json.addProperty("capabilityContext", capabilityContext);
+        }
+        if (carrierKind != null) {
+            json.addProperty("carrierKind", carrierKind);
+        }
+        if (dataPath != null) {
+            json.addProperty("dataPath", dataPath);
+        }
+        if (extractionMode != null) {
+            json.addProperty("extractionMode", extractionMode);
+        }
+        if (ruleMatchMode != null) {
+            json.addProperty("ruleMatchMode", ruleMatchMode);
         }
         json.addProperty("ruleStrength", ruleStrength);
         json.addProperty("ruleRadius", ruleRadius);

@@ -53,6 +53,18 @@ Run:
    - run `/radworks radius show 10`;
    - compare visual rings with `/radworks sources` `effectiveRadius` values;
    - use close/medium/outside positions for chest/vault/tank cases.
+10. Create transient/internal carrier retest:
+   - `create:placard` with `createnuclear:raw_uranium` in `Item`;
+   - `create:mechanical_arm` with `createnuclear:raw_uranium` in `HeldItem`;
+   - `create:fluid_pipe` and `create:glass_fluid_pipe` with `side.Flow.Fluid` uranium;
+   - `fluid:pipette` if available in this pack.
+   - Also check `createnuclear:flowing_uranium` if it appears in flow data.
+   - For each scenario run:
+     - `/radworks validate`
+     - `/radworks sources`
+     - `/radworks exposure`
+     - `/radworks radius show 10` (or keep always-on visualization)
+     - `/radworks dump`
 
 ## Optional Shielding Checks
 If TFMG/Create Nuclear are installed, test available shielding blocks:
@@ -65,5 +77,7 @@ If TFMG/Create Nuclear are installed, test available shielding blocks:
 - `/radworks validate` output.
 - Dumps for: baseline, positive item/block/fluid scenario, armor-blocked scenario, shielding scenario.
 - Include close/medium/outside dumps for chest/vault/tank dynamic radius checks.
+- Include dumps for placard/mechanical arm/pipe/glass_pipe/pipette transient scenarios where available.
+- Screenshots or short video of radius visualization for transient scenarios are helpful.
 - `latest.log` only if there is a crash/warning/confusing behavior.
 - Installed mod versions if optional mods are involved.

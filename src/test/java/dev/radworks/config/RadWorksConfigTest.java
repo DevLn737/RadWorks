@@ -23,5 +23,10 @@ class RadWorksConfigTest {
         assertEquals(0.5D, RadWorksConfig.dynamicRadiusScale(), 1.0e-9);
         assertEquals(8.0D, RadWorksConfig.dynamicRadiusMaxCap(), 1.0e-9);
         assertEquals("log2_scaled", RadWorksConfig.dynamicRadiusFormulaLabel());
+        assertTrue(RadWorksConfig.createTransientCarriersEnabled());
+        assertTrue(RadWorksConfig.createTransientCarrierNbtScanEnabled());
+        assertEquals(8, RadWorksConfig.createTransientCarrierMaxScanRadius());
+        assertEquals(20, RadWorksConfig.createTransientCarrierDiagnosticSampleCap());
+        assertEquals(5, RadWorksConfig.createTransientCarrierPathSampleCap());
     }
 }
