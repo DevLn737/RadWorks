@@ -16,6 +16,17 @@ Run:
 ./gradlew build
 ```
 
+## Post-Beta 4A automated checks
+- Entity carrier extraction and aggregation:
+  - dropped/item-frame radioactive stack descriptor extraction;
+  - player aura aggregate counts from inventory stacks;
+  - self-player aura skip contract.
+- Entity carrier diagnostics:
+  - bounded skip sample behavior in `entityCarrierDiagnostics`.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
 ## Post-Beta 3 automated checks
 - Create transient extraction parsing:
   - placard `Item`;

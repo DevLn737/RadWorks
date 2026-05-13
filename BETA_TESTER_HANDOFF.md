@@ -68,6 +68,18 @@ Run:
      - `/radworks exposure`
      - `/radworks radius show 10` (or keep always-on visualization)
      - `/radworks dump`
+11. Entity carrier retest (Post-Beta 4A):
+   - dropped `createnuclear:raw_uranium` stack with count `1` and `64` if possible;
+   - `item_frame` with `createnuclear:raw_uranium`;
+   - `glow_item_frame` with `createnuclear:raw_uranium`;
+   - player aura test: one player with radioactive inventory near another player.
+   - Confirm self-player inventory is not double-counted (self remains from `player_inventory`, aura is from other players only).
+   - For each scenario run:
+     - `/radworks validate`
+     - `/radworks sources`
+     - `/radworks exposure`
+     - `/radworks radius show 10` (or always-on visualization)
+     - `/radworks dump`
 
 ## Optional Shielding Checks
 If TFMG/Create Nuclear are installed, test available shielding blocks:
@@ -81,6 +93,7 @@ If TFMG/Create Nuclear are installed, test available shielding blocks:
 - Dumps for: baseline, positive item/block/fluid scenario, armor-blocked scenario, shielding scenario.
 - Include close/medium/outside dumps for chest/vault/tank dynamic radius checks.
 - Include dumps for placard/mechanical arm/pipe/glass_pipe/pipette transient scenarios where available.
+- Include dumps for dropped-item, item-frame, glow-item-frame, and player-aura scenarios.
 - Screenshots or short video of radius visualization for transient scenarios are helpful.
 - `latest.log` only if there is a crash/warning/confusing behavior.
 - Installed mod versions if optional mods are involved.

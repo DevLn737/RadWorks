@@ -114,6 +114,15 @@ public final class ExposureCommand {
         if (source.carrierKind() != null) {
             row.append(" carrierKind=").append(source.carrierKind());
         }
+        if (source.carrierSourceKind() != null) {
+            row.append(" carrierSourceKind=").append(source.carrierSourceKind());
+        }
+        if (source.carrierEntityType() != null) {
+            row.append(" carrierEntityType=").append(source.carrierEntityType());
+        }
+        if (source.carrierEntityId() != null) {
+            row.append(" carrierEntityId=").append(source.carrierEntityId());
+        }
         if (source.dataPath() != null) {
             row.append(" dataPath=").append(source.dataPath());
         }

@@ -23,6 +23,12 @@ public final class RadWorksConfig {
     public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS = 8;
     public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP = 20;
     public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP = 5;
+    public static final boolean DEFAULT_ENTITY_CARRIERS_ENABLED = true;
+    public static final boolean DEFAULT_ENTITY_DROPPED_ITEMS_ENABLED = true;
+    public static final boolean DEFAULT_ENTITY_ITEM_FRAMES_ENABLED = true;
+    public static final boolean DEFAULT_ENTITY_PLAYER_AURA_ENABLED = true;
+    public static final int DEFAULT_ENTITY_CARRIER_MAX_SCAN_RADIUS = 8;
+    public static final int DEFAULT_ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP = 20;
 
     public static final ModConfigSpec SPEC;
 
@@ -44,6 +50,12 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS;
     private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_DIAGNOSTIC_SAMPLE_CAP;
     private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP;
+    private static final ModConfigSpec.BooleanValue ENTITY_CARRIERS_ENABLED;
+    private static final ModConfigSpec.BooleanValue ENTITY_DROPPED_ITEMS_ENABLED;
+    private static final ModConfigSpec.BooleanValue ENTITY_ITEM_FRAMES_ENABLED;
+    private static final ModConfigSpec.BooleanValue ENTITY_PLAYER_AURA_ENABLED;
+    private static final ModConfigSpec.IntValue ENTITY_CARRIER_MAX_SCAN_RADIUS;
+    private static final ModConfigSpec.IntValue ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -118,6 +130,28 @@ public final class RadWorksConfig {
                         DEFAULT_CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP,
                         1,
                         20);
+        ENTITY_CARRIERS_ENABLED = builder
+                .comment("Enable entity-carried radiation source scanning.")
+                .define("entityCarriersEnabled", DEFAULT_ENTITY_CARRIERS_ENABLED);
+        ENTITY_DROPPED_ITEMS_ENABLED = builder
+                .comment("Enable dropped ItemEntity radiation source scanning.")
+                .define("entityDroppedItemsEnabled", DEFAULT_ENTITY_DROPPED_ITEMS_ENABLED);
+        ENTITY_ITEM_FRAMES_ENABLED = builder
+                .comment("Enable ItemFrame/GlowItemFrame radiation source scanning.")
+                .define("entityItemFramesEnabled", DEFAULT_ENTITY_ITEM_FRAMES_ENABLED);
+        ENTITY_PLAYER_AURA_ENABLED = builder
+                .comment("Enable nearby other-player inventory aura radiation source scanning.")
+                .define("entityPlayerAuraEnabled", DEFAULT_ENTITY_PLAYER_AURA_ENABLED);
+        ENTITY_CARRIER_MAX_SCAN_RADIUS = builder
+                .comment("Maximum scan radius for entity carrier provider.")
+                .defineInRange("entityCarrierMaxScanRadius", DEFAULT_ENTITY_CARRIER_MAX_SCAN_RADIUS, 1, 64);
+        ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP = builder
+                .comment("Maximum number of entity carrier diagnostic skip samples in dump.")
+                .defineInRange(
+                        "entityCarrierDiagnosticSampleCap",
+                        DEFAULT_ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP,
+                        1,
+                        200);
         builder.pop();
         SPEC = builder.build();
     }
@@ -205,6 +239,30 @@ public final class RadWorksConfig {
                 DEFAULT_CREATE_TRANSIENT_CARRIER_PATH_SAMPLE_CAP);
     }
 
+    public static boolean entityCarriersEnabled() {
+        return getBoolean(ENTITY_CARRIERS_ENABLED, DEFAULT_ENTITY_CARRIERS_ENABLED);
+    }
+
+    public static boolean entityDroppedItemsEnabled() {
+        return getBoolean(ENTITY_DROPPED_ITEMS_ENABLED, DEFAULT_ENTITY_DROPPED_ITEMS_ENABLED);
+    }
+
+    public static boolean entityItemFramesEnabled() {
+        return getBoolean(ENTITY_ITEM_FRAMES_ENABLED, DEFAULT_ENTITY_ITEM_FRAMES_ENABLED);
+    }
+
+    public static boolean entityPlayerAuraEnabled() {
+        return getBoolean(ENTITY_PLAYER_AURA_ENABLED, DEFAULT_ENTITY_PLAYER_AURA_ENABLED);
+    }
+
+    public static int entityCarrierMaxScanRadius() {
+        return getInt(ENTITY_CARRIER_MAX_SCAN_RADIUS, DEFAULT_ENTITY_CARRIER_MAX_SCAN_RADIUS);
+    }
+
+    public static int entityCarrierDiagnosticSampleCap() {
+        return getInt(ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP, DEFAULT_ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP);
+    }
+
     public static JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("gameplayEnabled", gameplayEnabled());
@@ -225,6 +283,12 @@ public final class RadWorksConfig {
         json.addProperty("createTransientCarrierMaxScanRadius", createTransientCarrierMaxScanRadius());
         json.addProperty("createTransientCarrierDiagnosticSampleCap", createTransientCarrierDiagnosticSampleCap());
         json.addProperty("createTransientCarrierPathSampleCap", createTransientCarrierPathSampleCap());
+        json.addProperty("entityCarriersEnabled", entityCarriersEnabled());
+        json.addProperty("entityDroppedItemsEnabled", entityDroppedItemsEnabled());
+        json.addProperty("entityItemFramesEnabled", entityItemFramesEnabled());
+        json.addProperty("entityPlayerAuraEnabled", entityPlayerAuraEnabled());
+        json.addProperty("entityCarrierMaxScanRadius", entityCarrierMaxScanRadius());
+        json.addProperty("entityCarrierDiagnosticSampleCap", entityCarrierDiagnosticSampleCap());
         return json;
     }
 

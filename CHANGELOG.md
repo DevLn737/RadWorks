@@ -11,6 +11,11 @@
   - accepted string numeric amounts (for example `"1"`);
   - added bounded `createCarrierDiagnostics.fluidPathSamples` with skip reasons and rule match mode;
   - improved visibility for why pipe/glass-pipe transient fluid rows are skipped (`path_missing`, `no_active_fluid_rule`, `outside_dynamic_radius`, etc.).
+- Post-Beta 4A basic entity-carried sources:
+  - added `entity_dropped_item`, `entity_item_frame`, and `entity_player_inventory_aura` source types;
+  - added bounded `entityCarrierDiagnostics` dump section and entity carrier counters in `sourceScanSummary`;
+  - added self-player aura skip to prevent inventory double-counting for the executing player;
+  - added integration config toggles and scan caps for entity carrier scanning.
 
 ## 0.1.0 - Post-Beta 3 Create transient/internal carrier sources
 - Added optional-safe Create transient/internal carrier provider with no hard Create API dependency.

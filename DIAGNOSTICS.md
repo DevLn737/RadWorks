@@ -105,6 +105,24 @@ Post-Beta 3 adds optional Create transient/internal carrier scan (no hard Create
 - flow fluid rule matching reports `ruleMatchMode=exact|fallback`.
 - dump includes `createCarrierDiagnostics` with bounded unexpected structure samples.
 
+Post-Beta 4A adds basic entity-carried source scan:
+- source types:
+  - `entity_dropped_item`
+  - `entity_item_frame`
+  - `entity_player_inventory_aura`
+- entity source rows include:
+  - `carrierSourceKind`
+  - `carrierEntityType`
+  - `carrierEntityId`
+- dump includes bounded `entityCarrierDiagnostics`:
+  - `scannedEntities`
+  - `matchedDroppedItemSources`
+  - `matchedItemFrameSources`
+  - `matchedPlayerAuraSources`
+  - `skippedEntities`
+  - `skipSamples`
+- player aura scan skips self-player to avoid duplicate counting with `player_inventory`.
+
 Phase 5A shielding uses the block tag:
 
 ```text

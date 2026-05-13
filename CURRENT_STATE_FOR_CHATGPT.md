@@ -1,6 +1,6 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-11): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows; Post-Beta 2V added `/radworks radius` debug visualization using effective radius from current source rows; Post-Beta 3 added optional-safe Create transient/internal carrier source extraction (`placard`, `mechanical_arm`, `fluid_pipe`, `glass_fluid_pipe`, known-path `pipette`) with dedicated diagnostics.
+> Update (2026-05-13): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows; Post-Beta 2V added `/radworks radius` debug visualization using effective radius from current source rows; Post-Beta 3/3F added optional-safe Create transient/internal carrier extraction plus liquid-uranium diagnostics hardening; Post-Beta 4A added basic entity-carried sources (`entity_dropped_item`, `entity_item_frame`, `entity_player_inventory_aura`) with bounded `entityCarrierDiagnostics`.
 
 ## 1. One-paragraph summary
 

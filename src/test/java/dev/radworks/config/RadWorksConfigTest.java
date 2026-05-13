@@ -28,5 +28,11 @@ class RadWorksConfigTest {
         assertEquals(8, RadWorksConfig.createTransientCarrierMaxScanRadius());
         assertEquals(20, RadWorksConfig.createTransientCarrierDiagnosticSampleCap());
         assertEquals(5, RadWorksConfig.createTransientCarrierPathSampleCap());
+        assertTrue(RadWorksConfig.entityCarriersEnabled());
+        assertTrue(RadWorksConfig.entityDroppedItemsEnabled());
+        assertTrue(RadWorksConfig.entityItemFramesEnabled());
+        assertTrue(RadWorksConfig.entityPlayerAuraEnabled());
+        assertEquals(8, RadWorksConfig.entityCarrierMaxScanRadius());
+        assertEquals(20, RadWorksConfig.entityCarrierDiagnosticSampleCap());
     }
 }

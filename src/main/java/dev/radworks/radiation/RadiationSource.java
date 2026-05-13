@@ -35,6 +35,9 @@ public record RadiationSource(
         double shieldingReduction,
         double finalContribution,
         String carrierKind,
+        String carrierEntityType,
+        String carrierEntityId,
+        String carrierSourceKind,
         String dataPath,
         String extractionMode,
         String ruleMatchMode,
@@ -80,6 +83,9 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
                 "exact",
                 matchReason);
     }
@@ -122,6 +128,9 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -174,6 +183,9 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
                 "exact",
                 matchReason);
     }
@@ -221,6 +233,9 @@ public record RadiationSource(
                 1.0D,
                 0.0D,
                 contribution,
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -275,6 +290,9 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
                 ruleMatchMode,
                 matchReason);
     }
@@ -324,6 +342,9 @@ public record RadiationSource(
                 0.0D,
                 contribution,
                 carrierKind,
+                null,
+                null,
+                null,
                 dataPath,
                 "safe_data_path",
                 "exact",
@@ -376,9 +397,67 @@ public record RadiationSource(
                 0.0D,
                 contribution,
                 carrierKind,
+                null,
+                null,
+                null,
                 dataPath,
                 "safe_data_path",
                 ruleMatchMode,
+                matchReason);
+    }
+
+    public static RadiationSource entityCarrierItem(
+            RadiationSourceType type,
+            String carrierSourceKind,
+            String carrierEntityType,
+            String carrierEntityId,
+            BlockPos position,
+            ResourceLocation itemId,
+            int aggregateCount,
+            int contributingStacks,
+            double ruleStrength,
+            double baseRadius,
+            double effectiveRadius,
+            double distance,
+            boolean respectsShielding,
+            double contribution,
+            String matchReason) {
+        return new RadiationSource(
+                type,
+                itemId,
+                null,
+                null,
+                null,
+                null,
+                aggregateCount,
+                0,
+                position.immutable(),
+                null,
+                ruleStrength,
+                baseRadius,
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                aggregateCount,
+                0,
+                contributingStacks,
+                distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                null,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                null,
+                "entity_inventory_path",
+                "exact",
                 matchReason);
     }
 
@@ -413,6 +492,9 @@ public record RadiationSource(
                 result.shieldingReduction(),
                 result.finalContribution(),
                 carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
                 dataPath,
                 extractionMode,
                 ruleMatchMode,
@@ -459,6 +541,15 @@ public record RadiationSource(
         }
         if (carrierKind != null) {
             json.addProperty("carrierKind", carrierKind);
+        }
+        if (carrierEntityType != null) {
+            json.addProperty("carrierEntityType", carrierEntityType);
+        }
+        if (carrierEntityId != null) {
+            json.addProperty("carrierEntityId", carrierEntityId);
+        }
+        if (carrierSourceKind != null) {
+            json.addProperty("carrierSourceKind", carrierSourceKind);
         }
         if (dataPath != null) {
             json.addProperty("dataPath", dataPath);

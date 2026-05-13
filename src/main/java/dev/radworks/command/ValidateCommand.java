@@ -127,6 +127,18 @@ public final class ValidateCommand {
                 + candidateStatus(rules, "fluid", "createnuclear:uranium")
                 + " createnuclear:flowing_uranium="
                 + candidateStatus(rules, "fluid", "createnuclear:flowing_uranium")), false);
+        source.sendSuccess(() -> Component.literal("Entity carriers: enabled="
+                + RadWorksConfig.entityCarriersEnabled()
+                + " droppedItems="
+                + RadWorksConfig.entityDroppedItemsEnabled()
+                + " itemFrames="
+                + RadWorksConfig.entityItemFramesEnabled()
+                + " playerAura="
+                + RadWorksConfig.entityPlayerAuraEnabled()
+                + " maxScanRadius="
+                + RadWorksConfig.entityCarrierMaxScanRadius()
+                + " diagCap="
+                + RadWorksConfig.entityCarrierDiagnosticSampleCap()), false);
         source.sendSuccess(() -> Component.literal("Dump: use /radworks dump for full details"), false);
 
         sendIssues(source, "ERROR", validation.errors());

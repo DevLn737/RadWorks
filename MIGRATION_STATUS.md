@@ -1,5 +1,18 @@
 # Migration Status
 
+## Post-Beta 4A - Basic entity-carried sources
+Status: implemented locally, automated checks passed, external modpack verification required.
+
+Implemented:
+- Added `EntityCarrierSourceProvider` with source types:
+  - `entity_dropped_item`
+  - `entity_item_frame`
+  - `entity_player_inventory_aura`
+- Added self-skip guard for player aura to prevent self inventory double-counting.
+- Added bounded `entityCarrierDiagnostics` dump section.
+- Added entity-carrier scan counters in `sourceScanSummary`.
+- Added entity carrier integration config toggles and scan caps.
+
 ## Post-Beta 3F - Liquid uranium transient fluid fix
 Status: implemented locally, automated checks pending in this step, external modpack retest required.
 

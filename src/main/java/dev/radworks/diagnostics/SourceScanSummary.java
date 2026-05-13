@@ -28,6 +28,11 @@ public record SourceScanSummary(
         int createCarrierItemMatches,
         int createCarrierFluidMatches,
         int createCarrierUnexpectedStructures,
+        int entityCarrierEntitiesChecked,
+        int entityCarrierDroppedItemMatches,
+        int entityCarrierItemFrameMatches,
+        int entityCarrierPlayerAuraMatches,
+        int entityCarrierSkipped,
         int shieldingSourcesChecked,
         int shieldingSourcesApplicable,
         int shieldingSamplesChecked,
@@ -73,6 +78,11 @@ public record SourceScanSummary(
                 lastSummary.createCarrierItemMatches,
                 lastSummary.createCarrierFluidMatches,
                 lastSummary.createCarrierUnexpectedStructures,
+                lastSummary.entityCarrierEntitiesChecked,
+                lastSummary.entityCarrierDroppedItemMatches,
+                lastSummary.entityCarrierItemFrameMatches,
+                lastSummary.entityCarrierPlayerAuraMatches,
+                lastSummary.entityCarrierSkipped,
                 lastSummary.shieldingSourcesChecked,
                 lastSummary.shieldingSourcesApplicable,
                 lastSummary.shieldingSamplesChecked,
@@ -114,6 +124,11 @@ public record SourceScanSummary(
         json.addProperty("createCarrierItemMatches", createCarrierItemMatches);
         json.addProperty("createCarrierFluidMatches", createCarrierFluidMatches);
         json.addProperty("createCarrierUnexpectedStructures", createCarrierUnexpectedStructures);
+        json.addProperty("entityCarrierEntitiesChecked", entityCarrierEntitiesChecked);
+        json.addProperty("entityCarrierDroppedItemMatches", entityCarrierDroppedItemMatches);
+        json.addProperty("entityCarrierItemFrameMatches", entityCarrierItemFrameMatches);
+        json.addProperty("entityCarrierPlayerAuraMatches", entityCarrierPlayerAuraMatches);
+        json.addProperty("entityCarrierSkipped", entityCarrierSkipped);
         json.addProperty("shieldingSourcesChecked", shieldingSourcesChecked);
         json.addProperty("shieldingSourcesApplicable", shieldingSourcesApplicable);
         json.addProperty("shieldingSamplesChecked", shieldingSamplesChecked);
@@ -153,6 +168,11 @@ public record SourceScanSummary(
         private int createCarrierItemMatches;
         private int createCarrierFluidMatches;
         private int createCarrierUnexpectedStructures;
+        private int entityCarrierEntitiesChecked;
+        private int entityCarrierDroppedItemMatches;
+        private int entityCarrierItemFrameMatches;
+        private int entityCarrierPlayerAuraMatches;
+        private int entityCarrierSkipped;
         private int shieldingSourcesChecked;
         private int shieldingSourcesApplicable;
         private int shieldingSamplesChecked;
@@ -244,6 +264,26 @@ public record SourceScanSummary(
             createCarrierUnexpectedStructures++;
         }
 
+        public void entityCarrierEntityChecked() {
+            entityCarrierEntitiesChecked++;
+        }
+
+        public void entityCarrierDroppedItemMatch() {
+            entityCarrierDroppedItemMatches++;
+        }
+
+        public void entityCarrierItemFrameMatch() {
+            entityCarrierItemFrameMatches++;
+        }
+
+        public void entityCarrierPlayerAuraMatch() {
+            entityCarrierPlayerAuraMatches++;
+        }
+
+        public void entityCarrierSkipped() {
+            entityCarrierSkipped++;
+        }
+
         public void shieldingSourceChecked() {
             shieldingSourcesChecked++;
         }
@@ -292,6 +332,11 @@ public record SourceScanSummary(
                     createCarrierItemMatches,
                     createCarrierFluidMatches,
                     createCarrierUnexpectedStructures,
+                    entityCarrierEntitiesChecked,
+                    entityCarrierDroppedItemMatches,
+                    entityCarrierItemFrameMatches,
+                    entityCarrierPlayerAuraMatches,
+                    entityCarrierSkipped,
                     shieldingSourcesChecked,
                     shieldingSourcesApplicable,
                     shieldingSamplesChecked,

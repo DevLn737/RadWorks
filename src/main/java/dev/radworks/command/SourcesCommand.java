@@ -50,7 +50,7 @@ public final class SourcesCommand {
         source.sendSuccess(() -> Component.literal("[RadWorks] Sources"), false);
         source.sendSuccess(() -> Component.literal("Total sources: "
                 + sources.size()
-                + " scope=player_inventory+block+block_entity_inventory+block_item_handler+block_fluid_handler+create_transient_item+create_transient_fluid"), false);
+                + " scope=player_inventory+block+block_entity_inventory+block_item_handler+block_fluid_handler+create_transient_item+create_transient_fluid+entity_dropped_item+entity_item_frame+entity_player_inventory_aura"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
         source.sendSuccess(() -> Component.literal("Rows:"), false);
@@ -100,6 +100,15 @@ public final class SourcesCommand {
         }
         if (source.carrierKind() != null) {
             row.append(" carrierKind=").append(source.carrierKind());
+        }
+        if (source.carrierSourceKind() != null) {
+            row.append(" carrierSourceKind=").append(source.carrierSourceKind());
+        }
+        if (source.carrierEntityType() != null) {
+            row.append(" carrierEntityType=").append(source.carrierEntityType());
+        }
+        if (source.carrierEntityId() != null) {
+            row.append(" carrierEntityId=").append(source.carrierEntityId());
         }
         if (source.dataPath() != null) {
             row.append(" dataPath=").append(source.dataPath());
