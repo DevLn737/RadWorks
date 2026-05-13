@@ -123,6 +123,25 @@ Post-Beta 4A adds basic entity-carried source scan:
   - `skipSamples`
 - player aura scan skips self-player to avoid duplicate counting with `player_inventory`.
 
+Post-Beta 4B extends entity carriers with `entity_inventory` rows:
+- chest boats and chest rafts (`entity_chest_boat_inventory`, `vanilla_inventory`);
+- pack animals (`entity_pack_animal_inventory`, `vanilla_inventory`);
+- generic entity item handler fallback (`entity_generic_inventory_capability`, `entity_item_handler_capability`).
+
+Entity inventory diagnostics are bounded and include:
+- `entityInventoryEntitiesChecked`
+- `entityInventoryAccessSucceeded`
+- `entityInventoryAccessFailed`
+- `matchedChestBoatSources`
+- `matchedPackAnimalSources`
+- `matchedGenericEntityInventorySources`
+- `skipSamples` reasons such as:
+  - `no_inventory_capability`
+  - `inventory_empty`
+  - `no_radioactive_contents`
+  - `duplicate_inventory_access`
+  - `unsupported_entity_inventory`
+
 Phase 5A shielding uses the block tag:
 
 ```text

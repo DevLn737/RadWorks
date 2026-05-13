@@ -10,7 +10,8 @@ public enum RadiationSourceType {
     CREATE_TRANSIENT_FLUID("create_transient_fluid"),
     ENTITY_DROPPED_ITEM("entity_dropped_item"),
     ENTITY_ITEM_FRAME("entity_item_frame"),
-    ENTITY_PLAYER_INVENTORY_AURA("entity_player_inventory_aura");
+    ENTITY_PLAYER_INVENTORY_AURA("entity_player_inventory_aura"),
+    ENTITY_INVENTORY("entity_inventory");
 
     private final String id;
 

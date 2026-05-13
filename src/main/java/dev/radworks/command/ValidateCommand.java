@@ -135,10 +135,18 @@ public final class ValidateCommand {
                 + RadWorksConfig.entityItemFramesEnabled()
                 + " playerAura="
                 + RadWorksConfig.entityPlayerAuraEnabled()
+                + " chestBoats="
+                + RadWorksConfig.entityChestBoatsEnabled()
+                + " packAnimals="
+                + RadWorksConfig.entityPackAnimalsEnabled()
+                + " genericCapability="
+                + RadWorksConfig.entityGenericInventoryCapabilityEnabled()
                 + " maxScanRadius="
                 + RadWorksConfig.entityCarrierMaxScanRadius()
                 + " diagCap="
-                + RadWorksConfig.entityCarrierDiagnosticSampleCap()), false);
+                + RadWorksConfig.entityCarrierDiagnosticSampleCap()
+                + " inventoryDiagCap="
+                + RadWorksConfig.entityInventoryDiagnosticSampleCap()), false);
         source.sendSuccess(() -> Component.literal("Dump: use /radworks dump for full details"), false);
 
         sendIssues(source, "ERROR", validation.errors());

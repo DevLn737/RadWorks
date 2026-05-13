@@ -32,6 +32,12 @@ public record SourceScanSummary(
         int entityCarrierDroppedItemMatches,
         int entityCarrierItemFrameMatches,
         int entityCarrierPlayerAuraMatches,
+        int entityCarrierInventoryEntitiesChecked,
+        int entityCarrierInventoryAccessSucceeded,
+        int entityCarrierInventoryAccessFailed,
+        int entityCarrierChestBoatMatches,
+        int entityCarrierPackAnimalMatches,
+        int entityCarrierGenericInventoryMatches,
         int entityCarrierSkipped,
         int shieldingSourcesChecked,
         int shieldingSourcesApplicable,
@@ -82,6 +88,12 @@ public record SourceScanSummary(
                 lastSummary.entityCarrierDroppedItemMatches,
                 lastSummary.entityCarrierItemFrameMatches,
                 lastSummary.entityCarrierPlayerAuraMatches,
+                lastSummary.entityCarrierInventoryEntitiesChecked,
+                lastSummary.entityCarrierInventoryAccessSucceeded,
+                lastSummary.entityCarrierInventoryAccessFailed,
+                lastSummary.entityCarrierChestBoatMatches,
+                lastSummary.entityCarrierPackAnimalMatches,
+                lastSummary.entityCarrierGenericInventoryMatches,
                 lastSummary.entityCarrierSkipped,
                 lastSummary.shieldingSourcesChecked,
                 lastSummary.shieldingSourcesApplicable,
@@ -128,6 +140,12 @@ public record SourceScanSummary(
         json.addProperty("entityCarrierDroppedItemMatches", entityCarrierDroppedItemMatches);
         json.addProperty("entityCarrierItemFrameMatches", entityCarrierItemFrameMatches);
         json.addProperty("entityCarrierPlayerAuraMatches", entityCarrierPlayerAuraMatches);
+        json.addProperty("entityCarrierInventoryEntitiesChecked", entityCarrierInventoryEntitiesChecked);
+        json.addProperty("entityCarrierInventoryAccessSucceeded", entityCarrierInventoryAccessSucceeded);
+        json.addProperty("entityCarrierInventoryAccessFailed", entityCarrierInventoryAccessFailed);
+        json.addProperty("entityCarrierChestBoatMatches", entityCarrierChestBoatMatches);
+        json.addProperty("entityCarrierPackAnimalMatches", entityCarrierPackAnimalMatches);
+        json.addProperty("entityCarrierGenericInventoryMatches", entityCarrierGenericInventoryMatches);
         json.addProperty("entityCarrierSkipped", entityCarrierSkipped);
         json.addProperty("shieldingSourcesChecked", shieldingSourcesChecked);
         json.addProperty("shieldingSourcesApplicable", shieldingSourcesApplicable);
@@ -172,6 +190,12 @@ public record SourceScanSummary(
         private int entityCarrierDroppedItemMatches;
         private int entityCarrierItemFrameMatches;
         private int entityCarrierPlayerAuraMatches;
+        private int entityCarrierInventoryEntitiesChecked;
+        private int entityCarrierInventoryAccessSucceeded;
+        private int entityCarrierInventoryAccessFailed;
+        private int entityCarrierChestBoatMatches;
+        private int entityCarrierPackAnimalMatches;
+        private int entityCarrierGenericInventoryMatches;
         private int entityCarrierSkipped;
         private int shieldingSourcesChecked;
         private int shieldingSourcesApplicable;
@@ -280,6 +304,30 @@ public record SourceScanSummary(
             entityCarrierPlayerAuraMatches++;
         }
 
+        public void entityCarrierInventoryEntityChecked() {
+            entityCarrierInventoryEntitiesChecked++;
+        }
+
+        public void entityCarrierInventoryAccessSucceeded() {
+            entityCarrierInventoryAccessSucceeded++;
+        }
+
+        public void entityCarrierInventoryAccessFailed() {
+            entityCarrierInventoryAccessFailed++;
+        }
+
+        public void entityCarrierChestBoatMatch() {
+            entityCarrierChestBoatMatches++;
+        }
+
+        public void entityCarrierPackAnimalMatch() {
+            entityCarrierPackAnimalMatches++;
+        }
+
+        public void entityCarrierGenericInventoryMatch() {
+            entityCarrierGenericInventoryMatches++;
+        }
+
         public void entityCarrierSkipped() {
             entityCarrierSkipped++;
         }
@@ -336,6 +384,12 @@ public record SourceScanSummary(
                     entityCarrierDroppedItemMatches,
                     entityCarrierItemFrameMatches,
                     entityCarrierPlayerAuraMatches,
+                    entityCarrierInventoryEntitiesChecked,
+                    entityCarrierInventoryAccessSucceeded,
+                    entityCarrierInventoryAccessFailed,
+                    entityCarrierChestBoatMatches,
+                    entityCarrierPackAnimalMatches,
+                    entityCarrierGenericInventoryMatches,
                     entityCarrierSkipped,
                     shieldingSourcesChecked,
                     shieldingSourcesApplicable,

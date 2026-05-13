@@ -16,6 +16,11 @@
   - added bounded `entityCarrierDiagnostics` dump section and entity carrier counters in `sourceScanSummary`;
   - added self-player aura skip to prevent inventory double-counting for the executing player;
   - added integration config toggles and scan caps for entity carrier scanning.
+- Post-Beta 4B inventory-bearing entity carriers:
+  - added `entity_inventory` source type for chest boats, pack animals, and generic entity `ItemHandler` capability fallback;
+  - added safe adapter/extraction helpers (`EntityInventoryCarrierAdapter`, `EntityInventoryCarrierExtraction`) without broad entity NBT scans;
+  - added dedupe for vanilla adapter + capability overlap with `duplicate_inventory_access` diagnostics;
+  - added entity inventory config toggles and expanded `entityCarrierDiagnostics` / `sourceScanSummary` counters.
 
 ## 0.1.0 - Post-Beta 3 Create transient/internal carrier sources
 - Added optional-safe Create transient/internal carrier provider with no hard Create API dependency.

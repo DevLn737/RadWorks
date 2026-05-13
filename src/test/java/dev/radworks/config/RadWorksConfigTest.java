@@ -34,5 +34,9 @@ class RadWorksConfigTest {
         assertTrue(RadWorksConfig.entityPlayerAuraEnabled());
         assertEquals(8, RadWorksConfig.entityCarrierMaxScanRadius());
         assertEquals(20, RadWorksConfig.entityCarrierDiagnosticSampleCap());
+        assertTrue(RadWorksConfig.entityChestBoatsEnabled());
+        assertTrue(RadWorksConfig.entityPackAnimalsEnabled());
+        assertTrue(RadWorksConfig.entityGenericInventoryCapabilityEnabled());
+        assertEquals(20, RadWorksConfig.entityInventoryDiagnosticSampleCap());
     }
 }

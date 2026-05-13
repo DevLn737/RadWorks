@@ -1,5 +1,24 @@
 # Migration Status
 
+## Post-Beta 4B - Chest boats + pack animals + safe entity inventory adapters
+Status: implemented locally, automated checks pending in this step, external modpack verification required.
+
+Implemented:
+- Extended `EntityCarrierSourceProvider` with `entity_inventory` rows for:
+  - chest boats;
+  - pack animals (`donkey`, `mule`, `llama`, `trader_llama`);
+  - generic `Capabilities.ItemHandler.ENTITY` fallback.
+- Added adapter/extraction helpers:
+  - `EntityInventoryCarrierAdapter`
+  - `EntityInventoryCarrierExtraction`
+- Added anti-double-counting dedupe for vanilla adapter + capability overlap (`duplicate_inventory_access` diagnostics reason).
+- Added config toggles:
+  - `integrations.entityChestBoatsEnabled`
+  - `integrations.entityPackAnimalsEnabled`
+  - `integrations.entityGenericInventoryCapabilityEnabled`
+  - `integrations.entityInventoryDiagnosticSampleCap`
+- Extended `entityCarrierDiagnostics` and `sourceScanSummary` with entity-inventory counters.
+
 ## Post-Beta 4A - Basic entity-carried sources
 Status: implemented locally, automated checks passed, external modpack verification required.
 

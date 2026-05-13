@@ -406,9 +406,10 @@ public record RadiationSource(
                 matchReason);
     }
 
-    public static RadiationSource entityCarrierItem(
-            RadiationSourceType type,
+    public static RadiationSource entityInventoryCarrierItem(
             String carrierSourceKind,
+            String extractionMode,
+            RadiationSourceType type,
             String carrierEntityType,
             String carrierEntityId,
             BlockPos position,
@@ -456,7 +457,7 @@ public record RadiationSource(
                 carrierEntityId,
                 carrierSourceKind,
                 null,
-                "entity_inventory_path",
+                extractionMode,
                 "exact",
                 matchReason);
     }

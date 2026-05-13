@@ -29,6 +29,10 @@ public final class RadWorksConfig {
     public static final boolean DEFAULT_ENTITY_PLAYER_AURA_ENABLED = true;
     public static final int DEFAULT_ENTITY_CARRIER_MAX_SCAN_RADIUS = 8;
     public static final int DEFAULT_ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP = 20;
+    public static final boolean DEFAULT_ENTITY_CHEST_BOATS_ENABLED = true;
+    public static final boolean DEFAULT_ENTITY_PACK_ANIMALS_ENABLED = true;
+    public static final boolean DEFAULT_ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED = true;
+    public static final int DEFAULT_ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP = 20;
 
     public static final ModConfigSpec SPEC;
 
@@ -56,6 +60,10 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.BooleanValue ENTITY_PLAYER_AURA_ENABLED;
     private static final ModConfigSpec.IntValue ENTITY_CARRIER_MAX_SCAN_RADIUS;
     private static final ModConfigSpec.IntValue ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP;
+    private static final ModConfigSpec.BooleanValue ENTITY_CHEST_BOATS_ENABLED;
+    private static final ModConfigSpec.BooleanValue ENTITY_PACK_ANIMALS_ENABLED;
+    private static final ModConfigSpec.BooleanValue ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED;
+    private static final ModConfigSpec.IntValue ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -150,6 +158,24 @@ public final class RadWorksConfig {
                 .defineInRange(
                         "entityCarrierDiagnosticSampleCap",
                         DEFAULT_ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP,
+                        1,
+                        200);
+        ENTITY_CHEST_BOATS_ENABLED = builder
+                .comment("Enable chest boat inventory entity carrier scanning.")
+                .define("entityChestBoatsEnabled", DEFAULT_ENTITY_CHEST_BOATS_ENABLED);
+        ENTITY_PACK_ANIMALS_ENABLED = builder
+                .comment("Enable pack-animal inventory entity carrier scanning.")
+                .define("entityPackAnimalsEnabled", DEFAULT_ENTITY_PACK_ANIMALS_ENABLED);
+        ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED = builder
+                .comment("Enable generic entity ItemHandler capability scanning.")
+                .define(
+                        "entityGenericInventoryCapabilityEnabled",
+                        DEFAULT_ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED);
+        ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP = builder
+                .comment("Maximum number of entity inventory diagnostic samples in dump.")
+                .defineInRange(
+                        "entityInventoryDiagnosticSampleCap",
+                        DEFAULT_ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP,
                         1,
                         200);
         builder.pop();
@@ -263,6 +289,26 @@ public final class RadWorksConfig {
         return getInt(ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP, DEFAULT_ENTITY_CARRIER_DIAGNOSTIC_SAMPLE_CAP);
     }
 
+    public static boolean entityChestBoatsEnabled() {
+        return getBoolean(ENTITY_CHEST_BOATS_ENABLED, DEFAULT_ENTITY_CHEST_BOATS_ENABLED);
+    }
+
+    public static boolean entityPackAnimalsEnabled() {
+        return getBoolean(ENTITY_PACK_ANIMALS_ENABLED, DEFAULT_ENTITY_PACK_ANIMALS_ENABLED);
+    }
+
+    public static boolean entityGenericInventoryCapabilityEnabled() {
+        return getBoolean(
+                ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED,
+                DEFAULT_ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED);
+    }
+
+    public static int entityInventoryDiagnosticSampleCap() {
+        return getInt(
+                ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP,
+                DEFAULT_ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP);
+    }
+
     public static JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("gameplayEnabled", gameplayEnabled());
@@ -289,6 +335,12 @@ public final class RadWorksConfig {
         json.addProperty("entityPlayerAuraEnabled", entityPlayerAuraEnabled());
         json.addProperty("entityCarrierMaxScanRadius", entityCarrierMaxScanRadius());
         json.addProperty("entityCarrierDiagnosticSampleCap", entityCarrierDiagnosticSampleCap());
+        json.addProperty("entityChestBoatsEnabled", entityChestBoatsEnabled());
+        json.addProperty("entityPackAnimalsEnabled", entityPackAnimalsEnabled());
+        json.addProperty(
+                "entityGenericInventoryCapabilityEnabled",
+                entityGenericInventoryCapabilityEnabled());
+        json.addProperty("entityInventoryDiagnosticSampleCap", entityInventoryDiagnosticSampleCap());
         return json;
     }
 

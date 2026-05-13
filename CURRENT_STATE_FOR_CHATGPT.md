@@ -1,10 +1,10 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-13): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows; Post-Beta 2V added `/radworks radius` debug visualization using effective radius from current source rows; Post-Beta 3/3F added optional-safe Create transient/internal carrier extraction plus liquid-uranium diagnostics hardening; Post-Beta 4A added basic entity-carried sources (`entity_dropped_item`, `entity_item_frame`, `entity_player_inventory_aura`) with bounded `entityCarrierDiagnostics`.
+> Update (2026-05-13): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows; Post-Beta 2V added `/radworks radius` debug visualization using effective radius from current source rows; Post-Beta 3/3F added optional-safe Create transient/internal carrier extraction plus liquid-uranium diagnostics hardening; Post-Beta 4A added basic entity-carried sources (`entity_dropped_item`, `entity_item_frame`, `entity_player_inventory_aura`); Post-Beta 4B extends entity inventory carriers with `entity_inventory` (chest boats, pack animals, and generic entity `ItemHandler` capability fallback) plus bounded diagnostics counters.
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. The new mod is intentionally diagnostic-first: it loads data-driven radiation rules, discovers radiation sources through explicit command-only scans, reports exposure/shielding/armor/effect diagnostics, and still does not auto-apply gameplay radiation logic. Phase 6E adds controlled manual `/radworks effect` commands, and Phase 6T introduces automation-first local regression tests so repeated local manual checks are no longer the default.
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. The mod remains diagnostics-heavy, but now includes config-gated gameplay auto-apply for the selected runtime radiation effect, plus manual `/radworks effect` commands. Current focus is optional-safe source discovery and diagnostics hardening for real modpack environments, with automation-first local regression tests.
 
 ## 2. Target environment
 

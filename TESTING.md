@@ -16,6 +16,21 @@ Run:
 ./gradlew build
 ```
 
+## Post-Beta 4B automated checks
+- Entity inventory adapter/extraction:
+  - chest boat / chest raft type-path classification;
+  - pack animal type-path classification;
+  - container-backed inventory extraction and aggregation.
+- Generic capability path:
+  - synthetic `ItemStackHandler` extraction and aggregation.
+- Dedupe contract:
+  - dedupe key differs by logical inventory group.
+- Diagnostics:
+  - entity inventory counters exposed in `entityCarrierDiagnostics`.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
 ## Post-Beta 4A automated checks
 - Entity carrier extraction and aggregation:
   - dropped/item-frame radioactive stack descriptor extraction;

@@ -11,7 +11,9 @@ class EntityCarrierDiagnosticsTest {
     @Test
     void skipSamplesAreBounded() {
         EntityCarrierDiagnostics.Builder builder = EntityCarrierDiagnostics.builder();
-        int cap = RadWorksConfig.entityCarrierDiagnosticSampleCap();
+        int cap = Math.min(
+                RadWorksConfig.entityCarrierDiagnosticSampleCap(),
+                RadWorksConfig.entityInventoryDiagnosticSampleCap());
         for (int i = 0; i < cap + 5; i++) {
             builder.skippedEntity(
                     "dropped_item",
@@ -24,5 +26,25 @@ class EntityCarrierDiagnosticsTest {
         EntityCarrierDiagnostics.store(builder);
         JsonObject json = EntityCarrierDiagnostics.lastToJson().getAsJsonObject();
         assertTrue(json.getAsJsonArray("skipSamples").size() <= cap);
+    }
+
+    @Test
+    void inventoryCountersAreExposed() {
+        EntityCarrierDiagnostics.Builder builder = EntityCarrierDiagnostics.builder();
+        builder.entityInventoryEntityChecked();
+        builder.entityInventoryAccessSucceeded();
+        builder.entityInventoryAccessFailed();
+        builder.matchedChestBoatSource();
+        builder.matchedPackAnimalSource();
+        builder.matchedGenericEntityInventorySource();
+
+        EntityCarrierDiagnostics.store(builder);
+        JsonObject json = EntityCarrierDiagnostics.lastToJson().getAsJsonObject();
+        assertTrue(json.get("entityInventoryEntitiesChecked").getAsInt() >= 1);
+        assertTrue(json.get("entityInventoryAccessSucceeded").getAsInt() >= 1);
+        assertTrue(json.get("entityInventoryAccessFailed").getAsInt() >= 1);
+        assertTrue(json.get("matchedChestBoatSources").getAsInt() >= 1);
+        assertTrue(json.get("matchedPackAnimalSources").getAsInt() >= 1);
+        assertTrue(json.get("matchedGenericEntityInventorySources").getAsInt() >= 1);
     }
 }

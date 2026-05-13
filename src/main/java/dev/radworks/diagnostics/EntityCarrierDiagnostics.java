@@ -36,6 +36,12 @@ public final class EntityCarrierDiagnostics {
         private int matchedDroppedItemSources;
         private int matchedItemFrameSources;
         private int matchedPlayerAuraSources;
+        private int entityInventoryEntitiesChecked;
+        private int entityInventoryAccessSucceeded;
+        private int entityInventoryAccessFailed;
+        private int matchedChestBoatSources;
+        private int matchedPackAnimalSources;
+        private int matchedGenericEntityInventorySources;
         private int skippedEntities;
 
         public void scannedEntity() {
@@ -54,6 +60,30 @@ public final class EntityCarrierDiagnostics {
             matchedPlayerAuraSources++;
         }
 
+        public void entityInventoryEntityChecked() {
+            entityInventoryEntitiesChecked++;
+        }
+
+        public void entityInventoryAccessSucceeded() {
+            entityInventoryAccessSucceeded++;
+        }
+
+        public void entityInventoryAccessFailed() {
+            entityInventoryAccessFailed++;
+        }
+
+        public void matchedChestBoatSource() {
+            matchedChestBoatSources++;
+        }
+
+        public void matchedPackAnimalSource() {
+            matchedPackAnimalSources++;
+        }
+
+        public void matchedGenericEntityInventorySource() {
+            matchedGenericEntityInventorySources++;
+        }
+
         public void skippedEntity(
                 String carrierSourceKind,
                 ResourceLocation carrierEntityType,
@@ -62,7 +92,9 @@ public final class EntityCarrierDiagnostics {
                 int count,
                 String reason) {
             skippedEntities++;
-            int cap = RadWorksConfig.entityCarrierDiagnosticSampleCap();
+            int cap = Math.min(
+                    RadWorksConfig.entityCarrierDiagnosticSampleCap(),
+                    RadWorksConfig.entityInventoryDiagnosticSampleCap());
             if (skipSamples.size() >= cap) {
                 return;
             }
@@ -82,6 +114,12 @@ public final class EntityCarrierDiagnostics {
                     matchedDroppedItemSources,
                     matchedItemFrameSources,
                     matchedPlayerAuraSources,
+                    entityInventoryEntitiesChecked,
+                    entityInventoryAccessSucceeded,
+                    entityInventoryAccessFailed,
+                    matchedChestBoatSources,
+                    matchedPackAnimalSources,
+                    matchedGenericEntityInventorySources,
                     skippedEntities,
                     List.copyOf(skipSamples));
         }
@@ -93,6 +131,12 @@ public final class EntityCarrierDiagnostics {
             int matchedDroppedItemSources,
             int matchedItemFrameSources,
             int matchedPlayerAuraSources,
+            int entityInventoryEntitiesChecked,
+            int entityInventoryAccessSucceeded,
+            int entityInventoryAccessFailed,
+            int matchedChestBoatSources,
+            int matchedPackAnimalSources,
+            int matchedGenericEntityInventorySources,
             int skippedEntities,
             List<SkipSample> skipSamples) {
         private JsonObject toJson() {
@@ -102,6 +146,12 @@ public final class EntityCarrierDiagnostics {
             json.addProperty("matchedDroppedItemSources", matchedDroppedItemSources);
             json.addProperty("matchedItemFrameSources", matchedItemFrameSources);
             json.addProperty("matchedPlayerAuraSources", matchedPlayerAuraSources);
+            json.addProperty("entityInventoryEntitiesChecked", entityInventoryEntitiesChecked);
+            json.addProperty("entityInventoryAccessSucceeded", entityInventoryAccessSucceeded);
+            json.addProperty("entityInventoryAccessFailed", entityInventoryAccessFailed);
+            json.addProperty("matchedChestBoatSources", matchedChestBoatSources);
+            json.addProperty("matchedPackAnimalSources", matchedPackAnimalSources);
+            json.addProperty("matchedGenericEntityInventorySources", matchedGenericEntityInventorySources);
             json.addProperty("skippedEntities", skippedEntities);
             JsonArray samples = new JsonArray();
             for (SkipSample sample : skipSamples) {
