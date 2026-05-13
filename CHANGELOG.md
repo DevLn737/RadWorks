@@ -6,6 +6,11 @@
   - added `CONTRIBUTING.md`, `SECURITY.md`, and issue templates;
   - added `LICENSE_PLACEHOLDER.md` and aligned mod metadata away from implicit MIT claim;
   - updated README to current beta-state build/run/install guidance.
+- Post-Beta 3F transient fluid diagnostics fix:
+  - hardened Create side-flow fluid parsing for case variants (`Flow/flow`, `Fluid/fluid`, `id/Id`, `amount/Amount`);
+  - accepted string numeric amounts (for example `"1"`);
+  - added bounded `createCarrierDiagnostics.fluidPathSamples` with skip reasons and rule match mode;
+  - improved visibility for why pipe/glass-pipe transient fluid rows are skipped (`path_missing`, `no_active_fluid_rule`, `outside_dynamic_radius`, etc.).
 
 ## 0.1.0 - Post-Beta 3 Create transient/internal carrier sources
 - Added optional-safe Create transient/internal carrier provider with no hard Create API dependency.

@@ -55,6 +55,24 @@ class CreateTransientCarrierAggregationTest {
     }
 
     @Test
+    void glassPipeFlowUsesSameAggregationModel() {
+        RadiationRule rule = fluidRule("createnuclear:uranium", 1.0D, 2.0D);
+        var key = new AggregatedSourceAccumulator.FluidGroupKey(
+                RadiationSourceType.CREATE_TRANSIENT_FLUID,
+                new BlockPos(1, 64, 1),
+                ResourceLocation.parse("create:glass_fluid_pipe"),
+                "glass_fluid_pipe|west.Flow.Fluid",
+                ResourceLocation.parse("createnuclear:uranium"),
+                rule.key());
+        var aggregate = AggregatedSourceAccumulator.newFluidAggregate(key, rule, 2.0D);
+        AggregatedSourceAccumulator.addFluidStack(aggregate, 1);
+
+        assertEquals(1, aggregate.aggregateAmountMb());
+        assertEquals(1, aggregate.contributingStacks());
+        assertTrue(aggregate.rawContribution() > 0.0D);
+    }
+
+    @Test
     void dynamicRadiusGrowsWithAggregateUnits() {
         double base = 2.0D;
         double oneUnitRadius = DynamicRadiusModel.effectiveRadius(base, 1.0D);

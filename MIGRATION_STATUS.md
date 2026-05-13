@@ -1,5 +1,13 @@
 # Migration Status
 
+## Post-Beta 3F - Liquid uranium transient fluid fix
+Status: implemented locally, automated checks pending in this step, external modpack retest required.
+
+Implemented:
+- Hardened Create transient fluid side-flow parser for common casing variants and numeric-string amounts.
+- Added bounded fluid-path skip diagnostics to `createCarrierDiagnostics.fluidPathSamples`.
+- Added explicit skip reasons/rule-match-mode visibility for pipe/glass-pipe transient fluid extraction paths.
+
 ## Post-Beta 3 - Create transient/internal carrier sources
 Status: implemented locally, automated checks pending in this step, external modpack verification required.
 

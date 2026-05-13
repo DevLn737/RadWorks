@@ -217,6 +217,18 @@ public final class CreateTransientCarrierSourceProvider {
             double units = DynamicRadiusModel.aggregateUnitsForFluids(aggregate.aggregateAmountMb());
             double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
             if (!DynamicRadiusModel.isActive(aggregate.distance(), effectiveRadius)) {
+                diagnostics.fluidPathSample(
+                        aggregate.key().blockId(),
+                        aggregate.key().position(),
+                        contextCarrier(aggregate.key().capabilityContext()),
+                        aggregateWithMode.side(),
+                        aggregateWithMode.dataPath(),
+                        true,
+                        true,
+                        aggregate.key().fluidId(),
+                        aggregate.aggregateAmountMb(),
+                        aggregateWithMode.ruleMatchMode(),
+                        DynamicRadiusModel.outsideDynamicRadiusReason());
                 continue;
             }
             summary.createCarrierFluidMatch();
@@ -321,12 +333,32 @@ public final class CreateTransientCarrierSourceProvider {
         for (Direction direction : Direction.values()) {
             String side = direction.getName();
             String path = side + ".Flow.Fluid";
-            var parsed = CreateTransientCarrierExtraction.parseFluidAtSideFlow(root, side);
-            if (parsed.isEmpty()) {
+            var parseOutcome = CreateTransientCarrierExtraction.parseFluidAtSideFlowDetailed(root, side);
+            if (parseOutcome.status() != CreateTransientCarrierExtraction.FluidParseStatus.SUCCESS) {
+                localPathSamples = addFluidPathSample(
+                        diagnostics,
+                        blockId,
+                        pos,
+                        carrierKind.id,
+                        side,
+                        parseOutcome.dataPath(),
+                        parseOutcome.status() != CreateTransientCarrierExtraction.FluidParseStatus.PATH_MISSING,
+                        parseOutcome.status() != CreateTransientCarrierExtraction.FluidParseStatus.FLUID_COMPOUND_MISSING
+                                && parseOutcome.status() != CreateTransientCarrierExtraction.FluidParseStatus.PATH_MISSING,
+                        parseOutcome.parsedFluidId(),
+                        parseOutcome.parsedAmountMb(),
+                        "none",
+                        statusToSkippedReason(parseOutcome.status()),
+                        localPathSamples);
+                continue;
+            }
+            var parsed = parseOutcome.payload().orElse(null);
+            if (parsed == null) {
                 continue;
             }
             localPathSamples = collectParsedFluidAtPath(
-                    parsed.get(),
+                    parsed,
+                    side,
                     path,
                     blockId,
                     pos,
@@ -370,6 +402,7 @@ public final class CreateTransientCarrierSourceProvider {
         }
         return collectParsedFluidAtPath(
                 parsed.get(),
+                "root",
                 path,
                 blockId,
                 pos,
@@ -384,6 +417,7 @@ public final class CreateTransientCarrierSourceProvider {
 
     private static int collectParsedFluidAtPath(
             CreateTransientCarrierExtraction.FluidPayload parsedFluid,
+            String side,
             String path,
             ResourceLocation blockId,
             BlockPos pos,
@@ -399,8 +433,35 @@ public final class CreateTransientCarrierSourceProvider {
 
         RadiationRules.FluidRuleMatch ruleMatch = rules.resolveFluidRule(fluidId).orElse(null);
         if (ruleMatch == null) {
-            return localPathSamples;
+            return addFluidPathSample(
+                    diagnostics,
+                    blockId,
+                    pos,
+                    carrierKind.id,
+                    side,
+                    path,
+                    true,
+                    true,
+                    fluidId,
+                    amountMb,
+                    "none",
+                    "no_active_fluid_rule",
+                    localPathSamples);
         }
+        localPathSamples = addFluidPathSample(
+                diagnostics,
+                blockId,
+                pos,
+                carrierKind.id,
+                side,
+                path,
+                true,
+                true,
+                fluidId,
+                amountMb,
+                "exact".equals(ruleMatch.mode()) ? "exact" : "fallback",
+                "exact".equals(ruleMatch.mode()) ? "matched_exact" : "matched_fallback",
+                localPathSamples);
         RadiationRule rule = ruleMatch.rule();
         String context = carrierKind.id + "|" + path;
         AggregatedSourceAccumulator.FluidGroupKey key = new AggregatedSourceAccumulator.FluidGroupKey(
@@ -415,9 +476,43 @@ public final class CreateTransientCarrierSourceProvider {
                 ignored -> new FluidAggregateWithMode(
                         AggregatedSourceAccumulator.newFluidAggregate(key, rule, distance),
                         ruleMatch.matchedRuleId(),
-                        ruleMatch.mode()));
+                        ruleMatch.mode(),
+                        side,
+                        path));
         AggregatedSourceAccumulator.addFluidStack(aggregateWithMode.aggregate(), amountMb);
         return localPathSamples;
+    }
+
+    private static int addFluidPathSample(
+            CreateCarrierDiagnostics.Builder diagnostics,
+            ResourceLocation blockId,
+            BlockPos pos,
+            String carrierKind,
+            String side,
+            String dataPath,
+            boolean pathFound,
+            boolean fluidFound,
+            ResourceLocation parsedFluidId,
+            Integer parsedAmountMb,
+            String ruleMatchMode,
+            String skippedReason,
+            int localPathSamples) {
+        if (localPathSamples >= RadWorksConfig.createTransientCarrierPathSampleCap()) {
+            return localPathSamples;
+        }
+        diagnostics.fluidPathSample(
+                blockId,
+                pos,
+                carrierKind,
+                side,
+                dataPath,
+                pathFound,
+                fluidFound,
+                parsedFluidId,
+                parsedAmountMb,
+                ruleMatchMode,
+                skippedReason);
+        return localPathSamples + 1;
     }
 
     private static int reportUnexpected(
@@ -466,6 +561,17 @@ public final class CreateTransientCarrierSourceProvider {
         return separator < 0 ? context : context.substring(separator + 1);
     }
 
+    private static String statusToSkippedReason(CreateTransientCarrierExtraction.FluidParseStatus status) {
+        return switch (status) {
+            case PATH_MISSING -> "path_missing";
+            case FLUID_COMPOUND_MISSING -> "fluid_compound_missing";
+            case INVALID_FLUID_ID -> "invalid_fluid_id";
+            case AMOUNT_MISSING -> "amount_missing";
+            case AMOUNT_NON_POSITIVE -> "amount_non_positive";
+            case SUCCESS -> "matched_exact";
+        };
+    }
+
     private static int effectiveScanRadius(RadiationRules rules) {
         double baseMax = Math.max(rules.maxActiveItemRuleRadius(), rules.maxActiveFluidRuleRadius());
         double dynamicMax = RadWorksConfig.dynamicRadiusEnabled()
@@ -505,6 +611,8 @@ public final class CreateTransientCarrierSourceProvider {
     private record FluidAggregateWithMode(
             AggregatedSourceAccumulator.FluidAggregate aggregate,
             ResourceLocation matchedRuleId,
-            String ruleMatchMode) {
+            String ruleMatchMode,
+            String side,
+            String dataPath) {
     }
 }

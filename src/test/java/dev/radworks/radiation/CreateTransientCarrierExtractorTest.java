@@ -54,6 +54,41 @@ class CreateTransientCarrierExtractorTest {
     }
 
     @Test
+    void parsesFluidPipeSideFlowWithCaseVariants() {
+        CompoundTag root = new CompoundTag();
+        CompoundTag east = new CompoundTag();
+        CompoundTag flow = new CompoundTag();
+        CompoundTag fluid = new CompoundTag();
+        fluid.putString("Id", "createnuclear:uranium");
+        fluid.putInt("Amount", 1);
+        flow.put("fluid", fluid);
+        east.put("flow", flow);
+        root.put("East", east);
+
+        var parsed = CreateTransientCarrierExtraction.parseFluidAtSideFlow(root, "east");
+        assertTrue(parsed.isPresent());
+        assertEquals("createnuclear:uranium", parsed.get().id().toString());
+        assertEquals(1, parsed.get().amountMb());
+    }
+
+    @Test
+    void parsesFluidAmountFromString() {
+        CompoundTag root = new CompoundTag();
+        CompoundTag east = new CompoundTag();
+        CompoundTag flow = new CompoundTag();
+        CompoundTag fluid = new CompoundTag();
+        fluid.putString("id", "createnuclear:uranium");
+        fluid.putString("amount", "1");
+        flow.put("Fluid", fluid);
+        east.put("Flow", flow);
+        root.put("east", east);
+
+        var parsed = CreateTransientCarrierExtraction.parseFluidAtSideFlow(root, "east");
+        assertTrue(parsed.isPresent());
+        assertEquals(1, parsed.get().amountMb());
+    }
+
+    @Test
     void malformedPayloadDoesNotParse() {
         CompoundTag root = new CompoundTag();
         CompoundTag item = new CompoundTag();
@@ -61,5 +96,22 @@ class CreateTransientCarrierExtractorTest {
         root.put("Item", item);
 
         assertTrue(CreateTransientCarrierExtraction.parseItemAtRoot(root, "Item").isEmpty());
+    }
+
+    @Test
+    void malformedFluidReportsDetailedReason() {
+        CompoundTag root = new CompoundTag();
+        CompoundTag east = new CompoundTag();
+        CompoundTag flow = new CompoundTag();
+        CompoundTag fluid = new CompoundTag();
+        fluid.putString("id", "createnuclear:uranium");
+        flow.put("Fluid", fluid);
+        east.put("Flow", flow);
+        root.put("east", east);
+
+        var parsed = CreateTransientCarrierExtraction.parseFluidAtSideFlowDetailed(root, "east");
+        assertEquals(CreateTransientCarrierExtraction.FluidParseStatus.AMOUNT_MISSING, parsed.status());
+        assertTrue(parsed.payload().isEmpty());
+        assertEquals("createnuclear:uranium", parsed.parsedFluidId().toString());
     }
 }

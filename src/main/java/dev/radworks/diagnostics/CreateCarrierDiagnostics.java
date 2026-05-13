@@ -33,6 +33,7 @@ public final class CreateCarrierDiagnostics {
 
     public static final class Builder {
         private final List<UnexpectedStructureSample> unexpectedStructureSamples = new ArrayList<>();
+        private final List<FluidPathSample> fluidPathSamples = new ArrayList<>();
         private int scannedCreateCarrierBlocks;
         private int matchedCreateCarrierItems;
         private int matchedCreateCarrierFluids;
@@ -72,6 +73,36 @@ public final class CreateCarrierDiagnostics {
                     message));
         }
 
+        public void fluidPathSample(
+                ResourceLocation blockId,
+                BlockPos position,
+                String carrierKind,
+                String side,
+                String dataPath,
+                boolean pathFound,
+                boolean fluidFound,
+                ResourceLocation parsedFluidId,
+                Integer parsedAmountMb,
+                String ruleMatchMode,
+                String skippedReason) {
+            int cap = RadWorksConfig.createTransientCarrierDiagnosticSampleCap();
+            if (fluidPathSamples.size() >= cap) {
+                return;
+            }
+            fluidPathSamples.add(new FluidPathSample(
+                    blockId,
+                    position.immutable(),
+                    carrierKind,
+                    side,
+                    dataPath,
+                    pathFound,
+                    fluidFound,
+                    parsedFluidId,
+                    parsedAmountMb,
+                    ruleMatchMode,
+                    skippedReason));
+        }
+
         private Snapshot build() {
             return new Snapshot(
                     Instant.now(),
@@ -80,7 +111,8 @@ public final class CreateCarrierDiagnostics {
                     matchedCreateCarrierFluids,
                     skippedCreateCarrierBlocks,
                     RadWorksConfig.createTransientCarrierPathSampleCap(),
-                    List.copyOf(unexpectedStructureSamples));
+                    List.copyOf(unexpectedStructureSamples),
+                    List.copyOf(fluidPathSamples));
         }
     }
 
@@ -105,6 +137,43 @@ public final class CreateCarrierDiagnostics {
         }
     }
 
+    private record FluidPathSample(
+            ResourceLocation blockId,
+            BlockPos position,
+            String carrierKind,
+            String side,
+            String dataPath,
+            boolean pathFound,
+            boolean fluidFound,
+            ResourceLocation parsedFluidId,
+            Integer parsedAmountMb,
+            String ruleMatchMode,
+            String skippedReason) {
+        private JsonObject toJson() {
+            JsonObject json = new JsonObject();
+            json.addProperty("blockId", blockId.toString());
+            JsonObject pos = new JsonObject();
+            pos.addProperty("x", position.getX());
+            pos.addProperty("y", position.getY());
+            pos.addProperty("z", position.getZ());
+            json.add("position", pos);
+            json.addProperty("carrierKind", carrierKind);
+            json.addProperty("side", side);
+            json.addProperty("dataPath", dataPath);
+            json.addProperty("pathFound", pathFound);
+            json.addProperty("fluidFound", fluidFound);
+            if (parsedFluidId != null) {
+                json.addProperty("parsedFluidId", parsedFluidId.toString());
+            }
+            if (parsedAmountMb != null) {
+                json.addProperty("parsedAmountMb", parsedAmountMb);
+            }
+            json.addProperty("ruleMatchMode", ruleMatchMode);
+            json.addProperty("skippedReason", skippedReason);
+            return json;
+        }
+    }
+
     private record Snapshot(
             Instant createdAt,
             int scannedCreateCarrierBlocks,
@@ -112,7 +181,8 @@ public final class CreateCarrierDiagnostics {
             int matchedCreateCarrierFluids,
             int skippedCreateCarrierBlocks,
             int pathSampleCap,
-            List<UnexpectedStructureSample> unexpectedStructureSamples) {
+            List<UnexpectedStructureSample> unexpectedStructureSamples,
+            List<FluidPathSample> fluidPathSamples) {
         private JsonObject toJson() {
             JsonObject json = new JsonObject();
             json.addProperty("createdAt", createdAt.toString());
@@ -126,6 +196,11 @@ public final class CreateCarrierDiagnostics {
                 samples.add(sample.toJson());
             }
             json.add("unexpectedStructureSamples", samples);
+            JsonArray fluidSamples = new JsonArray();
+            for (FluidPathSample sample : fluidPathSamples) {
+                fluidSamples.add(sample.toJson());
+            }
+            json.add("fluidPathSamples", fluidSamples);
             return json;
         }
     }

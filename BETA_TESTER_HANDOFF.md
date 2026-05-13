@@ -59,6 +59,9 @@ Run:
    - `create:fluid_pipe` and `create:glass_fluid_pipe` with `side.Flow.Fluid` uranium;
    - `fluid:pipette` if available in this pack.
    - Also check `createnuclear:flowing_uranium` if it appears in flow data.
+   - In dump, inspect `createCarrierDiagnostics.fluidPathSamples` for:
+     - `ruleMatchMode` (`none|exact|fallback`)
+     - `skippedReason` (`path_missing`, `fluid_compound_missing`, `invalid_fluid_id`, `amount_missing`, `amount_non_positive`, `no_active_fluid_rule`, `outside_dynamic_radius`).
    - For each scenario run:
      - `/radworks validate`
      - `/radworks sources`
