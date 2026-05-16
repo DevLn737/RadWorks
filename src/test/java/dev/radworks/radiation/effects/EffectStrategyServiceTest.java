@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.radworks.config.RadWorksConfig;
 import dev.radworks.radiation.armor.ArmorProtectionResult;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,8 @@ import org.junit.jupiter.api.Test;
 class EffectStrategyServiceTest {
     @Test
     void previewBelowThresholdIsBlocked() {
-        EffectPreviewResult preview = EffectStrategyService.preview(1.0D, armor("none"));
+        double belowThreshold = Math.max(0.0D, RadWorksConfig.exposureThreshold() - 0.01D);
+        EffectPreviewResult preview = EffectStrategyService.preview(belowThreshold, armor("none"));
         assertFalse(preview.wouldApply());
         assertEquals("below_threshold", preview.reason());
         assertFalse(preview.blockedByArmor());
@@ -20,7 +22,7 @@ class EffectStrategyServiceTest {
 
     @Test
     void previewAtThresholdWithNoArmorWouldApply() {
-        EffectPreviewResult preview = EffectStrategyService.preview(10.0D, armor("none"));
+        EffectPreviewResult preview = EffectStrategyService.preview(RadWorksConfig.exposureThreshold(), armor("none"));
         assertTrue(preview.wouldApply());
         assertEquals("exposure_at_or_above_threshold", preview.reason());
         assertFalse(preview.blockedByArmor());
@@ -29,7 +31,7 @@ class EffectStrategyServiceTest {
 
     @Test
     void previewAtThresholdWithPartialArmorWouldApply() {
-        EffectPreviewResult preview = EffectStrategyService.preview(10.0D, armor("partial"));
+        EffectPreviewResult preview = EffectStrategyService.preview(RadWorksConfig.exposureThreshold(), armor("partial"));
         assertTrue(preview.wouldApply());
         assertEquals("exposure_at_or_above_threshold", preview.reason());
         assertFalse(preview.blockedByArmor());
@@ -38,7 +40,7 @@ class EffectStrategyServiceTest {
 
     @Test
     void previewAtThresholdWithFullArmorIsBlocked() {
-        EffectPreviewResult preview = EffectStrategyService.preview(10.0D, armor("full"));
+        EffectPreviewResult preview = EffectStrategyService.preview(RadWorksConfig.exposureThreshold(), armor("full"));
         assertFalse(preview.wouldApply());
         assertEquals("blocked_by_full_armor", preview.reason());
         assertTrue(preview.blockedByArmor());

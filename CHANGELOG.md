@@ -1,6 +1,15 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.1G stable world fluid cluster discovery:
+  - decoupled world-fluid discovery radius from base fluid rule radius via config (`integrations.worldFluidClusterDiscoveryRadius`);
+  - stabilized cluster discovery for connected fluids using normalized fluid identity (`flowing_x -> x`) plus 6-direction adjacency;
+  - added cluster-level diagnostics (`worldFluidDiscoveryRadius`, bounding box, normalized fluid id, clipped-by-radius hint).
+- Beta 0.4.1F world fluid aggregation fix:
+  - switched `world_fluid` from per-block rows to connected-cluster aggregate rows (6-directional adjacency);
+  - grouped clusters by resolved fluid rule id, preserving exact/fallback rule match diagnostics;
+  - cluster amount now scales as `contributingFluidBlocks * 1000 mB`;
+  - cluster activation distance uses nearest fluid block, with cluster samples in `worldFluidDiagnostics`.
 - Beta 0.4.1 world fluid source fix:
   - added `world_fluid` source type and `WorldFluidSourceProvider` for placed `FluidState` blocks;
   - added fluid rule match mode visibility (`exact`/`fallback`) on world-fluid rows;

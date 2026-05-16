@@ -12,7 +12,7 @@ class RadWorksConfigTest {
     void betaDefaultsArePlayableButDamageDisabled() {
         assertTrue(RadWorksConfig.gameplayEnabled());
         assertTrue(RadWorksConfig.autoApplyEffect());
-        assertEquals(10.0D, RadWorksConfig.exposureThreshold(), 1.0e-9);
+        assertEquals(1.0D, RadWorksConfig.exposureThreshold(), 1.0e-9);
         assertEquals(120, RadWorksConfig.effectDurationTicks());
         assertEquals(40, RadWorksConfig.scanIntervalTicks());
         assertFalse(RadWorksConfig.damageEnabled());

@@ -85,11 +85,22 @@ Run:
      - `/radworks radius show 10` (or always-on visualization)
      - `/radworks dump`
 12. World fluid retest (Beta 0.4.1):
+   - before fluid-only tests clear inventory contamination:
+     - `/clear @s createnuclear:uranium_bucket` (or `/clear @s`);
    - place `createnuclear:uranium` in world and check close / medium / outside distance;
    - place `createnuclear:flowing_uranium` in world and repeat;
-   - verify `world_fluid` rows appear in `/radworks sources` and `/radworks exposure`;
+   - test both a small source and larger connected masses:
+     - 1 block,
+     - 3x3 pool,
+     - 4x3x3 cube,
+     - waterfall;
+   - verify connected fluid blocks aggregate into cluster-style `world_fluid` rows (not one row per every block);
    - verify radius visualization works from the same source rows;
-   - if a row is skipped, inspect `/radworks dump` -> `worldFluidDiagnostics` skip reason.
+   - in `/radworks dump` -> `worldFluidDiagnostics`, check:
+     - `worldFluidDiscoveryRadius`,
+     - cluster fields (`contributingFluidBlocks`, `aggregateAmountMb`, `normalizedFluidId`, `clusterBoundingBox`),
+     - `maybeClippedByDiscoveryRadius` when mass touches scan boundary,
+     - skip reason if a row is skipped.
 
 ## Optional Shielding Checks
 If TFMG/Create Nuclear are installed, test available shielding blocks:

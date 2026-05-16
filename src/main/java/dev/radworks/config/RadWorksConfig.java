@@ -7,7 +7,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class RadWorksConfig {
     public static final boolean DEFAULT_GAMEPLAY_ENABLED = true;
     public static final boolean DEFAULT_AUTO_APPLY_EFFECT = true;
-    public static final double DEFAULT_EXPOSURE_THRESHOLD = 10.0D;
+    public static final double DEFAULT_EXPOSURE_THRESHOLD = 1.0D;
     public static final int DEFAULT_EFFECT_DURATION_TICKS = 120;
     public static final int DEFAULT_SCAN_INTERVAL_TICKS = 40;
     public static final boolean DEFAULT_DAMAGE_ENABLED = false;
@@ -33,6 +33,7 @@ public final class RadWorksConfig {
     public static final boolean DEFAULT_ENTITY_PACK_ANIMALS_ENABLED = true;
     public static final boolean DEFAULT_ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED = true;
     public static final int DEFAULT_ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP = 20;
+    public static final int DEFAULT_WORLD_FLUID_CLUSTER_DISCOVERY_RADIUS = 10;
 
     public static final ModConfigSpec SPEC;
 
@@ -64,6 +65,7 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.BooleanValue ENTITY_PACK_ANIMALS_ENABLED;
     private static final ModConfigSpec.BooleanValue ENTITY_GENERIC_INVENTORY_CAPABILITY_ENABLED;
     private static final ModConfigSpec.IntValue ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP;
+    private static final ModConfigSpec.IntValue WORLD_FLUID_CLUSTER_DISCOVERY_RADIUS;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -178,6 +180,13 @@ public final class RadWorksConfig {
                         DEFAULT_ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP,
                         1,
                         200);
+        WORLD_FLUID_CLUSTER_DISCOVERY_RADIUS = builder
+                .comment("Discovery radius for world fluid cluster scan.")
+                .defineInRange(
+                        "worldFluidClusterDiscoveryRadius",
+                        DEFAULT_WORLD_FLUID_CLUSTER_DISCOVERY_RADIUS,
+                        1,
+                        32);
         builder.pop();
         SPEC = builder.build();
     }
@@ -194,7 +203,8 @@ public final class RadWorksConfig {
     }
 
     public static double exposureThreshold() {
-        return getDouble(EXPOSURE_THRESHOLD, DEFAULT_EXPOSURE_THRESHOLD);
+        double configured = getDouble(EXPOSURE_THRESHOLD, DEFAULT_EXPOSURE_THRESHOLD);
+        return Math.max(0.0D, Math.min(DEFAULT_EXPOSURE_THRESHOLD, configured));
     }
 
     public static int effectDurationTicks() {
@@ -309,6 +319,12 @@ public final class RadWorksConfig {
                 DEFAULT_ENTITY_INVENTORY_DIAGNOSTIC_SAMPLE_CAP);
     }
 
+    public static int worldFluidClusterDiscoveryRadius() {
+        return getInt(
+                WORLD_FLUID_CLUSTER_DISCOVERY_RADIUS,
+                DEFAULT_WORLD_FLUID_CLUSTER_DISCOVERY_RADIUS);
+    }
+
     public static JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("gameplayEnabled", gameplayEnabled());
@@ -341,6 +357,7 @@ public final class RadWorksConfig {
                 "entityGenericInventoryCapabilityEnabled",
                 entityGenericInventoryCapabilityEnabled());
         json.addProperty("entityInventoryDiagnosticSampleCap", entityInventoryDiagnosticSampleCap());
+        json.addProperty("worldFluidClusterDiscoveryRadius", worldFluidClusterDiscoveryRadius());
         return json;
     }
 

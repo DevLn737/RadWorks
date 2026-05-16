@@ -27,6 +27,26 @@ Run:
 - World fluid diagnostics:
   - bounded skip/match samples include rule match mode and skip reason.
 
+## Beta 0.4.1F automated checks
+- World fluid connected-cluster aggregation:
+  - one block => one cluster/source with `aggregateAmountMb=1000`;
+  - connected 8-block cluster => one source with `aggregateAmountMb=8000`, `finalContribution=8.0` for `strength=1`;
+  - connected 19-block cluster => `finalContribution=19.0` and larger `effectiveRadius` than 8-block cluster.
+- Disconnected world fluid clusters:
+  - produce separate aggregate `world_fluid` rows.
+- Distance model:
+  - cluster distance uses nearest fluid block (not centroid-only).
+
+## Beta 0.4.1G automated checks
+- Stable world-fluid discovery radius:
+  - scan window uses `integrations.worldFluidClusterDiscoveryRadius`, not base rule radius.
+- Connected fluid mass stability:
+  - `3x3` pool => `contributingFluidBlocks=9`;
+  - `4x3x3` cube => `contributingFluidBlocks=36`;
+  - slight player movement around same mass keeps block count/effectiveRadius stable.
+- Mixed still/flowing behavior:
+  - `createnuclear:uranium` + `createnuclear:flowing_uranium` in one connected mass produce deterministic normalized cluster behavior.
+
 ## Post-Beta 4B automated checks
 - Entity inventory adapter/extraction:
   - chest boat / chest raft type-path classification;

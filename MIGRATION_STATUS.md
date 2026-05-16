@@ -1,5 +1,27 @@
 # Migration Status
 
+## Beta 0.4.1G - Stable world fluid cluster discovery
+Status: implemented locally, automated checks passed in this step, external modpack verification required.
+
+Implemented:
+- Added explicit world-fluid discovery radius config: `integrations.worldFluidClusterDiscoveryRadius` (default `10`, clamp `1..32`).
+- Decoupled world-fluid scan window from base fluid rule radius.
+- Stabilized cluster identity using normalized fluid id (`flowing_x -> x`) with 6-direction adjacency.
+- Kept nearest-block activation distance model; cluster mass and dynamic radius are now stable across small player movement.
+- Extended world-fluid diagnostics with discovery radius, cluster bounding box, normalized fluid id and clipped-by-discovery hint.
+
+## Beta 0.4.1F - World fluid aggregation fix
+Status: implemented locally, automated checks pending in this step, external modpack verification required.
+
+Implemented:
+- Updated `WorldFluidSourceProvider` to aggregate connected radioactive world-fluid blocks into cluster-based `world_fluid` rows.
+- Cluster connectivity: 6-directional adjacency, grouped by resolved `matchedRuleId`.
+- World-fluid amount now uses aggregate model:
+  - `aggregateAmountMb = contributingFluidBlocks * 1000`.
+- Contribution scaling and dynamic radius now use cluster aggregate amount/units.
+- Distance gate now uses nearest fluid block in cluster (not centroid-only).
+- Extended `worldFluidDiagnostics` with cluster-level fields and bounded cluster samples.
+
 ## Beta 0.4.1 - World fluid source fix
 Status: implemented locally, automated checks pending in this step, external modpack verification required.
 

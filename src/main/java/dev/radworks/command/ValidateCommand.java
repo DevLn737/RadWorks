@@ -116,6 +116,8 @@ public final class ValidateCommand {
                 + RadWorksConfig.createTransientCarrierNbtScanEnabled()
                 + " maxScanRadius="
                 + RadWorksConfig.createTransientCarrierMaxScanRadius()
+                + " worldFluidDiscoveryRadius="
+                + RadWorksConfig.worldFluidClusterDiscoveryRadius()
                 + " diagCap="
                 + RadWorksConfig.createTransientCarrierDiagnosticSampleCap()
                 + " pathCap="
