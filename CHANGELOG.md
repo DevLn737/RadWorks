@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.2 dedicated server compatibility audit:
+  - added automated guard test against client-only imports in common/server code;
+  - added server-authoritative config policy tests for safe defaults and bounds;
+  - added radius visualization server-safety tests (no client imports/calls, bounded pulse/particle caps);
+  - validated dedicated metadata side policy remains `BOTH`.
 - Beta 0.4.1G stable world fluid cluster discovery:
   - decoupled world-fluid discovery radius from base fluid rule radius via config (`integrations.worldFluidClusterDiscoveryRadius`);
   - stabilized cluster discovery for connected fluids using normalized fluid identity (`flowing_x -> x`) plus 6-direction adjacency;

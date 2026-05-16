@@ -16,6 +16,22 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.4.2 dedicated server smoke
+Run:
+
+```bash
+./gradlew runServer
+```
+
+Expected outcomes:
+- acceptable: process stops due to Minecraft EULA not yet accepted in fresh run directory;
+- acceptable: server starts and waits without client-only classloading crash.
+
+Fail this smoke only on:
+- startup exception;
+- client-only reference/classloading crash;
+- missing registry/config crash during startup.
+
 ## Beta 0.4.1 automated checks
 - World fluid source resolution:
   - exact `createnuclear:uranium` rule match;

@@ -8,6 +8,10 @@
 - KubeJS is not required.
 - Create, Create Nuclear, TFMG, Sophisticated and Aeronautics are optional for this beta.
 
+## Recommended beta setup
+- Put RadWorks jar on the dedicated server.
+- During beta, also put the same RadWorks jar on clients unless explicit server-only compatibility is proven for the current build.
+
 ## Basic Commands
 Run:
 

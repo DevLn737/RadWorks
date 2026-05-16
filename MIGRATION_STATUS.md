@@ -1,5 +1,15 @@
 # Migration Status
 
+## Beta 0.4.2 - Dedicated server compatibility audit
+Status: implemented locally, automated checks passed in this step, dedicated server smoke executed.
+
+Implemented:
+- Added automated client-only import guard for `src/main/java/dev/radworks/**`.
+- Audited dedicated metadata/side policy (`neoforge.mods.toml` remains `side=BOTH`, no client-only forcing).
+- Added server-authoritative config safety test coverage (including world fluid discovery radius bounds).
+- Added radius visualization server-safety static checks (no client imports/calls, bounded caps).
+- Executed dedicated server smoke workflow (`test`, `build`, `runServer`).
+
 ## Beta 0.4.1G - Stable world fluid cluster discovery
 Status: implemented locally, automated checks passed in this step, external modpack verification required.
 
