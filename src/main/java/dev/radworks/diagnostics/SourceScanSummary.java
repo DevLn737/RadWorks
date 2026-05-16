@@ -11,6 +11,10 @@ public record SourceScanSummary(
         int inventoryMatches,
         int blockPositionsChecked,
         int blockMatches,
+        int worldFluidPositionsChecked,
+        int worldFluidStatesFound,
+        int worldFluidMatches,
+        int worldFluidSkipped,
         int blockEntitiesChecked,
         int containerBlockEntitiesFound,
         int containerSlotsChecked,
@@ -67,6 +71,10 @@ public record SourceScanSummary(
                 lastSummary.inventoryMatches,
                 lastSummary.blockPositionsChecked,
                 lastSummary.blockMatches,
+                lastSummary.worldFluidPositionsChecked,
+                lastSummary.worldFluidStatesFound,
+                lastSummary.worldFluidMatches,
+                lastSummary.worldFluidSkipped,
                 lastSummary.blockEntitiesChecked,
                 lastSummary.containerBlockEntitiesFound,
                 lastSummary.containerSlotsChecked,
@@ -119,6 +127,10 @@ public record SourceScanSummary(
         json.addProperty("inventoryMatches", inventoryMatches);
         json.addProperty("blockPositionsChecked", blockPositionsChecked);
         json.addProperty("blockMatches", blockMatches);
+        json.addProperty("worldFluidPositionsChecked", worldFluidPositionsChecked);
+        json.addProperty("worldFluidStatesFound", worldFluidStatesFound);
+        json.addProperty("worldFluidMatches", worldFluidMatches);
+        json.addProperty("worldFluidSkipped", worldFluidSkipped);
         json.addProperty("blockEntitiesChecked", blockEntitiesChecked);
         json.addProperty("containerBlockEntitiesFound", containerBlockEntitiesFound);
         json.addProperty("containerSlotsChecked", containerSlotsChecked);
@@ -169,6 +181,10 @@ public record SourceScanSummary(
         private int inventoryMatches;
         private int blockPositionsChecked;
         private int blockMatches;
+        private int worldFluidPositionsChecked;
+        private int worldFluidStatesFound;
+        private int worldFluidMatches;
+        private int worldFluidSkipped;
         private int blockEntitiesChecked;
         private int containerBlockEntitiesFound;
         private int containerSlotsChecked;
@@ -218,6 +234,22 @@ public record SourceScanSummary(
 
         public void blockMatch() {
             blockMatches++;
+        }
+
+        public void worldFluidPositionChecked() {
+            worldFluidPositionsChecked++;
+        }
+
+        public void worldFluidStateFound() {
+            worldFluidStatesFound++;
+        }
+
+        public void worldFluidMatch() {
+            worldFluidMatches++;
+        }
+
+        public void worldFluidSkipped() {
+            worldFluidSkipped++;
         }
 
         public void blockEntityChecked() {
@@ -363,6 +395,10 @@ public record SourceScanSummary(
                     inventoryMatches,
                     blockPositionsChecked,
                     blockMatches,
+                    worldFluidPositionsChecked,
+                    worldFluidStatesFound,
+                    worldFluidMatches,
+                    worldFluidSkipped,
                     blockEntitiesChecked,
                     containerBlockEntitiesFound,
                     containerSlotsChecked,

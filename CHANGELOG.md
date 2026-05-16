@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.1 world fluid source fix:
+  - added `world_fluid` source type and `WorldFluidSourceProvider` for placed `FluidState` blocks;
+  - added fluid rule match mode visibility (`exact`/`fallback`) on world-fluid rows;
+  - added bounded `worldFluidDiagnostics` dump section plus `sourceScanSummary` world-fluid counters.
 - Repository hardening for public GitHub publication:
   - expanded `.gitignore` baseline for build/runtime/IDE/temp artifacts;
   - added `CONTRIBUTING.md`, `SECURITY.md`, and issue templates;

@@ -138,6 +138,59 @@ public record RadiationSource(
                 matchReason);
     }
 
+    public static RadiationSource worldFluid(
+            ResourceLocation fluidId,
+            ResourceLocation blockId,
+            BlockPos position,
+            int amountMb,
+            double ruleStrength,
+            double ruleRadius,
+            double distance,
+            boolean respectsShielding,
+            String ruleMatchMode,
+            String matchReason) {
+        double units = DynamicRadiusModel.aggregateUnitsForFluids(amountMb);
+        double effectiveRadius = DynamicRadiusModel.effectiveRadius(ruleRadius, units);
+        double contribution = ruleStrength * ((double) amountMb / 1000.0D);
+        return new RadiationSource(
+                RadiationSourceType.WORLD_FLUID,
+                null,
+                fluidId,
+                blockId,
+                null,
+                null,
+                0,
+                amountMb,
+                position.immutable(),
+                null,
+                ruleStrength,
+                ruleRadius,
+                ruleRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(ruleRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                0,
+                amountMb,
+                1,
+                distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ruleMatchMode,
+                matchReason);
+    }
+
     public static RadiationSource blockEntityInventoryAggregate(
             ResourceLocation blockId,
             BlockPos containerPos,

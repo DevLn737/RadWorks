@@ -1,5 +1,18 @@
 # Migration Status
 
+## Beta 0.4.1 - World fluid source fix
+Status: implemented locally, automated checks pending in this step, external modpack verification required.
+
+Implemented:
+- Added `WorldFluidSourceProvider` with `world_fluid` rows for placed world fluids (`FluidState`), without tank/capability dependency.
+- Added fluid rule resolution via `RadiationRules.resolveFluidRule(...)` (exact first, `flowing_x -> x` fallback for fluids).
+- Added world fluid diagnostics and source scan counters:
+  - `worldFluidPositionsChecked`
+  - `worldFluidStatesFound`
+  - `worldFluidMatches`
+  - `worldFluidSkipped`
+- Added dump section `worldFluidDiagnostics` with bounded match/skip samples and reasons.
+
 ## Post-Beta 4B - Chest boats + pack animals + safe entity inventory adapters
 Status: implemented locally, automated checks pending in this step, external modpack verification required.
 

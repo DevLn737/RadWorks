@@ -4,6 +4,7 @@ import dev.radworks.diagnostics.CreateCarrierDiagnostics;
 import dev.radworks.diagnostics.EntityCarrierDiagnostics;
 import dev.radworks.diagnostics.HandlerDiagnostics;
 import dev.radworks.diagnostics.SourceScanSummary;
+import dev.radworks.diagnostics.WorldFluidDiagnostics;
 import dev.radworks.radiation.armor.ArmorProtectionResult;
 import dev.radworks.radiation.armor.ArmorProtectionService;
 import dev.radworks.radiation.effects.EffectPreviewResult;
@@ -51,9 +52,11 @@ public final class ExposureEngine {
         HandlerDiagnostics.Builder handlerDiagnostics = HandlerDiagnostics.builder();
         CreateCarrierDiagnostics.Builder createCarrierDiagnostics = CreateCarrierDiagnostics.builder();
         EntityCarrierDiagnostics.Builder entityCarrierDiagnostics = EntityCarrierDiagnostics.builder();
+        WorldFluidDiagnostics.Builder worldFluidDiagnostics = WorldFluidDiagnostics.builder();
         List<RadiationSource> sources = new ArrayList<>();
         sources.addAll(PlayerInventorySourceProvider.collect(player, rules, summary));
         sources.addAll(BlockSourceProvider.collect(player, rules, summary));
+        sources.addAll(WorldFluidSourceProvider.collect(player, rules, summary, worldFluidDiagnostics));
         sources.addAll(BlockEntityInventorySourceProvider.collect(player, rules, summary));
         sources.addAll(BlockItemHandlerSourceProvider.collect(player, rules, summary, handlerDiagnostics));
         sources.addAll(BlockFluidHandlerSourceProvider.collect(player, rules, summary, handlerDiagnostics));
@@ -64,6 +67,7 @@ public final class ExposureEngine {
         HandlerDiagnostics.store(handlerDiagnostics);
         CreateCarrierDiagnostics.store(createCarrierDiagnostics);
         EntityCarrierDiagnostics.store(entityCarrierDiagnostics);
+        WorldFluidDiagnostics.store(worldFluidDiagnostics);
         return immutableSources;
     }
 

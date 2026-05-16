@@ -16,6 +16,17 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.4.1 automated checks
+- World fluid source resolution:
+  - exact `createnuclear:uranium` rule match;
+  - exact `createnuclear:flowing_uranium` rule match;
+  - fallback `flowing_uranium -> uranium` when exact rule is missing.
+- World fluid source row creation:
+  - `world_fluid` source descriptor creation path for matched fluids;
+  - unknown fluid produces no source and remains diagnostics-visible.
+- World fluid diagnostics:
+  - bounded skip/match samples include rule match mode and skip reason.
+
 ## Post-Beta 4B automated checks
 - Entity inventory adapter/extraction:
   - chest boat / chest raft type-path classification;

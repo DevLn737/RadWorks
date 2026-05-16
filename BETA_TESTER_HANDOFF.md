@@ -84,6 +84,12 @@ Run:
      - `/radworks exposure`
      - `/radworks radius show 10` (or always-on visualization)
      - `/radworks dump`
+12. World fluid retest (Beta 0.4.1):
+   - place `createnuclear:uranium` in world and check close / medium / outside distance;
+   - place `createnuclear:flowing_uranium` in world and repeat;
+   - verify `world_fluid` rows appear in `/radworks sources` and `/radworks exposure`;
+   - verify radius visualization works from the same source rows;
+   - if a row is skipped, inspect `/radworks dump` -> `worldFluidDiagnostics` skip reason.
 
 ## Optional Shielding Checks
 If TFMG/Create Nuclear are installed, test available shielding blocks:
@@ -98,6 +104,7 @@ If TFMG/Create Nuclear are installed, test available shielding blocks:
 - Include close/medium/outside dumps for chest/vault/tank dynamic radius checks.
 - Include dumps for placard/mechanical arm/pipe/glass_pipe/pipette transient scenarios where available.
 - Include dumps for dropped-item, item-frame, glow-item-frame, player-aura, chest-boat, and pack-animal scenarios.
+- Include dumps for world-fluid still/flowing uranium scenarios.
 - Screenshots or short video of radius visualization for transient scenarios are helpful.
 - `latest.log` only if there is a crash/warning/confusing behavior.
 - Installed mod versions if optional mods are involved.
