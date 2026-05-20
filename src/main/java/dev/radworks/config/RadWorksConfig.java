@@ -16,6 +16,7 @@ public final class RadWorksConfig {
     public static final boolean DEFAULT_APPLY_EFFECT_TO_ARMOR_STANDS = false;
     public static final int DEFAULT_MAX_LIVING_TARGETS_PER_SCAN = 32;
     public static final int DEFAULT_LIVING_TARGET_SCAN_RADIUS = 8;
+    public static final boolean DEFAULT_APPLY_SHIELDING_TO_LIVING_ENTITIES = true;
     public static final boolean DEFAULT_DAMAGE_ENABLED = false;
     public static final boolean DEFAULT_ALWAYS_SHOW_RADIUS_VISUALIZATION = false;
     public static final boolean DEFAULT_ENABLE_DEV_RULES = false;
@@ -54,6 +55,7 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.BooleanValue APPLY_EFFECT_TO_ARMOR_STANDS;
     private static final ModConfigSpec.IntValue MAX_LIVING_TARGETS_PER_SCAN;
     private static final ModConfigSpec.IntValue LIVING_TARGET_SCAN_RADIUS;
+    private static final ModConfigSpec.BooleanValue APPLY_SHIELDING_TO_LIVING_ENTITIES;
     private static final ModConfigSpec.BooleanValue DAMAGE_ENABLED;
     private static final ModConfigSpec.BooleanValue ALWAYS_SHOW_RADIUS_VISUALIZATION;
     private static final ModConfigSpec.EnumValue<EffectMode> EFFECT_MODE;
@@ -115,6 +117,9 @@ public final class RadWorksConfig {
         LIVING_TARGET_SCAN_RADIUS = builder
                 .comment("Nearby living-target selection radius for effect auto-apply.")
                 .defineInRange("livingTargetScanRadius", DEFAULT_LIVING_TARGET_SCAN_RADIUS, 1, 32);
+        APPLY_SHIELDING_TO_LIVING_ENTITIES = builder
+                .comment("When true, non-player living targets use shielding checks for positioned external sources.")
+                .define("applyShieldingToLivingEntities", DEFAULT_APPLY_SHIELDING_TO_LIVING_ENTITIES);
         DAMAGE_ENABLED = builder
                 .comment("Reserved for POST_BETA. Damage is not implemented in beta.")
                 .define("damageEnabled", DEFAULT_DAMAGE_ENABLED);
@@ -269,6 +274,10 @@ public final class RadWorksConfig {
         return getInt(LIVING_TARGET_SCAN_RADIUS, DEFAULT_LIVING_TARGET_SCAN_RADIUS);
     }
 
+    public static boolean applyShieldingToLivingEntities() {
+        return getBoolean(APPLY_SHIELDING_TO_LIVING_ENTITIES, DEFAULT_APPLY_SHIELDING_TO_LIVING_ENTITIES);
+    }
+
     public static boolean damageEnabled() {
         return getBoolean(DAMAGE_ENABLED, DEFAULT_DAMAGE_ENABLED);
     }
@@ -392,6 +401,7 @@ public final class RadWorksConfig {
         json.addProperty("applyEffectToArmorStands", applyEffectToArmorStands());
         json.addProperty("maxLivingTargetsPerScan", maxLivingTargetsPerScan());
         json.addProperty("livingTargetScanRadius", livingTargetScanRadius());
+        json.addProperty("applyShieldingToLivingEntities", applyShieldingToLivingEntities());
         json.addProperty("damageEnabled", damageEnabled());
         json.addProperty("alwaysShowRadiusVisualization", alwaysShowRadiusVisualization());
         json.addProperty("effectMode", effectMode().id());

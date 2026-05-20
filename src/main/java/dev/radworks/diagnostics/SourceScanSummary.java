@@ -50,6 +50,9 @@ public record SourceScanSummary(
         int shieldingSamplesChecked,
         int shieldingBlocksHit,
         int shieldingSourcesReduced,
+        int livingShieldingSourcesChecked,
+        int livingShieldingSourcesReduced,
+        int livingShieldingSamplesChecked,
         int aggregateRowsProduced,
         int sourcesShown,
         int sourcesOmitted) {
@@ -112,6 +115,9 @@ public record SourceScanSummary(
                 lastSummary.shieldingSamplesChecked,
                 lastSummary.shieldingBlocksHit,
                 lastSummary.shieldingSourcesReduced,
+                lastSummary.livingShieldingSourcesChecked,
+                lastSummary.livingShieldingSourcesReduced,
+                lastSummary.livingShieldingSamplesChecked,
                 lastSummary.aggregateRowsProduced,
                 sourcesShown,
                 sourcesOmitted);
@@ -170,6 +176,9 @@ public record SourceScanSummary(
         json.addProperty("shieldingSamplesChecked", shieldingSamplesChecked);
         json.addProperty("shieldingBlocksHit", shieldingBlocksHit);
         json.addProperty("shieldingSourcesReduced", shieldingSourcesReduced);
+        json.addProperty("livingShieldingSourcesChecked", livingShieldingSourcesChecked);
+        json.addProperty("livingShieldingSourcesReduced", livingShieldingSourcesReduced);
+        json.addProperty("livingShieldingSamplesChecked", livingShieldingSamplesChecked);
         json.addProperty("aggregateRowsProduced", aggregateRowsProduced);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
@@ -226,6 +235,9 @@ public record SourceScanSummary(
         private int shieldingSamplesChecked;
         private int shieldingBlocksHit;
         private int shieldingSourcesReduced;
+        private int livingShieldingSourcesChecked;
+        private int livingShieldingSourcesReduced;
+        private int livingShieldingSamplesChecked;
         private int aggregateRowsProduced;
 
         public void inventoryStackChecked() {
@@ -400,6 +412,18 @@ public record SourceScanSummary(
             shieldingSourcesReduced++;
         }
 
+        public void livingShieldingSourceChecked() {
+            livingShieldingSourcesChecked++;
+        }
+
+        public void livingShieldingSourceReduced() {
+            livingShieldingSourcesReduced++;
+        }
+
+        public void livingShieldingSampleChecked() {
+            livingShieldingSamplesChecked++;
+        }
+
         public void aggregateRowProduced() {
             aggregateRowsProduced++;
         }
@@ -450,6 +474,9 @@ public record SourceScanSummary(
                     shieldingSamplesChecked,
                     shieldingBlocksHit,
                     shieldingSourcesReduced,
+                    livingShieldingSourcesChecked,
+                    livingShieldingSourcesReduced,
+                    livingShieldingSamplesChecked,
                     aggregateRowsProduced,
                     sourcesShown,
                     sourcesOmitted);

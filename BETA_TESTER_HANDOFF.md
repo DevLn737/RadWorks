@@ -93,13 +93,24 @@ Run:
    - mob carrying radioactive inventory should receive runtime radiation effect;
    - player pipeline should remain unchanged (player still receives effect as before);
    - armor stand is skipped by default;
-   - shielding/armor for non-player targets is not implemented yet (planned Beta 0.4.4).
+   - non-player target shielding is implemented in Beta 0.4.4;
+   - non-player armor protection is still not implemented (planned future phase).
    - For each scenario run:
      - `/radworks validate`
      - `/radworks sources`
      - `/radworks exposure`
      - `/radworks dump`
-12. World fluid retest (Beta 0.4.1):
+13. Living-target shielding retest (Beta 0.4.4):
+   - mob near radioactive block without shielding block between source and target (baseline);
+   - same mob with shielding block between source and target (expect reduced contribution/effect chance);
+   - mob near world fluid with and without shielding block;
+   - mob carrying radioactive inventory: self-carried source should still affect target with `shielding=not_applicable`.
+   - For each scenario run:
+     - `/radworks validate`
+     - `/radworks sources`
+     - `/radworks exposure`
+     - `/radworks dump`
+14. World fluid retest (Beta 0.4.1):
    - before fluid-only tests clear inventory contamination:
      - `/clear @s createnuclear:uranium_bucket` (or `/clear @s`);
    - place `createnuclear:uranium` in world and check close / medium / outside distance;

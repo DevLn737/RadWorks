@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.4 shielding for living entity targets:
+  - generalized shielding path from player-only to target-aware `RadiationTargetContext` for living targets;
+  - preserved player shielding baseline through compatibility wrapper path;
+  - enabled shielding evaluation for non-player living targets against external positioned sources;
+  - kept self-carried sources `shielding=not_applicable` with explicit diagnostic reason suffix (`self_carried_source_not_shielded`);
+  - added gameplay config toggle `gameplay.applyShieldingToLivingEntities` (default `true`);
+  - added living-target shielding counters in `sourceScanSummary`.
 - Beta 0.4.3 living entity radiation targets:
   - expanded server-side auto-apply pipeline from player-only to bounded nearby living targets (config-gated);
   - kept player pipeline behavior as baseline and preserved player-focused exposure command/dump snapshot semantics;

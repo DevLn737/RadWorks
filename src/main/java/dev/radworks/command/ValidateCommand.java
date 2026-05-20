@@ -96,6 +96,8 @@ public final class ValidateCommand {
                 + RadWorksConfig.livingTargetScanRadius()
                 + " livingCap="
                 + RadWorksConfig.maxLivingTargetsPerScan()
+                + " livingShielding="
+                + RadWorksConfig.applyShieldingToLivingEntities()
                 + " damage="
                 + RadWorksConfig.damageEnabled()), false);
         source.sendSuccess(() -> Component.literal("Shielding: tag=#"

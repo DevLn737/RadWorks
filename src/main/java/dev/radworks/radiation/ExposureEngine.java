@@ -5,6 +5,7 @@ import dev.radworks.diagnostics.EntityCarrierDiagnostics;
 import dev.radworks.diagnostics.HandlerDiagnostics;
 import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WorldFluidDiagnostics;
+import dev.radworks.config.RadWorksConfig;
 import dev.radworks.radiation.armor.ArmorProtectionResult;
 import dev.radworks.radiation.armor.ArmorProtectionService;
 import dev.radworks.radiation.effects.EffectPreviewResult;
@@ -117,8 +118,10 @@ public final class ExposureEngine {
                 summary,
                 entityCarrierDiagnostics,
                 context.includeSelfEntityInventory()));
-        List<RadiationSource> immutableSources = context.applyShielding() && context.target() instanceof ServerPlayer serverPlayer
-                ? ShieldingEngine.apply(serverPlayer, sources, summary)
+        boolean useShielding = context.applyShielding()
+                && (context.targetKind() == RadiationTargetKind.PLAYER || RadWorksConfig.applyShieldingToLivingEntities());
+        List<RadiationSource> immutableSources = useShielding
+                ? ShieldingEngine.apply(context, sources, summary)
                 : List.copyOf(sources);
         SourceScanSummary.store(summary, Math.min(20, immutableSources.size()), Math.max(0, immutableSources.size() - 20));
         HandlerDiagnostics.store(handlerDiagnostics);

@@ -1,5 +1,20 @@
 # Migration Status
 
+## Beta 0.4.4 - Shielding for living entity targets
+Status: implemented locally, automated checks passed in this step, external modpack verification required.
+
+Implemented:
+- Generalized shielding engine to target-aware `RadiationTargetContext` flow for living targets.
+- Kept `ServerPlayer` shielding API compatibility wrapper and baseline player behavior.
+- Enabled shielding for non-player living targets against external positioned sources.
+- Kept self-carried sources on the same target as `shielding=not_applicable` with reason suffix `self_carried_source_not_shielded`.
+- Added gameplay safety toggle:
+  - `applyShieldingToLivingEntities` (default `true`).
+- Added living-target shielding counters in `sourceScanSummary`:
+  - `livingShieldingSourcesChecked`
+  - `livingShieldingSourcesReduced`
+  - `livingShieldingSamplesChecked`
+
 ## Beta 0.4.3 - Living entity radiation targets
 Status: implemented locally, automated checks passed in this step, external modpack verification required.
 

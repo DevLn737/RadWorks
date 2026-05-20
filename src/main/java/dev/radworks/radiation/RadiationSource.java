@@ -556,6 +556,52 @@ public record RadiationSource(
                 matchReason);
     }
 
+    public RadiationSource withMatchReasonSuffix(String suffix) {
+        String nextReason = matchReason;
+        if (suffix != null && !suffix.isBlank()) {
+            nextReason = (matchReason == null || matchReason.isBlank())
+                    ? suffix
+                    : matchReason + " " + suffix;
+        }
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                activeBecause,
+                respectsShielding,
+                rawContribution,
+                shielding,
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                finalContribution,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                dataPath,
+                extractionMode,
+                ruleMatchMode,
+                nextReason);
+    }
+
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", type.id());

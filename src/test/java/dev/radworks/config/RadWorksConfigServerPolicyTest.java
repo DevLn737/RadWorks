@@ -31,5 +31,6 @@ class RadWorksConfigServerPolicyTest {
         assertTrue(RadWorksConfig.maxLivingTargetsPerScan() <= 256);
         assertTrue(RadWorksConfig.livingTargetScanRadius() >= 1);
         assertTrue(RadWorksConfig.livingTargetScanRadius() <= 32);
+        assertTrue(RadWorksConfig.applyShieldingToLivingEntities());
     }
 }

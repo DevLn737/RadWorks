@@ -32,7 +32,7 @@ public final class RadiationGameplayService {
     private static final int MAX_DECISIONS = 20;
     private static final int MAX_LIVING_DECISIONS = 50;
     private static final String ARMOR_POLICY = "player_only_beta_0_4_3";
-    private static final String SHIELDING_POLICY = "player_only_until_beta_0_4_4";
+    private static final String SHIELDING_POLICY = "target_aware_beta_0_4_4";
 
     private static final Map<UUID, Long> NEXT_ELIGIBLE_TICK = new LinkedHashMap<>();
     private static final Map<UUID, Long> NEXT_LIVING_ELIGIBLE_TICK = new LinkedHashMap<>();
@@ -66,7 +66,7 @@ public final class RadiationGameplayService {
         JsonArray notes = new JsonArray();
         notes.add("Beta gameplay auto-apply uses config-driven runtime effect selection.");
         notes.add("Damage/exhaustion are disabled and not implemented in this beta.");
-        notes.add("Non-player target shielding is disabled until Beta 0.4.4.");
+        notes.add("Target-aware shielding for living entities is enabled in Beta 0.4.4.");
         json.add("notes", notes);
 
         JsonArray decisions = new JsonArray();
@@ -274,23 +274,27 @@ public final class RadiationGameplayService {
                         runtime.effectMode() == EffectMode.DISABLED ? "effect_mode_disabled" : "selected_effect_missing",
                         runtime,
                         0.0D,
-                        0));
+                        0,
+                        ShieldingExposureMetrics.empty(),
+                        false));
                 return;
             }
 
+            boolean shieldingForLiving = RadWorksConfig.applyShieldingToLivingEntities();
             RadiationTargetContext context = RadiationTargetContext.forLivingEntity(
                     (net.minecraft.server.level.ServerLevel) target.level(),
                     target,
                     false,
                     true,
-                    false);
+                    shieldingForLiving);
             ExposureEngine.TargetExposure exposure = ExposureEngine.calculateForTarget(context, RadiationRulesLoader.currentRules());
+            ShieldingExposureMetrics shieldingMetrics = ShieldingExposureMetrics.from(exposure.sources());
             double threshold = RadWorksConfig.exposureThreshold();
             LivingEntityEffectDecisionPolicy.Decision decision = LivingEntityEffectDecisionPolicy.evaluate(
                     runtime.effectMode(),
                     runtime.selectedRuntimeEffectId(),
                     runtime.selectedRuntimeEffectRegistered(),
-                    exposure.totalExposure(),
+                    shieldingMetrics.totalFinalExposure(),
                     threshold);
             if (!decision.shouldAttemptApply()) {
                 livingTargetsSkipped++;
@@ -300,8 +304,10 @@ public final class RadiationGameplayService {
                         scanIntervalTicks,
                         decision.reason(),
                         runtime,
-                        exposure.totalExposure(),
-                        exposure.sourceCount()));
+                        shieldingMetrics.totalFinalExposure(),
+                        exposure.sourceCount(),
+                        shieldingMetrics,
+                        shieldingForLiving));
                 return;
             }
 
@@ -316,8 +322,10 @@ public final class RadiationGameplayService {
                         scanIntervalTicks,
                         "selected_effect_missing",
                         runtime,
-                        exposure.totalExposure(),
-                        exposure.sourceCount()));
+                        shieldingMetrics.totalFinalExposure(),
+                        exposure.sourceCount(),
+                        shieldingMetrics,
+                        shieldingForLiving));
                 return;
             }
 
@@ -333,9 +341,11 @@ public final class RadiationGameplayService {
                     scanIntervalTicks,
                     applied ? "applied" : "target_skipped",
                     runtime,
-                    exposure.totalExposure(),
+                    shieldingMetrics.totalFinalExposure(),
                     exposure.sourceCount(),
-                    applied));
+                    applied,
+                    shieldingMetrics,
+                    shieldingForLiving));
         } catch (RuntimeException exception) {
             livingTargetsSkipped++;
             storeLivingDecision(LivingEntityEffectDecision.error(target, gameTime, scanIntervalTicks, exception));
@@ -364,6 +374,38 @@ public final class RadiationGameplayService {
     private static AutoApplyDecision lastDecision(UUID playerUuid) {
         synchronized (LAST_DECISIONS) {
             return LAST_DECISIONS.get(playerUuid);
+        }
+    }
+
+    private record ShieldingExposureMetrics(
+            double totalRawExposure,
+            double totalFinalExposure,
+            int shieldingAppliedSources,
+            int shieldingReducedSources,
+            int shieldingSkippedSources) {
+        static ShieldingExposureMetrics from(List<dev.radworks.radiation.RadiationSource> sources) {
+            double raw = 0.0D;
+            double fin = 0.0D;
+            int applied = 0;
+            int reduced = 0;
+            int skipped = 0;
+            for (dev.radworks.radiation.RadiationSource source : sources) {
+                raw += source.rawContribution();
+                fin += source.finalContribution();
+                if ("not_applicable".equals(source.shielding())) {
+                    skipped++;
+                } else {
+                    applied++;
+                    if ("reduced".equals(source.shielding())) {
+                        reduced++;
+                    }
+                }
+            }
+            return new ShieldingExposureMetrics(raw, fin, applied, reduced, skipped);
+        }
+
+        static ShieldingExposureMetrics empty() {
+            return new ShieldingExposureMetrics(0.0D, 0.0D, 0, 0, 0);
         }
     }
 
@@ -522,8 +564,13 @@ public final class RadiationGameplayService {
             String targetName,
             String targetKind,
             double totalExposure,
+            double totalRawExposure,
+            double totalFinalExposure,
             double threshold,
             int sourceCount,
+            int shieldingAppliedSources,
+            int shieldingReducedSources,
+            int shieldingSkippedSources,
             boolean wouldApply,
             boolean appliedEffect,
             String reason,
@@ -545,6 +592,8 @@ public final class RadiationGameplayService {
                     EffectStrategyService.resolveRuntimeSelection(),
                     0.0D,
                     0,
+                    ShieldingExposureMetrics.empty(),
+                    false,
                     false,
                     false,
                     null);
@@ -557,7 +606,9 @@ public final class RadiationGameplayService {
                 String reason,
                 EffectStrategyService.RuntimeEffectSelection runtime,
                 double totalExposure,
-                int sourceCount) {
+                int sourceCount,
+                ShieldingExposureMetrics shieldingMetrics,
+                boolean shieldingEvaluated) {
             return base(
                     target,
                     gameTime,
@@ -566,6 +617,8 @@ public final class RadiationGameplayService {
                     runtime,
                     totalExposure,
                     sourceCount,
+                    shieldingMetrics,
+                    shieldingEvaluated,
                     false,
                     false,
                     null);
@@ -579,7 +632,9 @@ public final class RadiationGameplayService {
                 EffectStrategyService.RuntimeEffectSelection runtime,
                 double totalExposure,
                 int sourceCount,
-                boolean appliedEffect) {
+                boolean appliedEffect,
+                ShieldingExposureMetrics shieldingMetrics,
+                boolean shieldingEvaluated) {
             return base(
                     target,
                     gameTime,
@@ -588,6 +643,8 @@ public final class RadiationGameplayService {
                     runtime,
                     totalExposure,
                     sourceCount,
+                    shieldingMetrics,
+                    shieldingEvaluated,
                     true,
                     appliedEffect,
                     null);
@@ -606,6 +663,8 @@ public final class RadiationGameplayService {
                     EffectStrategyService.resolveRuntimeSelection(),
                     0.0D,
                     0,
+                    ShieldingExposureMetrics.empty(),
+                    false,
                     false,
                     false,
                     exception.getMessage());
@@ -619,6 +678,8 @@ public final class RadiationGameplayService {
                 EffectStrategyService.RuntimeEffectSelection runtime,
                 double totalExposure,
                 int sourceCount,
+                ShieldingExposureMetrics shieldingMetrics,
+                boolean shieldingEvaluated,
                 boolean wouldApply,
                 boolean appliedEffect,
                 String errorMessage) {
@@ -634,8 +695,13 @@ public final class RadiationGameplayService {
                             .targetKind()
                             .id(),
                     totalExposure,
+                    shieldingMetrics.totalRawExposure(),
+                    shieldingMetrics.totalFinalExposure(),
                     RadWorksConfig.exposureThreshold(),
                     sourceCount,
+                    shieldingMetrics.shieldingAppliedSources(),
+                    shieldingMetrics.shieldingReducedSources(),
+                    shieldingMetrics.shieldingSkippedSources(),
                     wouldApply,
                     appliedEffect,
                     reason,
@@ -643,7 +709,7 @@ public final class RadiationGameplayService {
                     runtime.selectedRuntimeEffectId(),
                     runtime.selectedRuntimeEffectRegistered(),
                     runtime.effectMode().id(),
-                    false,
+                    shieldingEvaluated,
                     SHIELDING_POLICY,
                     false,
                     ARMOR_POLICY,
@@ -662,8 +728,13 @@ public final class RadiationGameplayService {
             }
             json.addProperty("targetKind", targetKind);
             json.addProperty("totalExposure", totalExposure);
+            json.addProperty("totalRawExposure", totalRawExposure);
+            json.addProperty("totalFinalExposure", totalFinalExposure);
             json.addProperty("threshold", threshold);
             json.addProperty("sourceCount", sourceCount);
+            json.addProperty("shieldingAppliedSources", shieldingAppliedSources);
+            json.addProperty("shieldingReducedSources", shieldingReducedSources);
+            json.addProperty("shieldingSkippedSources", shieldingSkippedSources);
             json.addProperty("wouldApply", wouldApply);
             json.addProperty("appliedEffect", appliedEffect);
             json.addProperty("reason", reason);

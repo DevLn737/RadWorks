@@ -16,6 +16,21 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.4.4 automated checks
+- Target-aware shielding:
+  - player shielding regression remains unchanged;
+  - non-player living target shielding is applied for external positioned sources.
+- Self-carried policy:
+  - self-carried source for the same target remains `shielding=not_applicable`;
+  - source reason includes `self_carried_source_not_shielded`.
+- Config defaults/bounds:
+  - `applyShieldingToLivingEntities=true` by default.
+- Source scan summary:
+  - `livingShieldingSourcesChecked`, `livingShieldingSourcesReduced`, `livingShieldingSamplesChecked` are present.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
 ## Beta 0.4.3 automated checks
 - Living-target decision policy:
   - disabled mode -> skip;

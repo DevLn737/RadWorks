@@ -12,6 +12,7 @@ class RadWorksConfigLivingTargetsTest {
         assertTrue(RadWorksConfig.applyEffectToLivingEntities());
         assertTrue(RadWorksConfig.applyEffectToMobs());
         assertFalse(RadWorksConfig.applyEffectToArmorStands());
+        assertTrue(RadWorksConfig.applyShieldingToLivingEntities());
         assertTrue(RadWorksConfig.maxLivingTargetsPerScan() > 0);
         assertTrue(RadWorksConfig.livingTargetScanRadius() > 0);
     }

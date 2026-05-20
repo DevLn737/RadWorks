@@ -15,6 +15,13 @@ class RadWorksConfigTest {
         assertEquals(1.0D, RadWorksConfig.exposureThreshold(), 1.0e-9);
         assertEquals(120, RadWorksConfig.effectDurationTicks());
         assertEquals(40, RadWorksConfig.scanIntervalTicks());
+        assertTrue(RadWorksConfig.applyEffectToPlayers());
+        assertTrue(RadWorksConfig.applyEffectToLivingEntities());
+        assertTrue(RadWorksConfig.applyEffectToMobs());
+        assertFalse(RadWorksConfig.applyEffectToArmorStands());
+        assertEquals(32, RadWorksConfig.maxLivingTargetsPerScan());
+        assertEquals(8, RadWorksConfig.livingTargetScanRadius());
+        assertTrue(RadWorksConfig.applyShieldingToLivingEntities());
         assertFalse(RadWorksConfig.damageEnabled());
         assertFalse(RadWorksConfig.alwaysShowRadiusVisualization());
         assertEquals(EffectMode.EXTERNAL_IF_PRESENT, RadWorksConfig.effectMode());
