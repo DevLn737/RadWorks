@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -30,14 +31,37 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics) {
-        return PerformanceStats.timeValue("entityCarrierScan", () -> collectTimed(player, rules, summary, diagnostics));
+        return collect(player, player, rules, summary, diagnostics, false);
+    }
+
+    public static List<RadiationSource> collect(
+            LivingEntity target,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            EntityCarrierDiagnostics.Builder diagnostics,
+            boolean includeSelfEntityInventory) {
+        return collect(target, target, rules, summary, diagnostics, includeSelfEntityInventory);
+    }
+
+    private static List<RadiationSource> collect(
+            LivingEntity target,
+            Entity excludedEntityForQuery,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            EntityCarrierDiagnostics.Builder diagnostics,
+            boolean includeSelfEntityInventory) {
+        return PerformanceStats.timeValue(
+                "entityCarrierScan",
+                () -> collectTimed(target, excludedEntityForQuery, rules, summary, diagnostics, includeSelfEntityInventory));
     }
 
     private static List<RadiationSource> collectTimed(
-            ServerPlayer player,
+            LivingEntity target,
+            Entity excludedEntityForQuery,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
-            EntityCarrierDiagnostics.Builder diagnostics) {
+            EntityCarrierDiagnostics.Builder diagnostics,
+            boolean includeSelfEntityInventory) {
         if (!rules.loaded() || rules.itemRules() == 0) {
             return List.of();
         }
@@ -50,31 +74,42 @@ public final class EntityCarrierSourceProvider {
             return List.of();
         }
 
-        ServerLevel level = player.serverLevel();
-        Vec3 playerPosition = player.position();
-        AABB bounds = player.getBoundingBox().inflate(scanRadius);
+        ServerLevel level = (ServerLevel) target.level();
+        Vec3 targetPosition = target.position();
+        AABB bounds = target.getBoundingBox().inflate(scanRadius);
         List<RadiationSource> sources = new ArrayList<>();
 
-        List<Entity> entities = level.getEntities(player, bounds, EntityCarrierSourceProvider::isRelevantEntity);
+        if (includeSelfEntityInventory && !(target instanceof ServerPlayer)) {
+            handleEntityInventorySource(
+                    target.getUUID(),
+                    targetPosition,
+                    target,
+                    rules,
+                    summary,
+                    diagnostics,
+                    sources);
+        }
+
+        List<Entity> entities = level.getEntities(excludedEntityForQuery, bounds, EntityCarrierSourceProvider::isRelevantEntity);
         for (Entity entity : entities) {
             summary.entityCarrierEntityChecked();
             diagnostics.scannedEntity();
 
             if (entity instanceof ItemEntity itemEntity) {
-                handleDroppedItemSource(playerPosition, itemEntity, rules, summary, diagnostics, sources);
+                handleDroppedItemSource(targetPosition, itemEntity, rules, summary, diagnostics, sources);
                 continue;
             }
             if (entity instanceof ItemFrame itemFrame) {
-                handleItemFrameSource(playerPosition, itemFrame, rules, summary, diagnostics, sources);
+                handleItemFrameSource(targetPosition, itemFrame, rules, summary, diagnostics, sources);
                 continue;
             }
             if (entity instanceof ServerPlayer auraPlayer) {
-                handlePlayerAuraSource(player, playerPosition, auraPlayer, rules, summary, diagnostics, sources);
+                handlePlayerAuraSource(target.getUUID(), targetPosition, auraPlayer, rules, summary, diagnostics, sources);
                 continue;
             }
             handleEntityInventorySource(
-                    player,
-                    playerPosition,
+                    target.getUUID(),
+                    targetPosition,
                     entity,
                     rules,
                     summary,
@@ -174,14 +209,14 @@ public final class EntityCarrierSourceProvider {
     }
 
     private static void handlePlayerAuraSource(
-            ServerPlayer executingPlayer,
-            Vec3 playerPosition,
+            java.util.UUID targetUuid,
+            Vec3 targetPosition,
             ServerPlayer auraPlayer,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             List<RadiationSource> sources) {
-        if (EntityCarrierExtraction.shouldSkipSelfAura(executingPlayer.getUUID(), auraPlayer.getUUID())) {
+        if (EntityCarrierExtraction.shouldSkipSelfAura(targetUuid, auraPlayer.getUUID())) {
             diagnostics.skippedEntity(
                     "player_world_source",
                     entityTypeId(auraPlayer),
@@ -215,7 +250,7 @@ public final class EntityCarrierSourceProvider {
         ResourceLocation entityType = entityTypeId(auraPlayer);
         String entityId = auraPlayer.getStringUUID();
         Set<String> dedupe = new HashSet<>();
-        double distance = playerPosition.distanceTo(Vec3.atCenterOf(sourcePos));
+        double distance = targetPosition.distanceTo(Vec3.atCenterOf(sourcePos));
         for (EntityCarrierExtraction.MatchedAggregate aggregate : aggregates) {
             double baseRadius = aggregate.rule().radius();
             double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
@@ -275,8 +310,8 @@ public final class EntityCarrierSourceProvider {
     }
 
     private static void handleEntityInventorySource(
-            ServerPlayer executingPlayer,
-            Vec3 playerPosition,
+            java.util.UUID targetUuid,
+            Vec3 targetPosition,
             Entity entity,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
@@ -285,7 +320,7 @@ public final class EntityCarrierSourceProvider {
         if (!RadWorksConfig.entityCarriersEnabled() || entity instanceof ServerPlayer) {
             return;
         }
-        if (EntityCarrierExtraction.shouldSkipSelfAura(executingPlayer.getUUID(), entity.getUUID())) {
+        if (EntityCarrierExtraction.shouldSkipSelfAura(targetUuid, entity.getUUID())) {
             diagnostics.skippedEntity(
                     "entity_inventory",
                     entityTypeId(entity),
@@ -314,7 +349,7 @@ public final class EntityCarrierSourceProvider {
                 diagnostics.entityInventoryAccessSucceeded();
                 anyMatched |= addInventoryViewSources(
                         entity,
-                        playerPosition,
+                        targetPosition,
                         known.view(),
                         rules,
                         emitted,
@@ -343,7 +378,7 @@ public final class EntityCarrierSourceProvider {
                 diagnostics.entityInventoryAccessSucceeded();
                 anyMatched |= addInventoryViewSources(
                         entity,
-                        playerPosition,
+                        targetPosition,
                         capability.view(),
                         rules,
                         emitted,

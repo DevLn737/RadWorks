@@ -16,6 +16,22 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.4.3 automated checks
+- Living-target decision policy:
+  - disabled mode -> skip;
+  - missing selected effect -> skip;
+  - below threshold -> skip;
+  - above threshold -> apply intent.
+- Living-target selection policy:
+  - armor stand skipped by default;
+  - max living targets cap enforced.
+- Config defaults/bounds:
+  - living target toggles are server-safe;
+  - `maxLivingTargetsPerScan` and `livingTargetScanRadius` are positive and bounded.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
 ## Beta 0.4.2 dedicated server smoke
 Run:
 

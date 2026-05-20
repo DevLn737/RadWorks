@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
@@ -30,11 +31,25 @@ public final class WorldFluidSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             WorldFluidDiagnostics.Builder diagnostics) {
-        return PerformanceStats.timeValue("worldFluidScan", () -> collectTimed(player, rules, summary, diagnostics));
+        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary, diagnostics);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos targetCenter,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            WorldFluidDiagnostics.Builder diagnostics) {
+        return PerformanceStats.timeValue(
+                "worldFluidScan",
+                () -> collectTimed(level, targetPosition, targetCenter, rules, summary, diagnostics));
     }
 
     private static List<RadiationSource> collectTimed(
-            ServerPlayer player,
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos targetCenter,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             WorldFluidDiagnostics.Builder diagnostics) {
@@ -46,15 +61,14 @@ public final class WorldFluidSourceProvider {
         summary.worldFluidDiscoveryRadius(discoveryRadius);
         diagnostics.worldFluidDiscoveryRadius(discoveryRadius);
 
-        BlockPos center = player.blockPosition();
-        BlockPos min = center.offset(-discoveryRadius, -discoveryRadius, -discoveryRadius);
-        BlockPos max = center.offset(discoveryRadius, discoveryRadius, discoveryRadius);
+        BlockPos min = targetCenter.offset(-discoveryRadius, -discoveryRadius, -discoveryRadius);
+        BlockPos max = targetCenter.offset(discoveryRadius, discoveryRadius, discoveryRadius);
         List<FluidSample> samples = new ArrayList<>();
 
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
             summary.worldFluidPositionChecked();
 
-            FluidState fluidState = player.serverLevel().getFluidState(pos);
+            FluidState fluidState = level.getFluidState(pos);
             if (fluidState.isEmpty()) {
                 summary.worldFluidSkipped();
                 continue;
@@ -87,7 +101,7 @@ public final class WorldFluidSourceProvider {
                 continue;
             }
 
-            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(player.serverLevel().getBlockState(pos).getBlock());
+            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock());
             ResourceLocation normalizedFluidId = normalizeFluidIdForCluster(fluidId);
             samples.add(new FluidSample(
                     pos.immutable(),
@@ -100,13 +114,13 @@ public final class WorldFluidSourceProvider {
         }
 
         return collectFromSamples(
-                player.position(),
+                targetPosition,
                 rules,
                 samples,
                 summary,
                 diagnostics,
                 discoveryRadius,
-                center);
+                targetCenter);
     }
 
     static List<RadiationSource> collectFromSamples(

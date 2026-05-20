@@ -88,6 +88,17 @@ Run:
      - `/radworks exposure`
      - `/radworks radius show 10` (or always-on visualization)
      - `/radworks dump`
+12. Living-target effect retest (Beta 0.4.3):
+   - mob near radioactive block/fluid should receive runtime radiation effect;
+   - mob carrying radioactive inventory should receive runtime radiation effect;
+   - player pipeline should remain unchanged (player still receives effect as before);
+   - armor stand is skipped by default;
+   - shielding/armor for non-player targets is not implemented yet (planned Beta 0.4.4).
+   - For each scenario run:
+     - `/radworks validate`
+     - `/radworks sources`
+     - `/radworks exposure`
+     - `/radworks dump`
 12. World fluid retest (Beta 0.4.1):
    - before fluid-only tests clear inventory contamination:
      - `/clear @s createnuclear:uranium_bucket` (or `/clear @s`);
@@ -119,6 +130,7 @@ If TFMG/Create Nuclear are installed, test available shielding blocks:
 - Include close/medium/outside dumps for chest/vault/tank dynamic radius checks.
 - Include dumps for placard/mechanical arm/pipe/glass_pipe/pipette transient scenarios where available.
 - Include dumps for dropped-item, item-frame, glow-item-frame, player-aura, chest-boat, and pack-animal scenarios.
+- Include dumps for living-target effect scenarios (mob-near-source and mob-self-carry).
 - Include dumps for world-fluid still/flowing uranium scenarios.
 - Screenshots or short video of radius visualization for transient scenarios are helpful.
 - `latest.log` only if there is a crash/warning/confusing behavior.

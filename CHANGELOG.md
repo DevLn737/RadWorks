@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.3 living entity radiation targets:
+  - expanded server-side auto-apply pipeline from player-only to bounded nearby living targets (config-gated);
+  - kept player pipeline behavior as baseline and preserved player-focused exposure command/dump snapshot semantics;
+  - added living target decision diagnostics (`livingEntityEffectDecisions`) with bounded counters/cap visibility;
+  - added gameplay config toggles/caps for living-target selection and processing;
+  - kept mob shielding/armor policy disabled for this phase (`player_only_until_beta_0_4_4`).
 - Beta 0.4.2 dedicated server compatibility audit:
   - added automated guard test against client-only imports in common/server code;
   - added server-authoritative config policy tests for safe defaults and bounds;

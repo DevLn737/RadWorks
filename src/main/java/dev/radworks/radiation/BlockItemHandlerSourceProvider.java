@@ -57,11 +57,25 @@ public final class BlockItemHandlerSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             HandlerDiagnostics.Builder handlerDiagnostics) {
-        return PerformanceStats.timeValue("itemHandlerScan", () -> collectTimed(player, rules, summary, handlerDiagnostics));
+        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary, handlerDiagnostics);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics) {
+        return PerformanceStats.timeValue(
+                "itemHandlerScan",
+                () -> collectTimed(level, targetPosition, center, rules, summary, handlerDiagnostics));
     }
 
     private static List<RadiationSource> collectTimed(
-            ServerPlayer player,
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             HandlerDiagnostics.Builder handlerDiagnostics) {
@@ -77,9 +91,6 @@ public final class BlockItemHandlerSourceProvider {
             return sources;
         }
 
-        ServerLevel level = player.serverLevel();
-        Vec3 playerPosition = player.position();
-        BlockPos center = player.blockPosition();
         BlockPos min = center.offset(-scanRadius, -scanRadius, -scanRadius);
         BlockPos max = center.offset(scanRadius, scanRadius, scanRadius);
 
@@ -99,7 +110,7 @@ public final class BlockItemHandlerSourceProvider {
 
             BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-            double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
+            double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
             HandlerScanResult scanResult = collectHandlerSlots(blockId, pos, distance, lookup, rules, sources, summary);
             if (scanResult.matches() == 0) {
                 handlerDiagnostics.addItemHandlerSample(

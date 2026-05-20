@@ -12,6 +12,8 @@ class RadWorksConfigServerPolicyTest {
         assertFalse(RadWorksConfig.damageEnabled());
 
         assertTrue(RadWorksConfig.scanIntervalTicks() > 0);
+        assertTrue(RadWorksConfig.maxLivingTargetsPerScan() > 0);
+        assertTrue(RadWorksConfig.livingTargetScanRadius() > 0);
         assertTrue(RadWorksConfig.effectDurationTicks() > 0);
         assertTrue(RadWorksConfig.dynamicRadiusMaxCap() > 0.0D);
         assertTrue(RadWorksConfig.dynamicRadiusScale() >= 0.0D);
@@ -25,5 +27,9 @@ class RadWorksConfigServerPolicyTest {
 
         assertTrue(RadWorksConfig.worldFluidClusterDiscoveryRadius() >= 1);
         assertTrue(RadWorksConfig.worldFluidClusterDiscoveryRadius() <= 32);
+        assertTrue(RadWorksConfig.maxLivingTargetsPerScan() >= 1);
+        assertTrue(RadWorksConfig.maxLivingTargetsPerScan() <= 256);
+        assertTrue(RadWorksConfig.livingTargetScanRadius() >= 1);
+        assertTrue(RadWorksConfig.livingTargetScanRadius() <= 32);
     }
 }

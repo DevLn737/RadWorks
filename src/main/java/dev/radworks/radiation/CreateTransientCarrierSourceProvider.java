@@ -35,13 +35,25 @@ public final class CreateTransientCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics) {
+        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary, diagnostics);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            CreateCarrierDiagnostics.Builder diagnostics) {
         return PerformanceStats.timeValue(
                 "createTransientCarrierScan",
-                () -> collectTimed(player, rules, summary, diagnostics));
+                () -> collectTimed(level, targetPosition, center, rules, summary, diagnostics));
     }
 
     private static List<RadiationSource> collectTimed(
-            ServerPlayer player,
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics) {
@@ -64,9 +76,6 @@ public final class CreateTransientCarrierSourceProvider {
             return List.of();
         }
 
-        ServerLevel level = player.serverLevel();
-        Vec3 playerPosition = player.position();
-        BlockPos center = player.blockPosition();
         BlockPos min = center.offset(-scanRadius, -scanRadius, -scanRadius);
         BlockPos max = center.offset(scanRadius, scanRadius, scanRadius);
 
@@ -88,7 +97,7 @@ public final class CreateTransientCarrierSourceProvider {
 
             summary.createCarrierBlockChecked();
             diagnostics.scannedCarrierBlock();
-            double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
+            double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
             int itemAggregateSizeBefore = itemAggregates.size();
             int fluidAggregateSizeBefore = fluidAggregates.size();
 

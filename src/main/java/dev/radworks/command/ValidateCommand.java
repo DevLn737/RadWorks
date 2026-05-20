@@ -76,6 +76,14 @@ public final class ValidateCommand {
                 + RadWorksConfig.gameplayEnabled()
                 + " autoApply="
                 + RadWorksConfig.autoApplyEffect()
+                + " applyPlayers="
+                + RadWorksConfig.applyEffectToPlayers()
+                + " applyLiving="
+                + RadWorksConfig.applyEffectToLivingEntities()
+                + " applyMobs="
+                + RadWorksConfig.applyEffectToMobs()
+                + " applyArmorStands="
+                + RadWorksConfig.applyEffectToArmorStands()
                 + " alwaysRadiusVisual="
                 + RadWorksConfig.alwaysShowRadiusVisualization()
                 + " threshold="
@@ -84,7 +92,11 @@ public final class ValidateCommand {
                 + RadWorksConfig.scanIntervalTicks()
                 + "t duration="
                 + RadWorksConfig.effectDurationTicks()
-                + "t damage="
+                + "t livingRadius="
+                + RadWorksConfig.livingTargetScanRadius()
+                + " livingCap="
+                + RadWorksConfig.maxLivingTargetsPerScan()
+                + " damage="
                 + RadWorksConfig.damageEnabled()), false);
         source.sendSuccess(() -> Component.literal("Shielding: tag=#"
                 + ShieldingDiagnostics.TAG_ID
@@ -149,6 +161,9 @@ public final class ValidateCommand {
                 + RadWorksConfig.entityCarrierDiagnosticSampleCap()
                 + " inventoryDiagCap="
                 + RadWorksConfig.entityInventoryDiagnosticSampleCap()), false);
+        source.sendSuccess(() -> Component.literal(
+                "Living targets: decisions are bounded and available in /radworks dump -> gameplay.livingEntityEffectDecisions"),
+                false);
         source.sendSuccess(() -> Component.literal("Dump: use /radworks dump for full details"), false);
 
         sendIssues(source, "ERROR", validation.errors());

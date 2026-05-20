@@ -1,5 +1,22 @@
 # Migration Status
 
+## Beta 0.4.3 - Living entity radiation targets
+Status: implemented locally, automated checks passed in this step, external modpack verification required.
+
+Implemented:
+- Expanded gameplay effect target model to support bounded nearby non-player `LivingEntity` auto-apply.
+- Kept player auto-apply path and `/radworks exposure` player snapshot behavior as baseline.
+- Added target-aware exposure path for gameplay decisions without overwriting player `lastExposureSnapshot`.
+- Added gameplay config toggles/caps:
+  - `applyEffectToPlayers`
+  - `applyEffectToLivingEntities`
+  - `applyEffectToMobs`
+  - `applyEffectToArmorStands`
+  - `maxLivingTargetsPerScan`
+  - `livingTargetScanRadius`
+- Added bounded `livingEntityEffectDecisions` diagnostics and living-target counters.
+- Explicitly kept shielding/armor evaluation player-only for this phase (non-player policies deferred to Beta 0.4.4).
+
 ## Beta 0.4.2 - Dedicated server compatibility audit
 Status: implemented locally, automated checks passed in this step, dedicated server smoke executed.
 
