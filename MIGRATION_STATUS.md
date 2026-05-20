@@ -1,5 +1,25 @@
 # Migration Status
 
+## Beta 0.5 - Nested container contents
+Status: implemented locally; automated gates green; external modpack retest pending for runtime confirmation.
+
+Implemented:
+- Added bounded nested extraction core for supported vanilla item components:
+  - `DataComponents.CONTAINER`;
+  - `DataComponents.BUNDLE_CONTENTS`.
+- Integrated nested extraction into:
+  - `player_inventory`;
+  - `block_entity_inventory`;
+  - `block_item_handler`;
+  - entity carrier paths (`entity_inventory`, dropped item, item frame, player aura).
+- Added server-authoritative config controls:
+  - `rules.nestedContainersEnabled`;
+  - `rules.nestedContainerMaxDepth`;
+  - `rules.nestedContainerMaxItemsPerSource`;
+  - `rules.nestedContainerDiagnosticSampleCap`.
+- Added dump diagnostics section:
+  - `nestedContainerDiagnostics` with bounded counters/samples.
+
 ## Beta 0.4.5 - Closure / regression / merge prep
 Status: implemented locally; regression gates green; final external modpack retest pending for closure confirmation.
 

@@ -113,6 +113,9 @@ public final class SourcesCommand {
         if (source.dataPath() != null) {
             row.append(" dataPath=").append(source.dataPath());
         }
+        if (source.extractionMode() != null) {
+            row.append(" extractionMode=").append(source.extractionMode());
+        }
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }

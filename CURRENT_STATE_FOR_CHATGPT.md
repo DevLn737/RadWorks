@@ -1,6 +1,6 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-20): Beta 0.4 closure baseline is complete locally. It includes world fluid sources with stable cluster discovery/aggregation, entity carriers (dropped items/frames/player aura/entity inventory), bounded living-entity effect targets, target-aware shielding for living targets, dedicated-server compatibility hardening, and automation-first regression gates (`test/build/runServer smoke`).
+> Update (2026-05-20): Beta 0.5 nested-container baseline is implemented locally on top of Beta 0.4. It adds bounded vanilla nested extraction (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`) across player/block/entity source contexts, keeps server-authoritative behavior, and keeps automation-first regression gates (`test/build`; optional `runServer smoke`).
 
 ## 1. One-paragraph summary
 
@@ -44,7 +44,8 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 
 | Phase | Status | What is implemented | What is still missing |
 |---|---|---|---|
-| Beta 0.4 closure baseline | DONE (local) / EXTERNAL_RETEST_PENDING | World fluid + stable clusters, entity carriers, living-target auto-apply, target-aware living shielding, dedicated-server hardening | Final external modpack confirmation before merge closeout |
+| Beta 0.5 nested containers | DONE (local) / EXTERNAL_RETEST_PENDING | Bounded nested extraction core + provider integration + nested diagnostics/config caps | External modpack confirmation for nested scenarios (shulker/bundle and unsupported modded formats) |
+| Beta 0.4 closure baseline | DONE (local) | World fluid + stable clusters, entity carriers, living-target auto-apply, target-aware living shielding, dedicated-server hardening | Closed as baseline for Beta 0.5 follow-up |
 | Phase 0 — Repository foundation | DONE | Minimal NeoForge mod, docs, `/radworks version`, `/radworks dump`, build baseline | Nothing planned for Phase 0 |
 | Phase 1 — Data-driven radiation rules | DONE | JSON rules from `data/radworks/radiation_rules/*.json`, validation, checksum, lenient/dev mode | Real modpack rules not migrated |
 | Phase 2 — Player inventory radiation | DONE / DIAGNOSTIC_ONLY | Server-side main inventory and offhand item source diagnostics | No gameplay effects, armor, Curios, nested containers |

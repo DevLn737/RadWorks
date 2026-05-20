@@ -3,6 +3,7 @@ package dev.radworks.radiation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import dev.radworks.diagnostics.NestedContainerDiagnostics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -46,7 +47,15 @@ final class EntityInventoryCarrierExtraction {
     static List<EntityCarrierExtraction.MatchedAggregate> aggregateRadioactiveStacks(
             Iterable<ItemStack> stacks,
             RadiationRules rules) {
-        return EntityCarrierExtraction.aggregateRadioactiveStacks(stacks, rules);
+        return aggregateRadioactiveStacks(stacks, "entity_inventory", rules, NestedContainerDiagnostics.builder());
+    }
+
+    static List<EntityCarrierExtraction.MatchedAggregate> aggregateRadioactiveStacks(
+            Iterable<ItemStack> stacks,
+            String sourcePathPrefix,
+            RadiationRules rules,
+            NestedContainerDiagnostics.Builder nestedDiagnostics) {
+        return EntityCarrierExtraction.aggregateRadioactiveStacks(stacks, sourcePathPrefix, rules, nestedDiagnostics);
     }
 
     static String dedupeKey(

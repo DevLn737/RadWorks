@@ -602,6 +602,50 @@ public record RadiationSource(
                 nextReason);
     }
 
+    public RadiationSource withExtractionContext(String nestedDataPath, String nestedExtractionMode) {
+        String nextDataPath = (nestedDataPath == null || nestedDataPath.isBlank()) ? dataPath : nestedDataPath;
+        String nextExtractionMode = (nestedExtractionMode == null || nestedExtractionMode.isBlank())
+                ? extractionMode
+                : nestedExtractionMode;
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                activeBecause,
+                respectsShielding,
+                rawContribution,
+                shielding,
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                finalContribution,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                nextDataPath,
+                nextExtractionMode,
+                ruleMatchMode,
+                matchReason);
+    }
+
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", type.id());

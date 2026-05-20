@@ -16,6 +16,20 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.5 automated checks (nested containers)
+- `NestedContainerExtractorTest`:
+  - vanilla container-component extraction;
+  - bundle-contents extraction;
+  - depth-cap behavior;
+  - bounded diagnostics emission contract.
+- `EntityCarrierExtractionTest` nested case:
+  - dropped/container-like stack nested contents aggregate into entity-carried sources.
+- Config defaults/bounds:
+  - nested extraction toggles/caps are positive and bounded.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
 ## Beta 0.4.5 final regression workflow
 Run in order:
 
