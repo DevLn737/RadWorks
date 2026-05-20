@@ -1,10 +1,10 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-20): Beta 0.4 closure baseline is complete locally. It includes world fluid sources with stable cluster discovery/aggregation, entity carriers (dropped items/frames/player aura/entity inventory), bounded living-entity effect targets, target-aware shielding for living targets, dedicated-server compatibility hardening, and automation-first regression gates (`test/build/runServer smoke`).
+> Update (2026-05-20): Beta 0.5 nested-container baseline is implemented locally on top of Beta 0.4. It adds bounded vanilla nested extraction (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`) across player/block/entity source contexts, keeps server-authoritative behavior, and keeps automation-first regression gates (`test/build`; optional `runServer smoke`).
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.4 entity/server hardening: bounded source discovery across world fluids, entity carriers, and living targets; target-aware shielding for living entities; and server-authoritative diagnostics/config with dedicated-server compatibility checks. No new gameplay systems (damage/exhaustion/persistent dose) are part of this baseline.
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.5 on top of Beta 0.4 entity/server hardening: bounded source discovery (world fluids, entity carriers, living targets), target-aware shielding for living entities, and bounded vanilla nested-container extraction via item data components (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`). No new gameplay systems (damage/exhaustion/persistent dose) are part of this baseline.
 
 ## 2. Target environment
 
@@ -44,7 +44,8 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 
 | Phase | Status | What is implemented | What is still missing |
 |---|---|---|---|
-| Beta 0.4 closure baseline | DONE (local) / EXTERNAL_RETEST_PENDING | World fluid + stable clusters, entity carriers, living-target auto-apply, target-aware living shielding, dedicated-server hardening | Final external modpack confirmation before merge closeout |
+| Beta 0.5 nested containers | DONE (local) / EXTERNAL_RETEST_PENDING | Bounded nested extraction core + provider integration + nested diagnostics/config caps | External modpack confirmation for nested scenarios (shulker/bundle and unsupported modded formats) |
+| Beta 0.4 closure baseline | DONE (local) | World fluid + stable clusters, entity carriers, living-target auto-apply, target-aware living shielding, dedicated-server hardening | Closed as baseline for Beta 0.5 follow-up |
 | Phase 0 — Repository foundation | DONE | Minimal NeoForge mod, docs, `/radworks version`, `/radworks dump`, build baseline | Nothing planned for Phase 0 |
 | Phase 1 — Data-driven radiation rules | DONE | JSON rules from `data/radworks/radiation_rules/*.json`, validation, checksum, lenient/dev mode | Real modpack rules not migrated |
 | Phase 2 — Player inventory radiation | DONE / DIAGNOSTIC_ONLY | Server-side main inventory and offhand item source diagnostics | No gameplay effects, armor, Curios, nested containers |
@@ -253,7 +254,9 @@ Missing by design:
 - Current shielding tag is a dev-only vanilla placeholder.
 - Item handler positive tests may need a modded block exposing `IItemHandler`.
 - Fluid handler positive tests may need a modded tank/block exposing `IFluidHandler`.
-- No nested containers, shulker contents, backpacks, Curios/Trinkets, or item NBT/component scanning.
+- Nested containers are currently limited to supported vanilla data-component formats (`CONTAINER`, `BUNDLE_CONTENTS`).
+- Create toolbox and Sophisticated nested formats are not implemented yet (research-first follow-up).
+- No Curios/Trinkets container integration.
 - No container exception list is migrated yet.
 - Shielding model is diagnostic and may not match final intended balance.
 - Old KubeJS behavior is only partially migrated.

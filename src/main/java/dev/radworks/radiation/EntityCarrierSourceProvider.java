@@ -2,6 +2,7 @@ package dev.radworks.radiation;
 
 import dev.radworks.config.RadWorksConfig;
 import dev.radworks.diagnostics.EntityCarrierDiagnostics;
+import dev.radworks.diagnostics.NestedContainerDiagnostics;
 import dev.radworks.diagnostics.PerformanceStats;
 import dev.radworks.diagnostics.SourceScanSummary;
 import java.util.ArrayList;
@@ -31,7 +32,16 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics) {
-        return collect(player, player, rules, summary, diagnostics, false);
+        return collect(player, player, rules, summary, diagnostics, NestedContainerDiagnostics.builder(), false);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics) {
+        return collect(player, player, rules, summary, diagnostics, nestedDiagnostics, false);
     }
 
     public static List<RadiationSource> collect(
@@ -40,7 +50,24 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             boolean includeSelfEntityInventory) {
-        return collect(target, target, rules, summary, diagnostics, includeSelfEntityInventory);
+        return collect(
+                target,
+                target,
+                rules,
+                summary,
+                diagnostics,
+                NestedContainerDiagnostics.builder(),
+                includeSelfEntityInventory);
+    }
+
+    public static List<RadiationSource> collect(
+            LivingEntity target,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            boolean includeSelfEntityInventory) {
+        return collect(target, target, rules, summary, diagnostics, nestedDiagnostics, includeSelfEntityInventory);
     }
 
     private static List<RadiationSource> collect(
@@ -49,10 +76,18 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             boolean includeSelfEntityInventory) {
         return PerformanceStats.timeValue(
                 "entityCarrierScan",
-                () -> collectTimed(target, excludedEntityForQuery, rules, summary, diagnostics, includeSelfEntityInventory));
+                () -> collectTimed(
+                        target,
+                        excludedEntityForQuery,
+                        rules,
+                        summary,
+                        diagnostics,
+                        nestedDiagnostics,
+                        includeSelfEntityInventory));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -61,6 +96,7 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             boolean includeSelfEntityInventory) {
         if (!rules.loaded() || rules.itemRules() == 0) {
             return List.of();
@@ -87,6 +123,7 @@ public final class EntityCarrierSourceProvider {
                     rules,
                     summary,
                     diagnostics,
+                    nestedDiagnostics,
                     sources);
         }
 
@@ -96,15 +133,23 @@ public final class EntityCarrierSourceProvider {
             diagnostics.scannedEntity();
 
             if (entity instanceof ItemEntity itemEntity) {
-                handleDroppedItemSource(targetPosition, itemEntity, rules, summary, diagnostics, sources);
+                handleDroppedItemSource(targetPosition, itemEntity, rules, summary, diagnostics, nestedDiagnostics, sources);
                 continue;
             }
             if (entity instanceof ItemFrame itemFrame) {
-                handleItemFrameSource(targetPosition, itemFrame, rules, summary, diagnostics, sources);
+                handleItemFrameSource(targetPosition, itemFrame, rules, summary, diagnostics, nestedDiagnostics, sources);
                 continue;
             }
             if (entity instanceof ServerPlayer auraPlayer) {
-                handlePlayerAuraSource(target.getUUID(), targetPosition, auraPlayer, rules, summary, diagnostics, sources);
+                handlePlayerAuraSource(
+                        target.getUUID(),
+                        targetPosition,
+                        auraPlayer,
+                        rules,
+                        summary,
+                        diagnostics,
+                        nestedDiagnostics,
+                        sources);
                 continue;
             }
             handleEntityInventorySource(
@@ -114,6 +159,7 @@ public final class EntityCarrierSourceProvider {
                     rules,
                     summary,
                     diagnostics,
+                    nestedDiagnostics,
                     sources);
         }
 
@@ -148,10 +194,15 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             List<RadiationSource> sources) {
         ItemStack stack = itemEntity.getItem();
-        EntityCarrierExtraction.MatchedStack match = EntityCarrierExtraction.matchRadioactiveStack(stack, rules).orElse(null);
-        if (match == null) {
+        List<EntityCarrierExtraction.MatchedAggregate> aggregates = EntityCarrierExtraction.aggregateRadioactiveStackWithNested(
+                stack,
+                "entity_dropped_item.entity[" + itemEntity.getStringUUID() + "]",
+                rules,
+                nestedDiagnostics);
+        if (aggregates.isEmpty()) {
             diagnostics.skippedEntity(
                     "dropped_item",
                     entityTypeId(itemEntity),
@@ -162,17 +213,20 @@ public final class EntityCarrierSourceProvider {
             summary.entityCarrierSkipped();
             return;
         }
-        addEntityItemSource(
-                RadiationSourceType.ENTITY_DROPPED_ITEM,
-                "dropped_item",
-                playerPosition,
-                itemEntity.blockPosition(),
-                entityTypeId(itemEntity),
-                itemEntity.getStringUUID(),
-                match,
-                summary,
-                diagnostics,
-                sources);
+        for (EntityCarrierExtraction.MatchedAggregate aggregate : aggregates) {
+            addEntityAggregateSource(
+                    RadiationSourceType.ENTITY_DROPPED_ITEM,
+                    "dropped_item",
+                    "entity_direct",
+                    playerPosition,
+                    itemEntity.blockPosition(),
+                    entityTypeId(itemEntity),
+                    itemEntity.getStringUUID(),
+                    aggregate,
+                    summary,
+                    diagnostics,
+                    sources);
+        }
     }
 
     private static void handleItemFrameSource(
@@ -181,10 +235,15 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             List<RadiationSource> sources) {
         ItemStack displayed = itemFrame.getItem();
-        EntityCarrierExtraction.MatchedStack match = EntityCarrierExtraction.matchRadioactiveStack(displayed, rules).orElse(null);
-        if (match == null) {
+        List<EntityCarrierExtraction.MatchedAggregate> aggregates = EntityCarrierExtraction.aggregateRadioactiveStackWithNested(
+                displayed,
+                "entity_item_frame.entity[" + itemFrame.getStringUUID() + "]",
+                rules,
+                nestedDiagnostics);
+        if (aggregates.isEmpty()) {
             diagnostics.skippedEntity(
                     "item_frame",
                     entityTypeId(itemFrame),
@@ -195,17 +254,20 @@ public final class EntityCarrierSourceProvider {
             summary.entityCarrierSkipped();
             return;
         }
-        addEntityItemSource(
-                RadiationSourceType.ENTITY_ITEM_FRAME,
-                "item_frame",
-                playerPosition,
-                itemFrame.blockPosition(),
-                entityTypeId(itemFrame),
-                itemFrame.getStringUUID(),
-                match,
-                summary,
-                diagnostics,
-                sources);
+        for (EntityCarrierExtraction.MatchedAggregate aggregate : aggregates) {
+            addEntityAggregateSource(
+                    RadiationSourceType.ENTITY_ITEM_FRAME,
+                    "item_frame",
+                    "entity_direct",
+                    playerPosition,
+                    itemFrame.blockPosition(),
+                    entityTypeId(itemFrame),
+                    itemFrame.getStringUUID(),
+                    aggregate,
+                    summary,
+                    diagnostics,
+                    sources);
+        }
     }
 
     private static void handlePlayerAuraSource(
@@ -215,6 +277,7 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             List<RadiationSource> sources) {
         if (EntityCarrierExtraction.shouldSkipSelfAura(targetUuid, auraPlayer.getUUID())) {
             diagnostics.skippedEntity(
@@ -232,8 +295,12 @@ public final class EntityCarrierSourceProvider {
         List<ItemStack> stacks = new ArrayList<>(inventory.items.size() + inventory.offhand.size());
         stacks.addAll(inventory.items);
         stacks.addAll(inventory.offhand);
-            List<EntityCarrierExtraction.MatchedAggregate> aggregates =
-                    EntityCarrierExtraction.aggregateRadioactiveStacks(stacks, rules);
+        List<EntityCarrierExtraction.MatchedAggregate> aggregates =
+                EntityCarrierExtraction.aggregateRadioactiveStacks(
+                        stacks,
+                        "entity_player_aura.entity[" + auraPlayer.getStringUUID() + "]",
+                        rules,
+                        nestedDiagnostics);
         if (aggregates.isEmpty()) {
             diagnostics.skippedEntity(
                     "player_world_source",
@@ -305,7 +372,13 @@ public final class EntityCarrierSourceProvider {
                     "Entity player aura source from nearby inventory id="
                             + aggregate.itemId()
                             + " count="
-                            + aggregate.aggregateCount()));
+                            + aggregate.aggregateCount()).withExtractionContext(
+                                    aggregate.firstContainerPath(),
+                                    aggregate.firstExtractionMode()).withNestedContext(
+                                            aggregate.maxNestedDepth(),
+                                            aggregate.firstContainerItemId(),
+                                            aggregate.firstContainerPath()).withMatchReasonSuffix(
+                                            nestedSuffix(aggregate)));
         }
     }
 
@@ -316,6 +389,7 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             List<RadiationSource> sources) {
         if (!RadWorksConfig.entityCarriersEnabled() || entity instanceof ServerPlayer) {
             return;
@@ -355,6 +429,7 @@ public final class EntityCarrierSourceProvider {
                         emitted,
                         summary,
                         diagnostics,
+                        nestedDiagnostics,
                         sources);
             } else {
                 summary.entityCarrierInventoryAccessFailed();
@@ -384,6 +459,7 @@ public final class EntityCarrierSourceProvider {
                         emitted,
                         summary,
                         diagnostics,
+                        nestedDiagnostics,
                         sources);
             } else {
                 if (knownSuccess && "no_inventory_capability".equals(capability.failureReason())) {
@@ -422,9 +498,14 @@ public final class EntityCarrierSourceProvider {
             Set<String> emitted,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
             List<RadiationSource> sources) {
         List<EntityCarrierExtraction.MatchedAggregate> aggregates =
-                EntityInventoryCarrierExtraction.aggregateRadioactiveStacks(view.stacks(), rules);
+                EntityInventoryCarrierExtraction.aggregateRadioactiveStacks(
+                        view.stacks(),
+                        "entity_inventory.entity[" + entity.getStringUUID() + "]",
+                        rules,
+                        nestedDiagnostics);
         if (aggregates.isEmpty()) {
             diagnostics.skippedEntity(
                     view.carrierSourceKind(),
@@ -509,33 +590,40 @@ public final class EntityCarrierSourceProvider {
                             + " count="
                             + aggregate.aggregateCount()
                             + " carrier="
-                            + view.carrierSourceKind()));
+                            + view.carrierSourceKind()).withExtractionContext(
+                                    aggregate.firstContainerPath(),
+                                    aggregate.firstExtractionMode()).withNestedContext(
+                                            aggregate.maxNestedDepth(),
+                                            aggregate.firstContainerItemId(),
+                                            aggregate.firstContainerPath()).withMatchReasonSuffix(
+                                            nestedSuffix(aggregate)));
         }
         return matched;
     }
 
-    private static void addEntityItemSource(
+    private static void addEntityAggregateSource(
             RadiationSourceType sourceType,
             String sourceKind,
+            String extractionMode,
             Vec3 playerPosition,
             BlockPos sourcePos,
             ResourceLocation entityType,
             String entityId,
-            EntityCarrierExtraction.MatchedStack match,
+            EntityCarrierExtraction.MatchedAggregate aggregate,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             List<RadiationSource> sources) {
         double distance = playerPosition.distanceTo(Vec3.atCenterOf(sourcePos));
-        double baseRadius = match.rule().radius();
-        double units = DynamicRadiusModel.aggregateUnitsForItems(match.count());
+        double baseRadius = aggregate.rule().radius();
+        double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
         double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
         if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
             diagnostics.skippedEntity(
                     sourceKind,
                     entityType,
                     entityId,
-                    match.itemId(),
-                    match.count(),
+                    aggregate.itemId(),
+                    aggregate.aggregateCount(),
                     DynamicRadiusModel.outsideDynamicRadiusReason());
             summary.entityCarrierSkipped();
             return;
@@ -551,24 +639,42 @@ public final class EntityCarrierSourceProvider {
         summary.aggregateRowProduced();
         sources.add(RadiationSource.entityInventoryCarrierItem(
                 sourceKind,
-                "entity_direct",
+                extractionMode,
                 sourceType,
                 entityType.toString(),
                 entityId,
                 sourcePos,
-                match.itemId(),
-                match.count(),
-                1,
-                match.rule().strength(),
+                aggregate.itemId(),
+                aggregate.aggregateCount(),
+                Math.max(1, aggregate.contributingStacks()),
+                aggregate.rule().strength(),
                 baseRadius,
                 effectiveRadius,
                 distance,
-                match.rule().respectsShielding(),
-                match.count() * match.rule().strength(),
+                aggregate.rule().respectsShielding(),
+                aggregate.aggregateCount() * aggregate.rule().strength(),
                 "Entity carried item source matched active rule id="
-                        + match.itemId()
+                        + aggregate.itemId()
                         + " count="
-                        + match.count()));
+                        + aggregate.aggregateCount()).withExtractionContext(
+                                aggregate.firstContainerPath(),
+                                aggregate.firstExtractionMode()).withNestedContext(
+                                        aggregate.maxNestedDepth(),
+                                        aggregate.firstContainerItemId(),
+                                        aggregate.firstContainerPath()).withMatchReasonSuffix(
+                                        nestedSuffix(aggregate)));
+    }
+
+    private static String nestedSuffix(EntityCarrierExtraction.MatchedAggregate aggregate) {
+        if (aggregate.nestedMatches() <= 0) {
+            return null;
+        }
+        return "nested=true nestedMatches="
+                + aggregate.nestedMatches()
+                + " nestedDepth="
+                + aggregate.maxNestedDepth()
+                + " containerItemId="
+                + aggregate.firstContainerItemId();
     }
 
     private static ResourceLocation entityTypeId(Entity entity) {

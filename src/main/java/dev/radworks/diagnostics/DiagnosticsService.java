@@ -91,6 +91,7 @@ public final class DiagnosticsService {
         root.add("worldFluidDiagnostics", WorldFluidDiagnostics.lastToJson());
         root.add("createCarrierDiagnostics", CreateCarrierDiagnostics.lastToJson());
         root.add("entityCarrierDiagnostics", EntityCarrierDiagnostics.lastToJson());
+        root.add("nestedContainerDiagnostics", NestedContainerDiagnostics.lastToJson());
         root.add("radiusVisualization", RadiusVisualizationService.toJson(player));
         root.add("recentWarnings", WarningBuffer.toJson());
         return root;

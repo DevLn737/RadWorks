@@ -3,6 +3,7 @@ package dev.radworks.radiation;
 import dev.radworks.diagnostics.CreateCarrierDiagnostics;
 import dev.radworks.diagnostics.EntityCarrierDiagnostics;
 import dev.radworks.diagnostics.HandlerDiagnostics;
+import dev.radworks.diagnostics.NestedContainerDiagnostics;
 import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WorldFluidDiagnostics;
 import dev.radworks.config.RadWorksConfig;
@@ -68,9 +69,10 @@ public final class ExposureEngine {
         CreateCarrierDiagnostics.Builder createCarrierDiagnostics = CreateCarrierDiagnostics.builder();
         EntityCarrierDiagnostics.Builder entityCarrierDiagnostics = EntityCarrierDiagnostics.builder();
         WorldFluidDiagnostics.Builder worldFluidDiagnostics = WorldFluidDiagnostics.builder();
+        NestedContainerDiagnostics.Builder nestedContainerDiagnostics = NestedContainerDiagnostics.builder();
         List<RadiationSource> sources = new ArrayList<>();
         if (context.includePlayerInventory() && context.target() instanceof ServerPlayer serverPlayer) {
-            sources.addAll(PlayerInventorySourceProvider.collect(serverPlayer, rules, summary));
+            sources.addAll(PlayerInventorySourceProvider.collect(serverPlayer, rules, summary, nestedContainerDiagnostics));
         }
         sources.addAll(BlockSourceProvider.collect(
                 context.level(),
@@ -90,14 +92,16 @@ public final class ExposureEngine {
                 context.targetPos(),
                 context.targetBlockPos(),
                 rules,
-                summary));
+                summary,
+                nestedContainerDiagnostics));
         sources.addAll(BlockItemHandlerSourceProvider.collect(
                 context.level(),
                 context.targetPos(),
                 context.targetBlockPos(),
                 rules,
                 summary,
-                handlerDiagnostics));
+                handlerDiagnostics,
+                nestedContainerDiagnostics));
         sources.addAll(BlockFluidHandlerSourceProvider.collect(
                 context.level(),
                 context.targetPos(),
@@ -117,6 +121,7 @@ public final class ExposureEngine {
                 rules,
                 summary,
                 entityCarrierDiagnostics,
+                nestedContainerDiagnostics,
                 context.includeSelfEntityInventory()));
         boolean useShielding = context.applyShielding()
                 && (context.targetKind() == RadiationTargetKind.PLAYER || RadWorksConfig.applyShieldingToLivingEntities());
@@ -128,6 +133,7 @@ public final class ExposureEngine {
         CreateCarrierDiagnostics.store(createCarrierDiagnostics);
         EntityCarrierDiagnostics.store(entityCarrierDiagnostics);
         WorldFluidDiagnostics.store(worldFluidDiagnostics);
+        NestedContainerDiagnostics.store(nestedContainerDiagnostics);
         return immutableSources;
     }
 

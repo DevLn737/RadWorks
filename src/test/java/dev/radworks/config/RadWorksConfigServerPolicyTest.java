@@ -17,6 +17,9 @@ class RadWorksConfigServerPolicyTest {
         assertTrue(RadWorksConfig.effectDurationTicks() > 0);
         assertTrue(RadWorksConfig.dynamicRadiusMaxCap() > 0.0D);
         assertTrue(RadWorksConfig.dynamicRadiusScale() >= 0.0D);
+        assertTrue(RadWorksConfig.nestedContainerMaxDepth() > 0);
+        assertTrue(RadWorksConfig.nestedContainerMaxItemsPerSource() > 0);
+        assertTrue(RadWorksConfig.nestedContainerDiagnosticSampleCap() > 0);
 
         assertTrue(RadWorksConfig.createTransientCarrierMaxScanRadius() > 0);
         assertTrue(RadWorksConfig.createTransientCarrierDiagnosticSampleCap() > 0);
@@ -32,5 +35,11 @@ class RadWorksConfigServerPolicyTest {
         assertTrue(RadWorksConfig.livingTargetScanRadius() >= 1);
         assertTrue(RadWorksConfig.livingTargetScanRadius() <= 32);
         assertTrue(RadWorksConfig.applyShieldingToLivingEntities());
+        assertTrue(RadWorksConfig.nestedContainerMaxDepth() >= 1);
+        assertTrue(RadWorksConfig.nestedContainerMaxDepth() <= 5);
+        assertTrue(RadWorksConfig.nestedContainerMaxItemsPerSource() >= 1);
+        assertTrue(RadWorksConfig.nestedContainerMaxItemsPerSource() <= 1024);
+        assertTrue(RadWorksConfig.nestedContainerDiagnosticSampleCap() >= 1);
+        assertTrue(RadWorksConfig.nestedContainerDiagnosticSampleCap() <= 200);
     }
 }

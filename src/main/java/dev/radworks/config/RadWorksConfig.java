@@ -25,6 +25,10 @@ public final class RadWorksConfig {
     public static final double DEFAULT_DYNAMIC_RADIUS_SCALE = 0.5D;
     public static final double DEFAULT_DYNAMIC_RADIUS_MAX_CAP = 8.0D;
     public static final String DEFAULT_DYNAMIC_RADIUS_FORMULA = "log2_scaled";
+    public static final boolean DEFAULT_NESTED_CONTAINERS_ENABLED = true;
+    public static final int DEFAULT_NESTED_CONTAINER_MAX_DEPTH = 2;
+    public static final int DEFAULT_NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE = 128;
+    public static final int DEFAULT_NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP = 20;
     public static final boolean DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED = true;
     public static final boolean DEFAULT_CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED = true;
     public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS = 8;
@@ -64,6 +68,10 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.DoubleValue DYNAMIC_RADIUS_SCALE;
     private static final ModConfigSpec.DoubleValue DYNAMIC_RADIUS_MAX_CAP;
     private static final ModConfigSpec.ConfigValue<String> DYNAMIC_RADIUS_FORMULA;
+    private static final ModConfigSpec.BooleanValue NESTED_CONTAINERS_ENABLED;
+    private static final ModConfigSpec.IntValue NESTED_CONTAINER_MAX_DEPTH;
+    private static final ModConfigSpec.IntValue NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE;
+    private static final ModConfigSpec.IntValue NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP;
     private static final ModConfigSpec.BooleanValue CREATE_TRANSIENT_CARRIERS_ENABLED;
     private static final ModConfigSpec.BooleanValue CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED;
     private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS;
@@ -146,6 +154,22 @@ public final class RadWorksConfig {
         DYNAMIC_RADIUS_FORMULA = builder
                 .comment("Diagnostics-only label for dynamic radius formula.")
                 .define("dynamicRadiusFormula", DEFAULT_DYNAMIC_RADIUS_FORMULA);
+        NESTED_CONTAINERS_ENABLED = builder
+                .comment("Enable bounded nested-container item extraction from supported vanilla item data-components.")
+                .define("nestedContainersEnabled", DEFAULT_NESTED_CONTAINERS_ENABLED);
+        NESTED_CONTAINER_MAX_DEPTH = builder
+                .comment("Maximum nested container extraction depth.")
+                .defineInRange("nestedContainerMaxDepth", DEFAULT_NESTED_CONTAINER_MAX_DEPTH, 1, 5);
+        NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE = builder
+                .comment("Maximum extracted nested child stacks per outer source stack.")
+                .defineInRange("nestedContainerMaxItemsPerSource", DEFAULT_NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE, 1, 1024);
+        NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP = builder
+                .comment("Maximum nested-container diagnostic samples stored in dump.")
+                .defineInRange(
+                        "nestedContainerDiagnosticSampleCap",
+                        DEFAULT_NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP,
+                        1,
+                        200);
         builder.pop();
         builder.push("integrations");
         CREATE_TRANSIENT_CARRIERS_ENABLED = builder
@@ -310,6 +334,22 @@ public final class RadWorksConfig {
         return getString(DYNAMIC_RADIUS_FORMULA, DEFAULT_DYNAMIC_RADIUS_FORMULA);
     }
 
+    public static boolean nestedContainersEnabled() {
+        return getBoolean(NESTED_CONTAINERS_ENABLED, DEFAULT_NESTED_CONTAINERS_ENABLED);
+    }
+
+    public static int nestedContainerMaxDepth() {
+        return getInt(NESTED_CONTAINER_MAX_DEPTH, DEFAULT_NESTED_CONTAINER_MAX_DEPTH);
+    }
+
+    public static int nestedContainerMaxItemsPerSource() {
+        return getInt(NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE, DEFAULT_NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE);
+    }
+
+    public static int nestedContainerDiagnosticSampleCap() {
+        return getInt(NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP, DEFAULT_NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP);
+    }
+
     public static boolean createTransientCarriersEnabled() {
         return getBoolean(CREATE_TRANSIENT_CARRIERS_ENABLED, DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED);
     }
@@ -410,6 +450,10 @@ public final class RadWorksConfig {
         json.addProperty("dynamicRadiusScale", dynamicRadiusScale());
         json.addProperty("dynamicRadiusMaxCap", dynamicRadiusMaxCap());
         json.addProperty("dynamicRadiusFormula", dynamicRadiusFormulaLabel());
+        json.addProperty("nestedContainersEnabled", nestedContainersEnabled());
+        json.addProperty("nestedContainerMaxDepth", nestedContainerMaxDepth());
+        json.addProperty("nestedContainerMaxItemsPerSource", nestedContainerMaxItemsPerSource());
+        json.addProperty("nestedContainerDiagnosticSampleCap", nestedContainerDiagnosticSampleCap());
         json.addProperty("createTransientCarriersEnabled", createTransientCarriersEnabled());
         json.addProperty("createTransientCarrierNbtScanEnabled", createTransientCarrierNbtScanEnabled());
         json.addProperty("createTransientCarrierMaxScanRadius", createTransientCarrierMaxScanRadius());

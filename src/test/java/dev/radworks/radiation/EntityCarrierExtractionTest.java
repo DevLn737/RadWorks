@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
+import dev.radworks.diagnostics.NestedContainerDiagnostics;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
 import org.junit.jupiter.api.Test;
 
 class EntityCarrierExtractionTest {
@@ -58,6 +61,32 @@ class EntityCarrierExtractionTest {
         UUID other = UUID.randomUUID();
         assertTrue(EntityCarrierExtraction.shouldSkipSelfAura(player, player));
         assertFalse(EntityCarrierExtraction.shouldSkipSelfAura(player, other));
+    }
+
+    @Test
+    void droppedContainerStackNestedContentsAreAggregated() {
+        RadiationRules rules = rulesWithItem("minecraft:rotten_flesh");
+        ItemStack shulker = new ItemStack(Items.SHULKER_BOX, 1);
+        shulker.set(
+                DataComponents.CONTAINER,
+                ItemContainerContents.fromItems(List.of(new ItemStack(Items.ROTTEN_FLESH, 5))));
+
+        List<EntityCarrierExtraction.MatchedAggregate> aggregates =
+                EntityCarrierExtraction.aggregateRadioactiveStackWithNested(
+                        shulker,
+                        "entity_dropped_item.entity[test]",
+                        rules,
+                        NestedContainerDiagnostics.builder());
+
+        assertEquals(1, aggregates.size());
+        EntityCarrierExtraction.MatchedAggregate aggregate = aggregates.get(0);
+        assertEquals("minecraft:rotten_flesh", aggregate.itemId().toString());
+        assertEquals(5, aggregate.aggregateCount());
+        assertEquals(1, aggregate.contributingStacks());
+        assertEquals(1, aggregate.nestedMatches());
+        assertEquals(1, aggregate.maxNestedDepth());
+        assertEquals("data_component_container", aggregate.firstExtractionMode());
+        assertTrue(aggregate.firstContainerPath().contains("slot[0]"));
     }
 
     private static RadiationRules rulesWithItem(String id) {

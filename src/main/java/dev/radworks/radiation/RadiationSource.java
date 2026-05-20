@@ -40,6 +40,10 @@ public record RadiationSource(
         String carrierSourceKind,
         String dataPath,
         String extractionMode,
+        boolean nested,
+        int nestedDepth,
+        ResourceLocation containerItemId,
+        String containerPath,
         String ruleMatchMode,
         String matchReason) {
     public static RadiationSource playerInventoryAggregate(
@@ -84,6 +88,10 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                false,
+                0,
                 null,
                 null,
                 "exact",
@@ -132,6 +140,10 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                false,
+                0,
                 null,
                 null,
                 "exact",
@@ -188,6 +200,10 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                false,
+                0,
+                null,
+                null,
                 ruleMatchMode,
                 matchReason);
     }
@@ -238,6 +254,10 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                false,
+                0,
                 null,
                 null,
                 "exact",
@@ -291,6 +311,10 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                null,
+                null,
+                false,
+                0,
                 null,
                 null,
                 "exact",
@@ -347,6 +371,10 @@ public record RadiationSource(
                 null,
                 null,
                 null,
+                false,
+                0,
+                null,
+                null,
                 ruleMatchMode,
                 matchReason);
     }
@@ -401,6 +429,10 @@ public record RadiationSource(
                 null,
                 dataPath,
                 "safe_data_path",
+                false,
+                0,
+                null,
+                null,
                 "exact",
                 matchReason);
     }
@@ -456,6 +488,10 @@ public record RadiationSource(
                 null,
                 dataPath,
                 "safe_data_path",
+                false,
+                0,
+                null,
+                null,
                 ruleMatchMode,
                 matchReason);
     }
@@ -512,6 +548,10 @@ public record RadiationSource(
                 carrierSourceKind,
                 null,
                 extractionMode,
+                false,
+                0,
+                null,
+                null,
                 "exact",
                 matchReason);
     }
@@ -552,6 +592,10 @@ public record RadiationSource(
                 carrierSourceKind,
                 dataPath,
                 extractionMode,
+                nested,
+                nestedDepth,
+                containerItemId,
+                containerPath,
                 ruleMatchMode,
                 matchReason);
     }
@@ -598,8 +642,112 @@ public record RadiationSource(
                 carrierSourceKind,
                 dataPath,
                 extractionMode,
+                nested,
+                nestedDepth,
+                containerItemId,
+                containerPath,
                 ruleMatchMode,
                 nextReason);
+    }
+
+    public RadiationSource withExtractionContext(String nestedDataPath, String nestedExtractionMode) {
+        String nextDataPath = (nestedDataPath == null || nestedDataPath.isBlank()) ? dataPath : nestedDataPath;
+        String nextExtractionMode = (nestedExtractionMode == null || nestedExtractionMode.isBlank())
+                ? extractionMode
+                : nestedExtractionMode;
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                activeBecause,
+                respectsShielding,
+                rawContribution,
+                shielding,
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                finalContribution,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                nextDataPath,
+                nextExtractionMode,
+                nested,
+                nestedDepth,
+                containerItemId,
+                containerPath,
+                ruleMatchMode,
+                matchReason);
+    }
+
+    public RadiationSource withNestedContext(
+            int nextNestedDepth,
+            ResourceLocation nextContainerItemId,
+            String nextContainerPath) {
+        String resolvedContainerPath = (nextContainerPath == null || nextContainerPath.isBlank())
+                ? containerPath
+                : nextContainerPath;
+        int resolvedNestedDepth = Math.max(nestedDepth, Math.max(0, nextNestedDepth));
+        ResourceLocation resolvedContainerItemId = nextContainerItemId != null ? nextContainerItemId : containerItemId;
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                activeBecause,
+                respectsShielding,
+                rawContribution,
+                shielding,
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                finalContribution,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                dataPath,
+                extractionMode,
+                true,
+                resolvedNestedDepth,
+                resolvedContainerItemId,
+                resolvedContainerPath,
+                ruleMatchMode,
+                matchReason);
     }
 
     public JsonObject toJson() {
@@ -657,6 +805,16 @@ public record RadiationSource(
         }
         if (extractionMode != null) {
             json.addProperty("extractionMode", extractionMode);
+        }
+        json.addProperty("nested", nested);
+        if (nestedDepth > 0) {
+            json.addProperty("nestedDepth", nestedDepth);
+        }
+        if (containerItemId != null) {
+            json.addProperty("containerItemId", containerItemId.toString());
+        }
+        if (containerPath != null) {
+            json.addProperty("containerPath", containerPath);
         }
         if (ruleMatchMode != null) {
             json.addProperty("ruleMatchMode", ruleMatchMode);
