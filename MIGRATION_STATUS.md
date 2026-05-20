@@ -1,5 +1,16 @@
 # Migration Status
 
+## Beta 0.4.5 - Closure / regression / merge prep
+Status: implemented locally; regression gates green; final external modpack retest pending for closure confirmation.
+
+Closure baseline includes:
+- world fluid sources with stable cluster discovery/aggregation;
+- entity-carried sources (`entity_dropped_item`, `entity_item_frame`, `entity_player_inventory_aura`, `entity_inventory`);
+- bounded living-entity effect targets;
+- target-aware shielding for living targets;
+- dedicated-server compatibility audit/hardening and smoke workflow;
+- bounded diagnostics/config controls for server-authoritative behavior.
+
 ## Beta 0.4.4 - Shielding for living entity targets
 Status: implemented locally, automated checks passed in this step, external modpack verification required.
 

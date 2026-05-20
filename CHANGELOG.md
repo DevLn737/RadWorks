@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.5 closure / regression / merge prep:
+  - consolidated Beta 0.4 as entity/server baseline without gameplay formula changes;
+  - finalized regression gate workflow (`test`, `build`, `runServer` smoke);
+  - aligned migration/testing/handoff docs for final Beta 0.4 retest and merge prep;
+  - kept non-goals unchanged (no new gameplay systems, no nested containers/containment, no contraptions/Aeronautics).
 - Beta 0.4.4 shielding for living entity targets:
   - generalized shielding path from player-only to target-aware `RadiationTargetContext` for living targets;
   - preserved player shielding baseline through compatibility wrapper path;

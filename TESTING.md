@@ -16,6 +16,27 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.4.5 final regression workflow
+Run in order:
+
+```bash
+./gradlew test
+./gradlew build
+./gradlew runServer
+```
+
+`runServer` smoke interpretation:
+- acceptable: server starts and waits with no client-only/classloading crash;
+- acceptable: EULA-related stop in fresh server run directory;
+- blocker: startup exception, client-only reference crash, registry/config crash during startup.
+
+Final closure gate expectations:
+- `ForbiddenClientImportsTest` green;
+- config bounds/default tests green;
+- world fluid tests green;
+- living target tests green;
+- shielding tests green.
+
 ## Beta 0.4.4 automated checks
 - Target-aware shielding:
   - player shielding regression remains unchanged;

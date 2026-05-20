@@ -1,148 +1,47 @@
-# RadWorks Beta Tester Handoff
+# RadWorks Beta 0.4 Final Retest Handoff
 
 ## Target
 - Minecraft: `1.21.1`
 - NeoForge: `21.1.228`
 - Java: `21`
 - Jar: `build/libs/radworks-0.1.0.jar`
-- KubeJS is not required.
-- Create, Create Nuclear, TFMG, Sophisticated and Aeronautics are optional for this beta.
 
-## Recommended beta setup
-- Put RadWorks jar on the dedicated server.
-- During beta, also put the same RadWorks jar on clients unless explicit server-only compatibility is proven for the current build.
+## Setup
+- Place RadWorks jar on the dedicated server.
+- During beta retest, also place the same jar on clients.
+- Optional mods (if available): Create, Create Nuclear, TFMG.
 
-## Basic Commands
-Run:
-
+## Commands to run in each scenario
 ```text
-/radworks version
 /radworks validate
-/radworks exposure
 /radworks sources
-/radworks effect status
+/radworks exposure
 /radworks radius show 10
 /radworks dump
 ```
 
-## Gameplay Smoke
-1. Beta default has dev vanilla radiation rules OFF (`rules.enableDevRules=false`), so rotten flesh/gold block/water are not expected to irradiate.
-2. Effect runtime mode default is `external_if_present`:
-   - if `createnuclear:radiation` exists, RadWorks auto-apply should use it;
-   - otherwise RadWorks should fall back to `radworks:radiation`.
-3. Run `/radworks validate` and note which Create Nuclear/Create IDs are present or missing.
-3. If present in this modpack, test actual radioactive candidates:
-   - Create Nuclear items in player inventory.
-   - Create Nuclear blocks near player.
-   - `createnuclear:uranium` in a modded tank/fluid handler.
-4. For each scenario, run:
-   - `/radworks sources`
-   - `/radworks exposure`
-   - `/radworks effect status`
-   - `/radworks dump`
-   Confirm chat output is readable/compact (details should stay in dump).
-5. Clear effect between scenarios:
-   - `/radworks effect clear-self`
-6. Equip full diamond armor and repeat one positive exposure scenario.
-   Expected: full armor blocks auto-apply.
-7. If item/fluid handlers are found but no match appears, inspect dump section:
-   - `handlerDiagnostics.itemHandlerNonMatchingSamples`
-   - `handlerDiagnostics.fluidHandlerNonMatchingSamples`
-8. Dynamic radius retest is required:
-   - chest full of `createnuclear:raw_uranium`: capture close / medium / just-outside distance dumps;
-   - Create item vault with uranium: capture close / medium / just-outside distance dumps;
-   - uranium bucket or uranium tank if available: capture close / medium / just-outside distance dumps.
-   - verify reasons use `outside_dynamic_radius` where applicable.
-9. Radius visualization sanity:
-   - run `/radworks radius show 10`;
-   - compare visual rings with `/radworks sources` `effectiveRadius` values;
-   - use close/medium/outside positions for chest/vault/tank cases.
-10. Create transient/internal carrier retest:
-   - `create:placard` with `createnuclear:raw_uranium` in `Item`;
-   - `create:mechanical_arm` with `createnuclear:raw_uranium` in `HeldItem`;
-   - `create:fluid_pipe` and `create:glass_fluid_pipe` with `side.Flow.Fluid` uranium;
-   - `fluid:pipette` if available in this pack.
-   - Also check `createnuclear:flowing_uranium` if it appears in flow data.
-   - In dump, inspect `createCarrierDiagnostics.fluidPathSamples` for:
-     - `ruleMatchMode` (`none|exact|fallback`)
-     - `skippedReason` (`path_missing`, `fluid_compound_missing`, `invalid_fluid_id`, `amount_missing`, `amount_non_positive`, `no_active_fluid_rule`, `outside_dynamic_radius`).
-   - For each scenario run:
-     - `/radworks validate`
-     - `/radworks sources`
-     - `/radworks exposure`
-     - `/radworks radius show 10` (or keep always-on visualization)
-     - `/radworks dump`
-11. Entity carrier retest (Post-Beta 4A + 4B):
-   - dropped `createnuclear:raw_uranium` stack with count `1` and `64` if possible;
-   - `item_frame` with `createnuclear:raw_uranium`;
-   - `glow_item_frame` with `createnuclear:raw_uranium`;
-   - player aura test: one player with radioactive inventory near another player.
-   - chest boat with radioactive inventory.
-   - donkey/mule with chest inventory and radioactive stacks.
-   - llama/trader llama inventory scenario if available.
-   - optional: any modded mob/entity exposing `Capabilities.ItemHandler.ENTITY`.
-   - Confirm self-player inventory is not double-counted (self remains from `player_inventory`, aura is from other players only).
-   - For each scenario run:
-     - `/radworks validate`
-     - `/radworks sources`
-     - `/radworks exposure`
-     - `/radworks radius show 10` (or always-on visualization)
-     - `/radworks dump`
-12. Living-target effect retest (Beta 0.4.3):
-   - mob near radioactive block/fluid should receive runtime radiation effect;
-   - mob carrying radioactive inventory should receive runtime radiation effect;
-   - player pipeline should remain unchanged (player still receives effect as before);
-   - armor stand is skipped by default;
-   - non-player target shielding is implemented in Beta 0.4.4;
-   - non-player armor protection is still not implemented (planned future phase).
-   - For each scenario run:
-     - `/radworks validate`
-     - `/radworks sources`
-     - `/radworks exposure`
-     - `/radworks dump`
-13. Living-target shielding retest (Beta 0.4.4):
-   - mob near radioactive block without shielding block between source and target (baseline);
-   - same mob with shielding block between source and target (expect reduced contribution/effect chance);
-   - mob near world fluid with and without shielding block;
-   - mob carrying radioactive inventory: self-carried source should still affect target with `shielding=not_applicable`.
-   - For each scenario run:
-     - `/radworks validate`
-     - `/radworks sources`
-     - `/radworks exposure`
-     - `/radworks dump`
-14. World fluid retest (Beta 0.4.1):
-   - before fluid-only tests clear inventory contamination:
-     - `/clear @s createnuclear:uranium_bucket` (or `/clear @s`);
-   - place `createnuclear:uranium` in world and check close / medium / outside distance;
-   - place `createnuclear:flowing_uranium` in world and repeat;
-   - test both a small source and larger connected masses:
-     - 1 block,
-     - 3x3 pool,
-     - 4x3x3 cube,
-     - waterfall;
-   - verify connected fluid blocks aggregate into cluster-style `world_fluid` rows (not one row per every block);
-   - verify radius visualization works from the same source rows;
-   - in `/radworks dump` -> `worldFluidDiagnostics`, check:
-     - `worldFluidDiscoveryRadius`,
-     - cluster fields (`contributingFluidBlocks`, `aggregateAmountMb`, `normalizedFluidId`, `clusterBoundingBox`),
-     - `maybeClippedByDiscoveryRadius` when mass touches scan boundary,
-     - skip reason if a row is skipped.
+## Final Beta 0.4 retest scenarios
+1. World fluid: `createnuclear:uranium`
+   - 1 block
+   - pool
+   - waterfall
+2. Dropped radioactive item
+   - count 1
+   - count 64
+3. Item frame / glow item frame with radioactive item.
+4. Chest boat with radioactive inventory.
+5. Donkey/mule/llama with radioactive inventory.
+6. Mob near radioactive source (effect should apply when threshold reached).
+7. Mob carrying radioactive item (self-carried source behavior).
+8. Mob with shield block between source and target (reduced shielding contribution expected).
+9. Player shielding regression check (existing player shielding still works).
+10. Two-player aura check (if possible): one player carries source, second player nearby.
 
-## Optional Shielding Checks
-If TFMG/Create Nuclear are installed, test available shielding blocks:
-- `tfmg:raw_lead_block`
-- `tfmg:lead_block`
-- `tfmg:lead_ore`
-- `createnuclear:reinforced_glass`
+## What to send back
+- Dump files only for failing or confusing cases.
+- Short note with mod versions used.
+- `latest.log` only if crash/warning/confusing behavior appears.
 
-## Return to Codex/User
-- `/radworks validate` output.
-- Dumps for: baseline, positive item/block/fluid scenario, armor-blocked scenario, shielding scenario.
-- Include close/medium/outside dumps for chest/vault/tank dynamic radius checks.
-- Include dumps for placard/mechanical arm/pipe/glass_pipe/pipette transient scenarios where available.
-- Include dumps for dropped-item, item-frame, glow-item-frame, player-aura, chest-boat, and pack-animal scenarios.
-- Include dumps for living-target effect scenarios (mob-near-source and mob-self-carry).
-- Include dumps for world-fluid still/flowing uranium scenarios.
-- Screenshots or short video of radius visualization for transient scenarios are helpful.
-- `latest.log` only if there is a crash/warning/confusing behavior.
-- Installed mod versions if optional mods are involved.
+## Notes
+- No nested containers/containment are part of this beta closure.
+- Non-player armor protection is not in Beta 0.4 baseline.
