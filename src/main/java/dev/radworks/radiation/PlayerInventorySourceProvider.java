@@ -85,6 +85,10 @@ public final class PlayerInventorySourceProvider {
                 source = source.withExtractionContext(
                                 nested.firstContainerPath,
                                 nested.firstExtractionMode)
+                        .withNestedContext(
+                                nested.maxNestedDepth,
+                                nested.firstContainerItemId,
+                                nested.firstContainerPath)
                         .withMatchReasonSuffix(
                                 "nested=true nestedMatches="
                                         + nested.nestedMatches

@@ -129,6 +129,18 @@ public final class ExposureCommand {
         if (source.extractionMode() != null) {
             row.append(" extractionMode=").append(source.extractionMode());
         }
+        if (source.nested()) {
+            row.append(" nested=true");
+            if (source.nestedDepth() > 0) {
+                row.append(" nestedDepth=").append(source.nestedDepth());
+            }
+            if (source.containerItemId() != null) {
+                row.append(" containerItemId=").append(source.containerItemId());
+            }
+            if (source.containerPath() != null) {
+                row.append(" containerPath=").append(source.containerPath());
+            }
+        }
         if (source.slot() != null) {
             row.append(" slot=").append(source.slot());
         }

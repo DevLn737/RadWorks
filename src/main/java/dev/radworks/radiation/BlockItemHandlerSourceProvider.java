@@ -320,6 +320,10 @@ public final class BlockItemHandlerSourceProvider {
             NestedAggregateMeta nested = nestedMeta.get(new Key(aggregate.key().itemId(), aggregate.rule().key()));
             if (nested != null && nested.nestedMatches > 0) {
                 source = source.withExtractionContext(nested.firstContainerPath, nested.firstExtractionMode)
+                        .withNestedContext(
+                                nested.maxNestedDepth,
+                                nested.firstContainerItemId,
+                                nested.firstContainerPath)
                         .withMatchReasonSuffix(
                                 "nested=true nestedMatches="
                                         + nested.nestedMatches

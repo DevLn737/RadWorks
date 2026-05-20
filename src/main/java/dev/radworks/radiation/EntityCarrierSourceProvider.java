@@ -374,7 +374,10 @@ public final class EntityCarrierSourceProvider {
                             + " count="
                             + aggregate.aggregateCount()).withExtractionContext(
                                     aggregate.firstContainerPath(),
-                                    aggregate.firstExtractionMode()).withMatchReasonSuffix(
+                                    aggregate.firstExtractionMode()).withNestedContext(
+                                            aggregate.maxNestedDepth(),
+                                            aggregate.firstContainerItemId(),
+                                            aggregate.firstContainerPath()).withMatchReasonSuffix(
                                             nestedSuffix(aggregate)));
         }
     }
@@ -589,7 +592,10 @@ public final class EntityCarrierSourceProvider {
                             + " carrier="
                             + view.carrierSourceKind()).withExtractionContext(
                                     aggregate.firstContainerPath(),
-                                    aggregate.firstExtractionMode()).withMatchReasonSuffix(
+                                    aggregate.firstExtractionMode()).withNestedContext(
+                                            aggregate.maxNestedDepth(),
+                                            aggregate.firstContainerItemId(),
+                                            aggregate.firstContainerPath()).withMatchReasonSuffix(
                                             nestedSuffix(aggregate)));
         }
         return matched;
@@ -652,7 +658,10 @@ public final class EntityCarrierSourceProvider {
                         + " count="
                         + aggregate.aggregateCount()).withExtractionContext(
                                 aggregate.firstContainerPath(),
-                                aggregate.firstExtractionMode()).withMatchReasonSuffix(
+                                aggregate.firstExtractionMode()).withNestedContext(
+                                        aggregate.maxNestedDepth(),
+                                        aggregate.firstContainerItemId(),
+                                        aggregate.firstContainerPath()).withMatchReasonSuffix(
                                         nestedSuffix(aggregate)));
     }
 
