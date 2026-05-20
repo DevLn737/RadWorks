@@ -1,10 +1,10 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-13): Post-Beta 2 implemented dynamic aggregate source radius model and aggregate source rows; Post-Beta 2V added `/radworks radius` debug visualization using effective radius from current source rows; Post-Beta 3/3F added optional-safe Create transient/internal carrier extraction plus liquid-uranium diagnostics hardening; Post-Beta 4A added basic entity-carried sources (`entity_dropped_item`, `entity_item_frame`, `entity_player_inventory_aura`); Post-Beta 4B extends entity inventory carriers with `entity_inventory` (chest boats, pack animals, and generic entity `ItemHandler` capability fallback) plus bounded diagnostics counters.
+> Update (2026-05-20): Beta 0.4 closure baseline is complete locally. It includes world fluid sources with stable cluster discovery/aggregation, entity carriers (dropped items/frames/player aura/entity inventory), bounded living-entity effect targets, target-aware shielding for living targets, dedicated-server compatibility hardening, and automation-first regression gates (`test/build/runServer smoke`).
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. The mod remains diagnostics-heavy, but now includes config-gated gameplay auto-apply for the selected runtime radiation effect, plus manual `/radworks effect` commands. Current focus is optional-safe source discovery and diagnostics hardening for real modpack environments, with automation-first local regression tests.
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.4 entity/server hardening: bounded source discovery across world fluids, entity carriers, and living targets; target-aware shielding for living entities; and server-authoritative diagnostics/config with dedicated-server compatibility checks. No new gameplay systems (damage/exhaustion/persistent dose) are part of this baseline.
 
 ## 2. Target environment
 
@@ -44,6 +44,7 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 
 | Phase | Status | What is implemented | What is still missing |
 |---|---|---|---|
+| Beta 0.4 closure baseline | DONE (local) / EXTERNAL_RETEST_PENDING | World fluid + stable clusters, entity carriers, living-target auto-apply, target-aware living shielding, dedicated-server hardening | Final external modpack confirmation before merge closeout |
 | Phase 0 — Repository foundation | DONE | Minimal NeoForge mod, docs, `/radworks version`, `/radworks dump`, build baseline | Nothing planned for Phase 0 |
 | Phase 1 — Data-driven radiation rules | DONE | JSON rules from `data/radworks/radiation_rules/*.json`, validation, checksum, lenient/dev mode | Real modpack rules not migrated |
 | Phase 2 — Player inventory radiation | DONE / DIAGNOSTIC_ONLY | Server-side main inventory and offhand item source diagnostics | No gameplay effects, armor, Curios, nested containers |
@@ -55,7 +56,7 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 | Phase 5A — Shielding diagnostics | DONE / DIAGNOSTIC_ONLY / DEV_ONLY | Diagnostic shielding engine, dev `minecraft:iron_block` tag, shielding fields/counters, manual dump review passed | No final balance model |
 | Phase 5A.1 — Shielding manual verification / dump review | DONE | Confirmed no-shield total `15.0`, shielded total `12.5`, and expected shielding counters | Nothing further planned for 5A.1 |
 | Phase 5B — Real shielding rules + external tester package | PARTIAL / DIAGNOSTIC_ONLY | Optional TFMG/Create Nuclear shielding candidates, validate/dump candidate diagnostics, `TESTER_HANDOFF.md` | External modpack verification pending |
-| Phase 6 (6A/6C/6D/6E/6T) | PARTIAL / DIAGNOSTIC_ONLY | Armor diagnostics (6A), effect preview diagnostics (6C), own `radworks:radiation` registration (6D), controlled manual effect command (6E), automated local regression harness (6T) | Auto-apply gameplay behavior and final effect strategy still not implemented |
+| Phase 6 (6A/6C/6D/6E/6T) | DONE (beta baseline) | Armor diagnostics (6A), effect preview diagnostics (6C), own `radworks:radiation` registration (6D), controlled manual effect command (6E), automated local regression harness (6T), config-gated auto-apply baseline | No new gameplay systems beyond baseline scope |
 | Phase 7 candidate | NOT_STARTED | Candidate for performance/cache planning before gameplay tick logic | Cache/invalidation strategy not decided |
 | Phase 8+ Create/Aeronautics future work | NOT_STARTED / BLOCKED_BY_DECISION | No integrations yet | Requires optional integration architecture and API research |
 

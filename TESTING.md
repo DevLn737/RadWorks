@@ -16,6 +16,105 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.4.5 final regression workflow
+Run in order:
+
+```bash
+./gradlew test
+./gradlew build
+./gradlew runServer
+```
+
+`runServer` smoke interpretation:
+- acceptable: server starts and waits with no client-only/classloading crash;
+- acceptable: EULA-related stop in fresh server run directory;
+- blocker: startup exception, client-only reference crash, registry/config crash during startup.
+
+Final closure gate expectations:
+- `ForbiddenClientImportsTest` green;
+- config bounds/default tests green;
+- world fluid tests green;
+- living target tests green;
+- shielding tests green.
+
+## Beta 0.4.4 automated checks
+- Target-aware shielding:
+  - player shielding regression remains unchanged;
+  - non-player living target shielding is applied for external positioned sources.
+- Self-carried policy:
+  - self-carried source for the same target remains `shielding=not_applicable`;
+  - source reason includes `self_carried_source_not_shielded`.
+- Config defaults/bounds:
+  - `applyShieldingToLivingEntities=true` by default.
+- Source scan summary:
+  - `livingShieldingSourcesChecked`, `livingShieldingSourcesReduced`, `livingShieldingSamplesChecked` are present.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
+## Beta 0.4.3 automated checks
+- Living-target decision policy:
+  - disabled mode -> skip;
+  - missing selected effect -> skip;
+  - below threshold -> skip;
+  - above threshold -> apply intent.
+- Living-target selection policy:
+  - armor stand skipped by default;
+  - max living targets cap enforced.
+- Config defaults/bounds:
+  - living target toggles are server-safe;
+  - `maxLivingTargetsPerScan` and `livingTargetScanRadius` are positive and bounded.
+- Keep local gates:
+  - `./gradlew test`
+  - `./gradlew build`
+
+## Beta 0.4.2 dedicated server smoke
+Run:
+
+```bash
+./gradlew runServer
+```
+
+Expected outcomes:
+- acceptable: process stops due to Minecraft EULA not yet accepted in fresh run directory;
+- acceptable: server starts and waits without client-only classloading crash.
+
+Fail this smoke only on:
+- startup exception;
+- client-only reference/classloading crash;
+- missing registry/config crash during startup.
+
+## Beta 0.4.1 automated checks
+- World fluid source resolution:
+  - exact `createnuclear:uranium` rule match;
+  - exact `createnuclear:flowing_uranium` rule match;
+  - fallback `flowing_uranium -> uranium` when exact rule is missing.
+- World fluid source row creation:
+  - `world_fluid` source descriptor creation path for matched fluids;
+  - unknown fluid produces no source and remains diagnostics-visible.
+- World fluid diagnostics:
+  - bounded skip/match samples include rule match mode and skip reason.
+
+## Beta 0.4.1F automated checks
+- World fluid connected-cluster aggregation:
+  - one block => one cluster/source with `aggregateAmountMb=1000`;
+  - connected 8-block cluster => one source with `aggregateAmountMb=8000`, `finalContribution=8.0` for `strength=1`;
+  - connected 19-block cluster => `finalContribution=19.0` and larger `effectiveRadius` than 8-block cluster.
+- Disconnected world fluid clusters:
+  - produce separate aggregate `world_fluid` rows.
+- Distance model:
+  - cluster distance uses nearest fluid block (not centroid-only).
+
+## Beta 0.4.1G automated checks
+- Stable world-fluid discovery radius:
+  - scan window uses `integrations.worldFluidClusterDiscoveryRadius`, not base rule radius.
+- Connected fluid mass stability:
+  - `3x3` pool => `contributingFluidBlocks=9`;
+  - `4x3x3` cube => `contributingFluidBlocks=36`;
+  - slight player movement around same mass keeps block count/effectiveRadius stable.
+- Mixed still/flowing behavior:
+  - `createnuclear:uranium` + `createnuclear:flowing_uranium` in one connected mass produce deterministic normalized cluster behavior.
+
 ## Post-Beta 4B automated checks
 - Entity inventory adapter/extraction:
   - chest boat / chest raft type-path classification;

@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -29,11 +30,22 @@ public final class BlockSourceProvider {
             ServerPlayer player,
             RadiationRules rules,
             SourceScanSummary.Builder summary) {
-        return PerformanceStats.timeValue("blockScan", () -> collectTimed(player, rules, summary));
+        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary) {
+        return PerformanceStats.timeValue("blockScan", () -> collectTimed(level, targetPosition, center, rules, summary));
     }
 
     private static List<RadiationSource> collectTimed(
-            ServerPlayer player,
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary) {
         List<RadiationSource> sources = new ArrayList<>();
@@ -48,21 +60,19 @@ public final class BlockSourceProvider {
             return sources;
         }
 
-        Vec3 playerPosition = player.position();
-        BlockPos center = player.blockPosition();
         BlockPos min = center.offset(-scanRadius, -scanRadius, -scanRadius);
         BlockPos max = center.offset(scanRadius, scanRadius, scanRadius);
 
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
             summary.blockPositionChecked();
-            BlockState state = player.serverLevel().getBlockState(pos);
+            BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             RadiationRule rule = rules.blockRule(blockId).orElse(null);
             if (rule == null) {
                 continue;
             }
 
-            double distance = playerPosition.distanceTo(Vec3.atCenterOf(pos));
+            double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
             if (distance > rule.radius()) {
                 continue;
             }

@@ -1,5 +1,93 @@
 # Migration Status
 
+## Beta 0.4.5 - Closure / regression / merge prep
+Status: implemented locally; regression gates green; final external modpack retest pending for closure confirmation.
+
+Closure baseline includes:
+- world fluid sources with stable cluster discovery/aggregation;
+- entity-carried sources (`entity_dropped_item`, `entity_item_frame`, `entity_player_inventory_aura`, `entity_inventory`);
+- bounded living-entity effect targets;
+- target-aware shielding for living targets;
+- dedicated-server compatibility audit/hardening and smoke workflow;
+- bounded diagnostics/config controls for server-authoritative behavior.
+
+## Beta 0.4.4 - Shielding for living entity targets
+Status: implemented locally, automated checks passed in this step, external modpack verification required.
+
+Implemented:
+- Generalized shielding engine to target-aware `RadiationTargetContext` flow for living targets.
+- Kept `ServerPlayer` shielding API compatibility wrapper and baseline player behavior.
+- Enabled shielding for non-player living targets against external positioned sources.
+- Kept self-carried sources on the same target as `shielding=not_applicable` with reason suffix `self_carried_source_not_shielded`.
+- Added gameplay safety toggle:
+  - `applyShieldingToLivingEntities` (default `true`).
+- Added living-target shielding counters in `sourceScanSummary`:
+  - `livingShieldingSourcesChecked`
+  - `livingShieldingSourcesReduced`
+  - `livingShieldingSamplesChecked`
+
+## Beta 0.4.3 - Living entity radiation targets
+Status: implemented locally, automated checks passed in this step, external modpack verification required.
+
+Implemented:
+- Expanded gameplay effect target model to support bounded nearby non-player `LivingEntity` auto-apply.
+- Kept player auto-apply path and `/radworks exposure` player snapshot behavior as baseline.
+- Added target-aware exposure path for gameplay decisions without overwriting player `lastExposureSnapshot`.
+- Added gameplay config toggles/caps:
+  - `applyEffectToPlayers`
+  - `applyEffectToLivingEntities`
+  - `applyEffectToMobs`
+  - `applyEffectToArmorStands`
+  - `maxLivingTargetsPerScan`
+  - `livingTargetScanRadius`
+- Added bounded `livingEntityEffectDecisions` diagnostics and living-target counters.
+- Explicitly kept shielding/armor evaluation player-only for this phase (non-player policies deferred to Beta 0.4.4).
+
+## Beta 0.4.2 - Dedicated server compatibility audit
+Status: implemented locally, automated checks passed in this step, dedicated server smoke executed.
+
+Implemented:
+- Added automated client-only import guard for `src/main/java/dev/radworks/**`.
+- Audited dedicated metadata/side policy (`neoforge.mods.toml` remains `side=BOTH`, no client-only forcing).
+- Added server-authoritative config safety test coverage (including world fluid discovery radius bounds).
+- Added radius visualization server-safety static checks (no client imports/calls, bounded caps).
+- Executed dedicated server smoke workflow (`test`, `build`, `runServer`).
+
+## Beta 0.4.1G - Stable world fluid cluster discovery
+Status: implemented locally, automated checks passed in this step, external modpack verification required.
+
+Implemented:
+- Added explicit world-fluid discovery radius config: `integrations.worldFluidClusterDiscoveryRadius` (default `10`, clamp `1..32`).
+- Decoupled world-fluid scan window from base fluid rule radius.
+- Stabilized cluster identity using normalized fluid id (`flowing_x -> x`) with 6-direction adjacency.
+- Kept nearest-block activation distance model; cluster mass and dynamic radius are now stable across small player movement.
+- Extended world-fluid diagnostics with discovery radius, cluster bounding box, normalized fluid id and clipped-by-discovery hint.
+
+## Beta 0.4.1F - World fluid aggregation fix
+Status: implemented locally, automated checks pending in this step, external modpack verification required.
+
+Implemented:
+- Updated `WorldFluidSourceProvider` to aggregate connected radioactive world-fluid blocks into cluster-based `world_fluid` rows.
+- Cluster connectivity: 6-directional adjacency, grouped by resolved `matchedRuleId`.
+- World-fluid amount now uses aggregate model:
+  - `aggregateAmountMb = contributingFluidBlocks * 1000`.
+- Contribution scaling and dynamic radius now use cluster aggregate amount/units.
+- Distance gate now uses nearest fluid block in cluster (not centroid-only).
+- Extended `worldFluidDiagnostics` with cluster-level fields and bounded cluster samples.
+
+## Beta 0.4.1 - World fluid source fix
+Status: implemented locally, automated checks pending in this step, external modpack verification required.
+
+Implemented:
+- Added `WorldFluidSourceProvider` with `world_fluid` rows for placed world fluids (`FluidState`), without tank/capability dependency.
+- Added fluid rule resolution via `RadiationRules.resolveFluidRule(...)` (exact first, `flowing_x -> x` fallback for fluids).
+- Added world fluid diagnostics and source scan counters:
+  - `worldFluidPositionsChecked`
+  - `worldFluidStatesFound`
+  - `worldFluidMatches`
+  - `worldFluidSkipped`
+- Added dump section `worldFluidDiagnostics` with bounded match/skip samples and reasons.
+
 ## Post-Beta 4B - Chest boats + pack animals + safe entity inventory adapters
 Status: implemented locally, automated checks pending in this step, external modpack verification required.
 

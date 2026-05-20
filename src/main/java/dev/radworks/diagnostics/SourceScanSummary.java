@@ -11,6 +11,12 @@ public record SourceScanSummary(
         int inventoryMatches,
         int blockPositionsChecked,
         int blockMatches,
+        int worldFluidPositionsChecked,
+        int worldFluidStatesFound,
+        int worldFluidMatches,
+        int worldFluidSkipped,
+        int worldFluidDiscoveryRadius,
+        int worldFluidClustersBuilt,
         int blockEntitiesChecked,
         int containerBlockEntitiesFound,
         int containerSlotsChecked,
@@ -44,6 +50,9 @@ public record SourceScanSummary(
         int shieldingSamplesChecked,
         int shieldingBlocksHit,
         int shieldingSourcesReduced,
+        int livingShieldingSourcesChecked,
+        int livingShieldingSourcesReduced,
+        int livingShieldingSamplesChecked,
         int aggregateRowsProduced,
         int sourcesShown,
         int sourcesOmitted) {
@@ -67,6 +76,12 @@ public record SourceScanSummary(
                 lastSummary.inventoryMatches,
                 lastSummary.blockPositionsChecked,
                 lastSummary.blockMatches,
+                lastSummary.worldFluidPositionsChecked,
+                lastSummary.worldFluidStatesFound,
+                lastSummary.worldFluidMatches,
+                lastSummary.worldFluidSkipped,
+                lastSummary.worldFluidDiscoveryRadius,
+                lastSummary.worldFluidClustersBuilt,
                 lastSummary.blockEntitiesChecked,
                 lastSummary.containerBlockEntitiesFound,
                 lastSummary.containerSlotsChecked,
@@ -100,6 +115,9 @@ public record SourceScanSummary(
                 lastSummary.shieldingSamplesChecked,
                 lastSummary.shieldingBlocksHit,
                 lastSummary.shieldingSourcesReduced,
+                lastSummary.livingShieldingSourcesChecked,
+                lastSummary.livingShieldingSourcesReduced,
+                lastSummary.livingShieldingSamplesChecked,
                 lastSummary.aggregateRowsProduced,
                 sourcesShown,
                 sourcesOmitted);
@@ -119,6 +137,12 @@ public record SourceScanSummary(
         json.addProperty("inventoryMatches", inventoryMatches);
         json.addProperty("blockPositionsChecked", blockPositionsChecked);
         json.addProperty("blockMatches", blockMatches);
+        json.addProperty("worldFluidPositionsChecked", worldFluidPositionsChecked);
+        json.addProperty("worldFluidStatesFound", worldFluidStatesFound);
+        json.addProperty("worldFluidMatches", worldFluidMatches);
+        json.addProperty("worldFluidSkipped", worldFluidSkipped);
+        json.addProperty("worldFluidDiscoveryRadius", worldFluidDiscoveryRadius);
+        json.addProperty("worldFluidClustersBuilt", worldFluidClustersBuilt);
         json.addProperty("blockEntitiesChecked", blockEntitiesChecked);
         json.addProperty("containerBlockEntitiesFound", containerBlockEntitiesFound);
         json.addProperty("containerSlotsChecked", containerSlotsChecked);
@@ -152,6 +176,9 @@ public record SourceScanSummary(
         json.addProperty("shieldingSamplesChecked", shieldingSamplesChecked);
         json.addProperty("shieldingBlocksHit", shieldingBlocksHit);
         json.addProperty("shieldingSourcesReduced", shieldingSourcesReduced);
+        json.addProperty("livingShieldingSourcesChecked", livingShieldingSourcesChecked);
+        json.addProperty("livingShieldingSourcesReduced", livingShieldingSourcesReduced);
+        json.addProperty("livingShieldingSamplesChecked", livingShieldingSamplesChecked);
         json.addProperty("aggregateRowsProduced", aggregateRowsProduced);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
@@ -169,6 +196,12 @@ public record SourceScanSummary(
         private int inventoryMatches;
         private int blockPositionsChecked;
         private int blockMatches;
+        private int worldFluidPositionsChecked;
+        private int worldFluidStatesFound;
+        private int worldFluidMatches;
+        private int worldFluidSkipped;
+        private int worldFluidDiscoveryRadius;
+        private int worldFluidClustersBuilt;
         private int blockEntitiesChecked;
         private int containerBlockEntitiesFound;
         private int containerSlotsChecked;
@@ -202,6 +235,9 @@ public record SourceScanSummary(
         private int shieldingSamplesChecked;
         private int shieldingBlocksHit;
         private int shieldingSourcesReduced;
+        private int livingShieldingSourcesChecked;
+        private int livingShieldingSourcesReduced;
+        private int livingShieldingSamplesChecked;
         private int aggregateRowsProduced;
 
         public void inventoryStackChecked() {
@@ -218,6 +254,30 @@ public record SourceScanSummary(
 
         public void blockMatch() {
             blockMatches++;
+        }
+
+        public void worldFluidPositionChecked() {
+            worldFluidPositionsChecked++;
+        }
+
+        public void worldFluidStateFound() {
+            worldFluidStatesFound++;
+        }
+
+        public void worldFluidMatch() {
+            worldFluidMatches++;
+        }
+
+        public void worldFluidSkipped() {
+            worldFluidSkipped++;
+        }
+
+        public void worldFluidDiscoveryRadius(int radius) {
+            worldFluidDiscoveryRadius = Math.max(0, radius);
+        }
+
+        public void worldFluidClusterBuilt() {
+            worldFluidClustersBuilt++;
         }
 
         public void blockEntityChecked() {
@@ -352,6 +412,18 @@ public record SourceScanSummary(
             shieldingSourcesReduced++;
         }
 
+        public void livingShieldingSourceChecked() {
+            livingShieldingSourcesChecked++;
+        }
+
+        public void livingShieldingSourceReduced() {
+            livingShieldingSourcesReduced++;
+        }
+
+        public void livingShieldingSampleChecked() {
+            livingShieldingSamplesChecked++;
+        }
+
         public void aggregateRowProduced() {
             aggregateRowsProduced++;
         }
@@ -363,6 +435,12 @@ public record SourceScanSummary(
                     inventoryMatches,
                     blockPositionsChecked,
                     blockMatches,
+                    worldFluidPositionsChecked,
+                    worldFluidStatesFound,
+                    worldFluidMatches,
+                    worldFluidSkipped,
+                    worldFluidDiscoveryRadius,
+                    worldFluidClustersBuilt,
                     blockEntitiesChecked,
                     containerBlockEntitiesFound,
                     containerSlotsChecked,
@@ -396,6 +474,9 @@ public record SourceScanSummary(
                     shieldingSamplesChecked,
                     shieldingBlocksHit,
                     shieldingSourcesReduced,
+                    livingShieldingSourcesChecked,
+                    livingShieldingSourcesReduced,
+                    livingShieldingSamplesChecked,
                     aggregateRowsProduced,
                     sourcesShown,
                     sourcesOmitted);

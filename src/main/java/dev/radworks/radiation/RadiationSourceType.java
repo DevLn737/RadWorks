@@ -3,6 +3,7 @@ package dev.radworks.radiation;
 public enum RadiationSourceType {
     PLAYER_INVENTORY("player_inventory"),
     BLOCK("block"),
+    WORLD_FLUID("world_fluid"),
     BLOCK_ENTITY_INVENTORY("block_entity_inventory"),
     BLOCK_ITEM_HANDLER("block_item_handler"),
     BLOCK_FLUID_HANDLER("block_fluid_handler"),

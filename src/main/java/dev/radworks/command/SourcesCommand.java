@@ -50,7 +50,7 @@ public final class SourcesCommand {
         source.sendSuccess(() -> Component.literal("[RadWorks] Sources"), false);
         source.sendSuccess(() -> Component.literal("Total sources: "
                 + sources.size()
-                + " scope=player_inventory+block+block_entity_inventory+block_item_handler+block_fluid_handler+create_transient_item+create_transient_fluid+entity_dropped_item+entity_item_frame+entity_player_inventory_aura+entity_inventory"), false);
+                + " scope=player_inventory+block+world_fluid+block_entity_inventory+block_item_handler+block_fluid_handler+create_transient_item+create_transient_fluid+entity_dropped_item+entity_item_frame+entity_player_inventory_aura+entity_inventory"), false);
 
         int shown = Math.min(CHAT_SOURCE_LIMIT, sources.size());
         source.sendSuccess(() -> Component.literal("Rows:"), false);

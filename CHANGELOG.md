@@ -1,6 +1,42 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.4.5 closure / regression / merge prep:
+  - consolidated Beta 0.4 as entity/server baseline without gameplay formula changes;
+  - finalized regression gate workflow (`test`, `build`, `runServer` smoke);
+  - aligned migration/testing/handoff docs for final Beta 0.4 retest and merge prep;
+  - kept non-goals unchanged (no new gameplay systems, no nested containers/containment, no contraptions/Aeronautics).
+- Beta 0.4.4 shielding for living entity targets:
+  - generalized shielding path from player-only to target-aware `RadiationTargetContext` for living targets;
+  - preserved player shielding baseline through compatibility wrapper path;
+  - enabled shielding evaluation for non-player living targets against external positioned sources;
+  - kept self-carried sources `shielding=not_applicable` with explicit diagnostic reason suffix (`self_carried_source_not_shielded`);
+  - added gameplay config toggle `gameplay.applyShieldingToLivingEntities` (default `true`);
+  - added living-target shielding counters in `sourceScanSummary`.
+- Beta 0.4.3 living entity radiation targets:
+  - expanded server-side auto-apply pipeline from player-only to bounded nearby living targets (config-gated);
+  - kept player pipeline behavior as baseline and preserved player-focused exposure command/dump snapshot semantics;
+  - added living target decision diagnostics (`livingEntityEffectDecisions`) with bounded counters/cap visibility;
+  - added gameplay config toggles/caps for living-target selection and processing;
+  - kept mob shielding/armor policy disabled for this phase (`player_only_until_beta_0_4_4`).
+- Beta 0.4.2 dedicated server compatibility audit:
+  - added automated guard test against client-only imports in common/server code;
+  - added server-authoritative config policy tests for safe defaults and bounds;
+  - added radius visualization server-safety tests (no client imports/calls, bounded pulse/particle caps);
+  - validated dedicated metadata side policy remains `BOTH`.
+- Beta 0.4.1G stable world fluid cluster discovery:
+  - decoupled world-fluid discovery radius from base fluid rule radius via config (`integrations.worldFluidClusterDiscoveryRadius`);
+  - stabilized cluster discovery for connected fluids using normalized fluid identity (`flowing_x -> x`) plus 6-direction adjacency;
+  - added cluster-level diagnostics (`worldFluidDiscoveryRadius`, bounding box, normalized fluid id, clipped-by-radius hint).
+- Beta 0.4.1F world fluid aggregation fix:
+  - switched `world_fluid` from per-block rows to connected-cluster aggregate rows (6-directional adjacency);
+  - grouped clusters by resolved fluid rule id, preserving exact/fallback rule match diagnostics;
+  - cluster amount now scales as `contributingFluidBlocks * 1000 mB`;
+  - cluster activation distance uses nearest fluid block, with cluster samples in `worldFluidDiagnostics`.
+- Beta 0.4.1 world fluid source fix:
+  - added `world_fluid` source type and `WorldFluidSourceProvider` for placed `FluidState` blocks;
+  - added fluid rule match mode visibility (`exact`/`fallback`) on world-fluid rows;
+  - added bounded `worldFluidDiagnostics` dump section plus `sourceScanSummary` world-fluid counters.
 - Repository hardening for public GitHub publication:
   - expanded `.gitignore` baseline for build/runtime/IDE/temp artifacts;
   - added `CONTRIBUTING.md`, `SECURITY.md`, and issue templates;

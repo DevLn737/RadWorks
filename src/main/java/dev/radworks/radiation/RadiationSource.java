@@ -138,6 +138,60 @@ public record RadiationSource(
                 matchReason);
     }
 
+    public static RadiationSource worldFluid(
+            ResourceLocation fluidId,
+            ResourceLocation blockId,
+            BlockPos position,
+            int amountMb,
+            int contributingFluidBlocks,
+            double ruleStrength,
+            double ruleRadius,
+            double distance,
+            boolean respectsShielding,
+            String ruleMatchMode,
+            String matchReason) {
+        double units = DynamicRadiusModel.aggregateUnitsForFluids(amountMb);
+        double effectiveRadius = DynamicRadiusModel.effectiveRadius(ruleRadius, units);
+        double contribution = ruleStrength * ((double) amountMb / 1000.0D);
+        return new RadiationSource(
+                RadiationSourceType.WORLD_FLUID,
+                null,
+                fluidId,
+                blockId,
+                null,
+                null,
+                0,
+                amountMb,
+                position.immutable(),
+                null,
+                ruleStrength,
+                ruleRadius,
+                ruleRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(ruleRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                0,
+                amountMb,
+                Math.max(1, contributingFluidBlocks),
+                distance,
+                DynamicRadiusModel.isActive(distance, effectiveRadius),
+                respectsShielding,
+                contribution,
+                respectsShielding ? "clear" : "not_applicable",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ruleMatchMode,
+                matchReason);
+    }
+
     public static RadiationSource blockEntityInventoryAggregate(
             ResourceLocation blockId,
             BlockPos containerPos,
@@ -500,6 +554,52 @@ public record RadiationSource(
                 extractionMode,
                 ruleMatchMode,
                 matchReason);
+    }
+
+    public RadiationSource withMatchReasonSuffix(String suffix) {
+        String nextReason = matchReason;
+        if (suffix != null && !suffix.isBlank()) {
+            nextReason = (matchReason == null || matchReason.isBlank())
+                    ? suffix
+                    : matchReason + " " + suffix;
+        }
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                activeBecause,
+                respectsShielding,
+                rawContribution,
+                shielding,
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                finalContribution,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                dataPath,
+                extractionMode,
+                ruleMatchMode,
+                nextReason);
     }
 
     public JsonObject toJson() {
