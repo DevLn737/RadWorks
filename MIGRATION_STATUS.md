@@ -1,5 +1,25 @@
 # Migration Status
 
+## Beta 0.5.3 - Nested closure / tester handoff / research split
+Status: implemented locally; regression gates green; external retest pending; ready for merge prep after retest.
+
+Closure notes:
+- Beta 0.5 baseline is locked as vanilla component-driven nested extraction:
+  - `DataComponents.CONTAINER`;
+  - `DataComponents.BUNDLE_CONTENTS`.
+- Supported source contexts:
+  - player inventory;
+  - block/container inventory;
+  - block item handlers;
+  - entity inventory;
+  - dropped container items;
+  - item frame container items.
+- Out of baseline / research-first:
+  - Create toolbox nested format;
+  - Sophisticated Backpacks/Storage nested formats;
+  - arbitrary modded nested formats.
+- Unsupported formats are expected to surface through `nestedContainerDiagnostics` without crashes.
+
 ## Beta 0.5 - Nested container contents
 Status: implemented locally; automated gates green; external modpack retest pending for runtime confirmation.
 

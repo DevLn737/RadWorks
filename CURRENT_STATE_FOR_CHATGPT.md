@@ -4,7 +4,7 @@
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.4 entity/server hardening: bounded source discovery across world fluids, entity carriers, and living targets; target-aware shielding for living entities; and server-authoritative diagnostics/config with dedicated-server compatibility checks. No new gameplay systems (damage/exhaustion/persistent dose) are part of this baseline.
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.5 on top of Beta 0.4 entity/server hardening: bounded source discovery (world fluids, entity carriers, living targets), target-aware shielding for living entities, and bounded vanilla nested-container extraction via item data components (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`). No new gameplay systems (damage/exhaustion/persistent dose) are part of this baseline.
 
 ## 2. Target environment
 
@@ -254,7 +254,9 @@ Missing by design:
 - Current shielding tag is a dev-only vanilla placeholder.
 - Item handler positive tests may need a modded block exposing `IItemHandler`.
 - Fluid handler positive tests may need a modded tank/block exposing `IFluidHandler`.
-- No nested containers, shulker contents, backpacks, Curios/Trinkets, or item NBT/component scanning.
+- Nested containers are currently limited to supported vanilla data-component formats (`CONTAINER`, `BUNDLE_CONTENTS`).
+- Create toolbox and Sophisticated nested formats are not implemented yet (research-first follow-up).
+- No Curios/Trinkets container integration.
 - No container exception list is migrated yet.
 - Shielding model is diagnostic and may not match final intended balance.
 - Old KubeJS behavior is only partially migrated.

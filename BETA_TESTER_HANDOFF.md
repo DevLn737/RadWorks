@@ -1,4 +1,4 @@
-# RadWorks Beta 0.4 Final Retest Handoff
+# RadWorks Beta 0.5 Final Retest Handoff
 
 ## Target
 - Minecraft: `1.21.1`
@@ -20,7 +20,7 @@
 /radworks dump
 ```
 
-## Final Beta 0.4 retest scenarios
+## Beta 0.4 baseline regression scenarios
 1. World fluid: `createnuclear:uranium`
    - 1 block
    - pool
@@ -37,7 +37,7 @@
 9. Player shielding regression check (existing player shielding still works).
 10. Two-player aura check (if possible): one player carries source, second player nearby.
 
-## Beta 0.5 nested-container add-on scenarios
+## Beta 0.5 nested-container scenarios
 1. Shulker in player inventory with radioactive item inside.
 2. Shulker inside chest with radioactive item inside.
 3. Bundle in player inventory with radioactive item inside.
@@ -45,7 +45,8 @@
 5. Item frame / glow item frame holding shulker or bundle with radioactive item inside.
 6. If available: shulker with radioactive item inside chest boat/pack animal inventory.
 7. Optional modded container items (Create toolbox / Sophisticated):
-   - if unsupported, verify dump explains it in `nestedContainerDiagnostics` (no crash).
+   - expected support only if vanilla container components are exposed;
+   - otherwise expected result: `nestedContainerDiagnostics` explains unsupported format (no crash).
 
 ## What to send back
 - Dump files only for failing or confusing cases.
@@ -53,5 +54,6 @@
 - `latest.log` only if crash/warning/confusing behavior appears.
 
 ## Notes
-- No nested containers/containment are part of this beta closure.
+- Beta 0.5 baseline supports vanilla component-based nested extraction only.
+- Create toolbox / Sophisticated nested formats remain research-first follow-up.
 - Non-player armor protection is not in Beta 0.4 baseline.

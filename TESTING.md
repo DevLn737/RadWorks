@@ -22,6 +22,14 @@ Run:
   - bundle-contents extraction;
   - depth-cap behavior;
   - bounded diagnostics emission contract.
+- `NestedProviderRegressionAuditTest`:
+  - nested disable path (`nestedContainersEnabled=false`) keeps direct item behavior;
+  - no double-count in direct+nested covered aggregate scenarios;
+  - structured nested source fields are present in row JSON;
+  - nested diagnostics counters are present.
+- `NestedProviderIntegrationAuditTest`:
+  - provider wiring guards for player/block/item-handler/entity paths;
+  - chat rows stay compact and avoid raw NBT output.
 - `EntityCarrierExtractionTest` nested case:
   - dropped/container-like stack nested contents aggregate into entity-carried sources.
 - Config defaults/bounds:
@@ -29,6 +37,17 @@ Run:
 - Keep local gates:
   - `./gradlew test`
   - `./gradlew build`
+
+## Beta 0.5 final external retest focus
+- Shulker/bundle nested radioactive contents in:
+  - player inventory;
+  - chest/container inventory;
+  - dropped item;
+  - item frame;
+  - chest boat/pack animal when convenient.
+- Modded container items (Create toolbox / Sophisticated):
+  - expected to work only if they expose supported vanilla components;
+  - otherwise expected outcome is diagnostics (`nestedContainerDiagnostics`) without crash.
 
 ## Beta 0.4.5 final regression workflow
 Run in order:

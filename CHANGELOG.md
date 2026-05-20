@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.5.3 nested closure / tester handoff / research split:
+  - finalized Beta 0.5 as vanilla nested-container baseline (component-driven extraction only);
+  - aligned tester handoff scenarios for shulker/bundle across player/block/entity carrier contexts;
+  - documented modded nested formats (Create toolbox, Sophisticated) as diagnostics-first research follow-up;
+  - kept scope unchanged: no formula/gameplay-system changes.
 - Beta 0.5 nested container contents (vanilla-first):
   - added bounded nested extraction core for `DataComponents.CONTAINER` and `DataComponents.BUNDLE_CONTENTS`;
   - integrated nested extraction into player, block container, block item-handler, and entity inventory/item-carrier paths;
