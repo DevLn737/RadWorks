@@ -1,5 +1,8 @@
 package dev.radworks.radiation;
 
+import java.util.Locale;
+import java.util.Optional;
+
 public enum RadiationSourceType {
     PLAYER_INVENTORY("player_inventory"),
     BLOCK("block"),
@@ -22,5 +25,18 @@ public enum RadiationSourceType {
 
     public String id() {
         return id;
+    }
+
+    public static Optional<RadiationSourceType> fromId(String rawId) {
+        if (rawId == null || rawId.isBlank()) {
+            return Optional.empty();
+        }
+        String normalized = rawId.trim().toLowerCase(Locale.ROOT);
+        for (RadiationSourceType value : values()) {
+            if (value.id.equals(normalized)) {
+                return Optional.of(value);
+            }
+        }
+        return Optional.empty();
     }
 }

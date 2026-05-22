@@ -74,6 +74,17 @@ class RulesDataFilesSmokeTest {
         }
     }
 
+    @Test
+    void sourceOverrideExampleRuleIsPresentAndDisabled() {
+        JsonObject rule = readJson("data/radworks/source_override_rules/dev_example_disabled_exclude.json");
+        assertTrue(rule.has("id"), "override rule.id is required");
+        assertTrue(rule.has("enabled"), "override rule.enabled is required");
+        assertTrue(rule.has("type"), "override rule.type is required");
+        assertTrue(rule.has("selectors"), "override rule.selectors is required");
+        assertEquals("exclude", rule.get("type").getAsString());
+        assertTrue(!rule.get("enabled").getAsBoolean(), "override example must remain disabled in 0.6.1");
+    }
+
     private static JsonObject readJson(String path) {
         InputStream stream = RulesDataFilesSmokeTest.class.getClassLoader().getResourceAsStream(path);
         assertNotNull(stream, "Missing resource: " + path);

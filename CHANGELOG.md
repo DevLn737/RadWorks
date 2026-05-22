@@ -1,6 +1,17 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.6.2 apply exclusions on existing sources only:
+  - added source-override application layer for enabled `exclude` rules after discovery/aggregation and before shielding;
+  - excluded rows now contribute `0`, skip shielding path, and remain diagnostics-visible with override metadata;
+  - added runtime exclusion counters in `sourceOverrideDiagnostics` and `sourceScanSummary`;
+  - kept `contain` and `force` as not-applied in this phase.
+- Beta 0.6.1 source override schema/loader/validator/diagnostics-only:
+  - added data-driven `source_override_rules` JSON schema and reload listener;
+  - added optional-safe validation for `exclude`/`contain`/`force` rules with bounded diagnostics;
+  - added `/radworks validate` summary lines and dump section `sourceOverrideDiagnostics`;
+  - added server-authoritative config toggles for source-overrides stage gates;
+  - kept behavior unchanged: override rules are not applied to exposure in 0.6.1.
 - Beta 0.5.3 nested closure / tester handoff / research split:
   - finalized Beta 0.5 as vanilla nested-container baseline (component-driven extraction only);
   - aligned tester handoff scenarios for shulker/bundle across player/block/entity carrier contexts;

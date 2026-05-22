@@ -4,6 +4,7 @@ import dev.radworks.diagnostics.CreateCarrierDiagnostics;
 import dev.radworks.diagnostics.EntityCarrierDiagnostics;
 import dev.radworks.diagnostics.HandlerDiagnostics;
 import dev.radworks.diagnostics.NestedContainerDiagnostics;
+import dev.radworks.diagnostics.SourceOverrideDiagnostics;
 import dev.radworks.diagnostics.SourceScanSummary;
 import dev.radworks.diagnostics.WorldFluidDiagnostics;
 import dev.radworks.config.RadWorksConfig;
@@ -70,6 +71,7 @@ public final class ExposureEngine {
         EntityCarrierDiagnostics.Builder entityCarrierDiagnostics = EntityCarrierDiagnostics.builder();
         WorldFluidDiagnostics.Builder worldFluidDiagnostics = WorldFluidDiagnostics.builder();
         NestedContainerDiagnostics.Builder nestedContainerDiagnostics = NestedContainerDiagnostics.builder();
+        SourceOverrideDiagnostics.Builder sourceOverrideDiagnostics = SourceOverrideDiagnostics.builder();
         List<RadiationSource> sources = new ArrayList<>();
         if (context.includePlayerInventory() && context.target() instanceof ServerPlayer serverPlayer) {
             sources.addAll(PlayerInventorySourceProvider.collect(serverPlayer, rules, summary, nestedContainerDiagnostics));
@@ -123,17 +125,27 @@ public final class ExposureEngine {
                 entityCarrierDiagnostics,
                 nestedContainerDiagnostics,
                 context.includeSelfEntityInventory()));
+        SourceOverrideEngine.ApplicationResult sourceOverrideResult = SourceOverrideEngine.apply(
+                context,
+                sources,
+                summary,
+                sourceOverrideDiagnostics);
         boolean useShielding = context.applyShielding()
                 && (context.targetKind() == RadiationTargetKind.PLAYER || RadWorksConfig.applyShieldingToLivingEntities());
-        List<RadiationSource> immutableSources = useShielding
-                ? ShieldingEngine.apply(context, sources, summary)
-                : List.copyOf(sources);
+        List<RadiationSource> shieldedSources = useShielding
+                ? ShieldingEngine.apply(context, sourceOverrideResult.sourcesForShielding(), summary)
+                : List.copyOf(sourceOverrideResult.sourcesForShielding());
+        List<RadiationSource> immutableSources = new ArrayList<>(shieldedSources.size() + sourceOverrideResult.excludedSources().size());
+        immutableSources.addAll(shieldedSources);
+        immutableSources.addAll(sourceOverrideResult.excludedSources());
+        immutableSources = List.copyOf(immutableSources);
         SourceScanSummary.store(summary, Math.min(20, immutableSources.size()), Math.max(0, immutableSources.size() - 20));
         HandlerDiagnostics.store(handlerDiagnostics);
         CreateCarrierDiagnostics.store(createCarrierDiagnostics);
         EntityCarrierDiagnostics.store(entityCarrierDiagnostics);
         WorldFluidDiagnostics.store(worldFluidDiagnostics);
         NestedContainerDiagnostics.store(nestedContainerDiagnostics);
+        SourceOverrideDiagnostics.store(sourceOverrideDiagnostics);
         return immutableSources;
     }
 

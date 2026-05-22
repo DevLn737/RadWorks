@@ -16,6 +16,36 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.6.1 automated checks (source override diagnostics-only)
+- `SourceOverrideRulesLoaderTest`:
+  - valid `exclude` / `contain` / `force` rules load;
+  - disabled rule counters are correct;
+  - invalid rule type/selector/multiplier produce validation issues;
+  - missing optional mod target is non-fatal and reported diagnostically.
+- `RulesDataFilesSmokeTest`:
+  - source override example file exists and stays disabled.
+- Config tests:
+  - source override toggles/caps are present and bounded.
+
+Behavior note:
+- 0.6.1 does not apply overrides to exposure/sources yet; validate/dump visibility only.
+
+## Beta 0.6.2 automated checks (exclude application only)
+- `SourceOverrideEngineTest`:
+  - exclude by `sourceType`, `itemId`, `blockId`, `fluidId`, `containerItemId`, `carrierEntityType`;
+  - non-matching/disabled rules do not apply;
+  - config-disable path keeps sources unchanged;
+  - excluded rows are separated from shielding input;
+  - target-kind scoped exclusion works for living-target path;
+  - contain/force rules remain not applied.
+- `SourceScanSummary` override counters:
+  - `sourcesExcludedByOverride`
+  - `sourcesAfterOverrides`
+
+Behavior note:
+- 0.6.2 applies only `exclude`.
+- `contain`/`force` remain schema/diagnostics-only.
+
 ## Beta 0.5 automated checks (nested containers)
 - `NestedContainerExtractorTest`:
   - vanilla container-component extraction;

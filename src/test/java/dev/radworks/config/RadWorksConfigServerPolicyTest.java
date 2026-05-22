@@ -20,6 +20,7 @@ class RadWorksConfigServerPolicyTest {
         assertTrue(RadWorksConfig.nestedContainerMaxDepth() > 0);
         assertTrue(RadWorksConfig.nestedContainerMaxItemsPerSource() > 0);
         assertTrue(RadWorksConfig.nestedContainerDiagnosticSampleCap() > 0);
+        assertTrue(RadWorksConfig.sourceOverrideDiagnosticSampleCap() > 0);
 
         assertTrue(RadWorksConfig.createTransientCarrierMaxScanRadius() > 0);
         assertTrue(RadWorksConfig.createTransientCarrierDiagnosticSampleCap() > 0);
@@ -41,5 +42,11 @@ class RadWorksConfigServerPolicyTest {
         assertTrue(RadWorksConfig.nestedContainerMaxItemsPerSource() <= 1024);
         assertTrue(RadWorksConfig.nestedContainerDiagnosticSampleCap() >= 1);
         assertTrue(RadWorksConfig.nestedContainerDiagnosticSampleCap() <= 200);
+        assertTrue(RadWorksConfig.sourceOverrideDiagnosticSampleCap() >= 1);
+        assertTrue(RadWorksConfig.sourceOverrideDiagnosticSampleCap() <= 200);
+        assertTrue(RadWorksConfig.sourceOverridesEnabled());
+        assertTrue(RadWorksConfig.sourceExclusionsEnabled());
+        assertTrue(RadWorksConfig.sourceContainmentEnabled());
+        assertTrue(RadWorksConfig.forcedSourcesEnabled());
     }
 }

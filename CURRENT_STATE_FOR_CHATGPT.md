@@ -1,10 +1,10 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-20): Beta 0.5 nested-container baseline is implemented locally on top of Beta 0.4. It adds bounded vanilla nested extraction (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`) across player/block/entity source contexts, keeps server-authoritative behavior, and keeps automation-first regression gates (`test/build`; optional `runServer smoke`).
+> Update (2026-05-22): Beta 0.6.2 applies `exclude` source overrides on existing source rows (post-discovery, pre-shielding) with diagnostics visibility. `contain` and `force` remain not-applied and diagnostics-only.
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.5 on top of Beta 0.4 entity/server hardening: bounded source discovery (world fluids, entity carriers, living targets), target-aware shielding for living entities, and bounded vanilla nested-container extraction via item data components (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`). No new gameplay systems (damage/exhaustion/persistent dose) are part of this baseline.
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.5 + Beta 0.6.2: bounded source discovery (world fluids, entity carriers, living targets), target-aware shielding for living entities, bounded vanilla nested-container extraction via item data components (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`), source-override rule loading (`exclude`/`contain`/`force`), and active exclusion application (`exclude` only) before shielding/effect decisions.
 
 ## 2. Target environment
 

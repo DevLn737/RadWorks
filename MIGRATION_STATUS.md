@@ -1,5 +1,50 @@
 # Migration Status
 
+## Beta 0.6.2 - Apply exclusions on existing sources only
+Status: implemented locally; automated gates pending in this step; external retest recommended for modpack behavior confirmation.
+
+Implemented:
+- Added runtime exclude-rule application after source discovery/aggregation and before shielding.
+- Applied only when:
+  - `rules.sourceOverridesEnabled=true`
+  - `rules.sourceExclusionsEnabled=true`
+- Excluded rows now:
+  - contribute `0` to exposure;
+  - skip shielding path;
+  - keep diagnostics fields (`overrideMode=excluded`, `overrideRuleId`, original/suppressed contribution/radius context).
+- Added runtime diagnostics counters/samples:
+  - `sourceOverrideDiagnostics` application counters;
+  - `sourceScanSummary.sourcesExcludedByOverride`;
+  - `sourceScanSummary.sourcesAfterOverrides`.
+
+Not applied in 0.6.2:
+- containment rules (planned 0.6.3)
+- forced-source rules (planned 0.6.4)
+
+## Beta 0.6.1 - Source override schema/loader/validator/diagnostics-only
+Status: implemented locally; automated gates pending in this step; external retest not required for behavior because gameplay is unchanged.
+
+Implemented:
+- Added data-pack path support for override rules:
+  - `data/radworks/source_override_rules/*.json`
+- Added schema model and loader for rule types:
+  - `exclude`
+  - `contain`
+  - `force`
+- Added optional-safe validation and bounded diagnostics section:
+  - `sourceOverrideDiagnostics`
+- Added config toggles/caps:
+  - `rules.sourceOverridesEnabled`
+  - `rules.sourceExclusionsEnabled`
+  - `rules.sourceContainmentEnabled`
+  - `rules.forcedSourcesEnabled`
+  - `rules.sourceOverrideDiagnosticSampleCap`
+- Added validate command summary for source override loading/validation state.
+
+Important:
+- Beta 0.6.1 is diagnostics-only.
+- Source override rules do not change exposure/source/effect behavior until later phases.
+
 ## Beta 0.5.3 - Nested closure / tester handoff / research split
 Status: implemented locally; regression gates green; external retest pending; ready for merge prep after retest.
 

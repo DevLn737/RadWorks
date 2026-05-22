@@ -153,6 +153,12 @@ public final class SourcesCommand {
         row.append(" effectiveRadius=").append(round(source.effectiveRadius()));
         row.append(" strength=").append(source.ruleStrength());
         row.append(" final=").append(source.finalContribution());
+        if (source.overrideMode() != null && !"none".equals(source.overrideMode())) {
+            row.append(" overrideMode=").append(source.overrideMode());
+            if (source.overrideRuleId() != null) {
+                row.append(" overrideRuleId=").append(source.overrideRuleId());
+            }
+        }
         if (source.ruleMatchMode() != null && !source.ruleMatchMode().isBlank()) {
             row.append(" ruleMatch=").append(source.ruleMatchMode());
         }

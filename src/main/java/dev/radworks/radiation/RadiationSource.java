@@ -45,7 +45,15 @@ public record RadiationSource(
         ResourceLocation containerItemId,
         String containerPath,
         String ruleMatchMode,
-        String matchReason) {
+        String matchReason,
+        String overrideMode,
+        String overrideRuleId,
+        String containmentRuleId,
+        double originalContribution,
+        double suppressedContribution,
+        double originalEffectiveRadius,
+        double suppressedEffectiveRadius,
+        String overrideReason) {
     public static RadiationSource playerInventoryAggregate(
             ResourceLocation itemId,
             int aggregateCount,
@@ -95,7 +103,15 @@ public record RadiationSource(
                 null,
                 null,
                 "exact",
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource block(
@@ -147,7 +163,15 @@ public record RadiationSource(
                 null,
                 null,
                 "exact",
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                ruleRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource worldFluid(
@@ -205,7 +229,15 @@ public record RadiationSource(
                 null,
                 null,
                 ruleMatchMode,
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource blockEntityInventoryAggregate(
@@ -261,7 +293,15 @@ public record RadiationSource(
                 null,
                 null,
                 "exact",
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource blockItemHandlerAggregate(
@@ -318,7 +358,15 @@ public record RadiationSource(
                 null,
                 null,
                 "exact",
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource blockFluidHandlerAggregate(
@@ -376,7 +424,15 @@ public record RadiationSource(
                 null,
                 null,
                 ruleMatchMode,
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource createTransientItemAggregate(
@@ -434,7 +490,15 @@ public record RadiationSource(
                 null,
                 null,
                 "exact",
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource createTransientFluidAggregate(
@@ -493,7 +557,15 @@ public record RadiationSource(
                 null,
                 null,
                 ruleMatchMode,
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public static RadiationSource entityInventoryCarrierItem(
@@ -553,7 +625,15 @@ public record RadiationSource(
                 null,
                 null,
                 "exact",
-                matchReason);
+                matchReason,
+                "none",
+                null,
+                null,
+                contribution,
+                0.0D,
+                effectiveRadius,
+                0.0D,
+                null);
     }
 
     public RadiationSource withShielding(ShieldingResult result) {
@@ -597,7 +677,15 @@ public record RadiationSource(
                 containerItemId,
                 containerPath,
                 ruleMatchMode,
-                matchReason);
+                matchReason,
+                overrideMode,
+                overrideRuleId,
+                containmentRuleId,
+                originalContribution,
+                suppressedContribution,
+                originalEffectiveRadius,
+                suppressedEffectiveRadius,
+                overrideReason);
     }
 
     public RadiationSource withMatchReasonSuffix(String suffix) {
@@ -647,7 +735,15 @@ public record RadiationSource(
                 containerItemId,
                 containerPath,
                 ruleMatchMode,
-                nextReason);
+                nextReason,
+                overrideMode,
+                overrideRuleId,
+                containmentRuleId,
+                originalContribution,
+                suppressedContribution,
+                originalEffectiveRadius,
+                suppressedEffectiveRadius,
+                overrideReason);
     }
 
     public RadiationSource withExtractionContext(String nestedDataPath, String nestedExtractionMode) {
@@ -695,7 +791,15 @@ public record RadiationSource(
                 containerItemId,
                 containerPath,
                 ruleMatchMode,
-                matchReason);
+                matchReason,
+                overrideMode,
+                overrideRuleId,
+                containmentRuleId,
+                originalContribution,
+                suppressedContribution,
+                originalEffectiveRadius,
+                suppressedEffectiveRadius,
+                overrideReason);
     }
 
     public RadiationSource withNestedContext(
@@ -747,7 +851,15 @@ public record RadiationSource(
                 resolvedContainerItemId,
                 resolvedContainerPath,
                 ruleMatchMode,
-                matchReason);
+                matchReason,
+                overrideMode,
+                overrideRuleId,
+                containmentRuleId,
+                originalContribution,
+                suppressedContribution,
+                originalEffectiveRadius,
+                suppressedEffectiveRadius,
+                overrideReason);
     }
 
     public JsonObject toJson() {
@@ -819,6 +931,20 @@ public record RadiationSource(
         if (ruleMatchMode != null) {
             json.addProperty("ruleMatchMode", ruleMatchMode);
         }
+        json.addProperty("overrideMode", overrideMode == null ? "none" : overrideMode);
+        if (overrideRuleId != null) {
+            json.addProperty("overrideRuleId", overrideRuleId);
+        }
+        if (containmentRuleId != null) {
+            json.addProperty("containmentRuleId", containmentRuleId);
+        }
+        json.addProperty("originalContribution", originalContribution);
+        json.addProperty("suppressedContribution", suppressedContribution);
+        json.addProperty("originalEffectiveRadius", originalEffectiveRadius);
+        json.addProperty("suppressedEffectiveRadius", suppressedEffectiveRadius);
+        if (overrideReason != null && !overrideReason.isBlank()) {
+            json.addProperty("overrideReason", overrideReason);
+        }
         json.addProperty("ruleStrength", ruleStrength);
         json.addProperty("ruleRadius", ruleRadius);
         json.addProperty("baseRadius", baseRadius);
@@ -844,6 +970,62 @@ public record RadiationSource(
         json.addProperty("contribution", finalContribution);
         json.addProperty("matchReason", matchReason);
         return json;
+    }
+
+    public boolean excludedByOverride() {
+        return "excluded".equals(overrideMode);
+    }
+
+    public RadiationSource withExcludedOverride(String ruleId, String reason) {
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                false,
+                respectsShielding,
+                rawContribution,
+                "not_applicable",
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                0.0D,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                dataPath,
+                extractionMode,
+                nested,
+                nestedDepth,
+                containerItemId,
+                containerPath,
+                ruleMatchMode,
+                matchReason,
+                "excluded",
+                ruleId,
+                containmentRuleId,
+                finalContribution,
+                finalContribution,
+                effectiveRadius,
+                effectiveRadius,
+                reason);
     }
 
     public double contribution() {

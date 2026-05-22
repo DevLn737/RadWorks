@@ -1,0 +1,11 @@
+{
+  "id": "radworks:dev_example_disabled_exclude_chest",
+  "enabled": false,
+  "type": "exclude",
+  "selectors": {
+    "blockId": "minecraft:chest",
+    "sourceType": "block_entity_inventory"
+  },
+  "required": false,
+  "description": "Example disabled exclude rule for schema reference. Enable intentionally when testing exclusions."
+}

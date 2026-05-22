@@ -54,6 +54,8 @@ public record SourceScanSummary(
         int livingShieldingSourcesReduced,
         int livingShieldingSamplesChecked,
         int aggregateRowsProduced,
+        int sourcesExcludedByOverride,
+        int sourcesAfterOverrides,
         int sourcesShown,
         int sourcesOmitted) {
     private static volatile SourceScanSummary lastSummary;
@@ -119,6 +121,8 @@ public record SourceScanSummary(
                 lastSummary.livingShieldingSourcesReduced,
                 lastSummary.livingShieldingSamplesChecked,
                 lastSummary.aggregateRowsProduced,
+                lastSummary.sourcesExcludedByOverride,
+                lastSummary.sourcesAfterOverrides,
                 sourcesShown,
                 sourcesOmitted);
     }
@@ -180,6 +184,8 @@ public record SourceScanSummary(
         json.addProperty("livingShieldingSourcesReduced", livingShieldingSourcesReduced);
         json.addProperty("livingShieldingSamplesChecked", livingShieldingSamplesChecked);
         json.addProperty("aggregateRowsProduced", aggregateRowsProduced);
+        json.addProperty("sourcesExcludedByOverride", sourcesExcludedByOverride);
+        json.addProperty("sourcesAfterOverrides", sourcesAfterOverrides);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
 
@@ -239,6 +245,8 @@ public record SourceScanSummary(
         private int livingShieldingSourcesReduced;
         private int livingShieldingSamplesChecked;
         private int aggregateRowsProduced;
+        private int sourcesExcludedByOverride;
+        private int sourcesAfterOverrides;
 
         public void inventoryStackChecked() {
             inventoryStacksChecked++;
@@ -428,6 +436,14 @@ public record SourceScanSummary(
             aggregateRowsProduced++;
         }
 
+        public void sourceExcludedByOverride() {
+            sourcesExcludedByOverride++;
+        }
+
+        public void sourceKeptAfterOverrides() {
+            sourcesAfterOverrides++;
+        }
+
         private SourceScanSummary build(int sourcesShown, int sourcesOmitted) {
             return new SourceScanSummary(
                     Instant.now(),
@@ -478,6 +494,8 @@ public record SourceScanSummary(
                     livingShieldingSourcesReduced,
                     livingShieldingSamplesChecked,
                     aggregateRowsProduced,
+                    sourcesExcludedByOverride,
+                    sourcesAfterOverrides,
                     sourcesShown,
                     sourcesOmitted);
         }

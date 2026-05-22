@@ -1,5 +1,21 @@
 # RadWorks Beta 0.5 Final Retest Handoff
 
+## Beta 0.6.1 note (diagnostics-only)
+- Source override rules are now loaded/validated from:
+  - `data/radworks/source_override_rules/*.json`
+- In Beta 0.6.1 they are **not applied** to exposure yet.
+- Quick sanity checks:
+  - `/radworks validate` (source override counts/warnings/errors)
+  - `/radworks dump` (`sourceOverrideDiagnostics` section present)
+
+## Beta 0.6.2 note (exclude application only)
+- Enabled `exclude` override rules now suppress already discovered source rows before shielding/effect decisions.
+- `contain` and `force` are still not applied in this phase.
+- Quick checks:
+  - `/radworks sources` (excluded rows should show `overrideMode=excluded`)
+  - `/radworks exposure` (excluded rows contribute `0`)
+  - `/radworks dump` (`sourceOverrideDiagnostics` + override counters in `sourceScanSummary`)
+
 ## Target
 - Minecraft: `1.21.1`
 - NeoForge: `21.1.228`
