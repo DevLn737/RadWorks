@@ -39,7 +39,17 @@ public final class BlockSourceProvider {
             BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary) {
-        return PerformanceStats.timeValue("blockScan", () -> collectTimed(level, targetPosition, center, rules, summary));
+        return collect(level, targetPosition, center, rules, summary, ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            ForceSourceCandidateSink candidateSink) {
+        return PerformanceStats.timeValue("blockScan", () -> collectTimed(level, targetPosition, center, rules, summary, candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -47,7 +57,8 @@ public final class BlockSourceProvider {
             Vec3 targetPosition,
             BlockPos center,
             RadiationRules rules,
-            SourceScanSummary.Builder summary) {
+            SourceScanSummary.Builder summary,
+            ForceSourceCandidateSink candidateSink) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.blockRules() == 0) {
             return sources;
@@ -69,6 +80,30 @@ public final class BlockSourceProvider {
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             RadiationRule rule = rules.blockRule(blockId).orElse(null);
             if (rule == null) {
+                if (candidateSink.isEnabled()) {
+                    double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
+                    candidateSink.observe(new ForceSourceCandidate(
+                            ForceSourceCandidate.CandidateKind.BLOCK,
+                            RadiationSourceType.BLOCK,
+                            blockId,
+                            null,
+                            null,
+                            pos.immutable(),
+                            null,
+                            null,
+                            null,
+                            null,
+                            blockId,
+                            RadiationTargetKind.PLAYER,
+                            0,
+                            0,
+                            distance,
+                            true,
+                            false,
+                            0,
+                            null,
+                            "block_observed_without_block_rule"));
+                }
                 continue;
             }
 

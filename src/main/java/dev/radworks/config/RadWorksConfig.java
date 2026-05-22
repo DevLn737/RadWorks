@@ -29,6 +29,11 @@ public final class RadWorksConfig {
     public static final int DEFAULT_NESTED_CONTAINER_MAX_DEPTH = 2;
     public static final int DEFAULT_NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE = 128;
     public static final int DEFAULT_NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP = 20;
+    public static final boolean DEFAULT_SOURCE_OVERRIDES_ENABLED = true;
+    public static final boolean DEFAULT_SOURCE_EXCLUSIONS_ENABLED = true;
+    public static final boolean DEFAULT_SOURCE_CONTAINMENT_ENABLED = true;
+    public static final boolean DEFAULT_FORCED_SOURCES_ENABLED = true;
+    public static final int DEFAULT_SOURCE_OVERRIDE_DIAGNOSTIC_SAMPLE_CAP = 20;
     public static final boolean DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED = true;
     public static final boolean DEFAULT_CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED = true;
     public static final int DEFAULT_CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS = 8;
@@ -72,6 +77,11 @@ public final class RadWorksConfig {
     private static final ModConfigSpec.IntValue NESTED_CONTAINER_MAX_DEPTH;
     private static final ModConfigSpec.IntValue NESTED_CONTAINER_MAX_ITEMS_PER_SOURCE;
     private static final ModConfigSpec.IntValue NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP;
+    private static final ModConfigSpec.BooleanValue SOURCE_OVERRIDES_ENABLED;
+    private static final ModConfigSpec.BooleanValue SOURCE_EXCLUSIONS_ENABLED;
+    private static final ModConfigSpec.BooleanValue SOURCE_CONTAINMENT_ENABLED;
+    private static final ModConfigSpec.BooleanValue FORCED_SOURCES_ENABLED;
+    private static final ModConfigSpec.IntValue SOURCE_OVERRIDE_DIAGNOSTIC_SAMPLE_CAP;
     private static final ModConfigSpec.BooleanValue CREATE_TRANSIENT_CARRIERS_ENABLED;
     private static final ModConfigSpec.BooleanValue CREATE_TRANSIENT_CARRIER_NBT_SCAN_ENABLED;
     private static final ModConfigSpec.IntValue CREATE_TRANSIENT_CARRIER_MAX_SCAN_RADIUS;
@@ -168,6 +178,25 @@ public final class RadWorksConfig {
                 .defineInRange(
                         "nestedContainerDiagnosticSampleCap",
                         DEFAULT_NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP,
+                        1,
+                        200);
+        SOURCE_OVERRIDES_ENABLED = builder
+                .comment("Enable source override rule loading/validation diagnostics.")
+                .define("sourceOverridesEnabled", DEFAULT_SOURCE_OVERRIDES_ENABLED);
+        SOURCE_EXCLUSIONS_ENABLED = builder
+                .comment("Enable source exclusion override rules (application starts in beta 0.6.2).")
+                .define("sourceExclusionsEnabled", DEFAULT_SOURCE_EXCLUSIONS_ENABLED);
+        SOURCE_CONTAINMENT_ENABLED = builder
+                .comment("Enable source containment override rules (application starts in beta 0.6.3).")
+                .define("sourceContainmentEnabled", DEFAULT_SOURCE_CONTAINMENT_ENABLED);
+        FORCED_SOURCES_ENABLED = builder
+                .comment("Enable forced source override rules (application starts in beta 0.6.4).")
+                .define("forcedSourcesEnabled", DEFAULT_FORCED_SOURCES_ENABLED);
+        SOURCE_OVERRIDE_DIAGNOSTIC_SAMPLE_CAP = builder
+                .comment("Maximum source-override diagnostic samples stored in dump.")
+                .defineInRange(
+                        "sourceOverrideDiagnosticSampleCap",
+                        DEFAULT_SOURCE_OVERRIDE_DIAGNOSTIC_SAMPLE_CAP,
                         1,
                         200);
         builder.pop();
@@ -350,6 +379,28 @@ public final class RadWorksConfig {
         return getInt(NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP, DEFAULT_NESTED_CONTAINER_DIAGNOSTIC_SAMPLE_CAP);
     }
 
+    public static boolean sourceOverridesEnabled() {
+        return getBoolean(SOURCE_OVERRIDES_ENABLED, DEFAULT_SOURCE_OVERRIDES_ENABLED);
+    }
+
+    public static boolean sourceExclusionsEnabled() {
+        return getBoolean(SOURCE_EXCLUSIONS_ENABLED, DEFAULT_SOURCE_EXCLUSIONS_ENABLED);
+    }
+
+    public static boolean sourceContainmentEnabled() {
+        return getBoolean(SOURCE_CONTAINMENT_ENABLED, DEFAULT_SOURCE_CONTAINMENT_ENABLED);
+    }
+
+    public static boolean forcedSourcesEnabled() {
+        return getBoolean(FORCED_SOURCES_ENABLED, DEFAULT_FORCED_SOURCES_ENABLED);
+    }
+
+    public static int sourceOverrideDiagnosticSampleCap() {
+        return getInt(
+                SOURCE_OVERRIDE_DIAGNOSTIC_SAMPLE_CAP,
+                DEFAULT_SOURCE_OVERRIDE_DIAGNOSTIC_SAMPLE_CAP);
+    }
+
     public static boolean createTransientCarriersEnabled() {
         return getBoolean(CREATE_TRANSIENT_CARRIERS_ENABLED, DEFAULT_CREATE_TRANSIENT_CARRIERS_ENABLED);
     }
@@ -454,6 +505,11 @@ public final class RadWorksConfig {
         json.addProperty("nestedContainerMaxDepth", nestedContainerMaxDepth());
         json.addProperty("nestedContainerMaxItemsPerSource", nestedContainerMaxItemsPerSource());
         json.addProperty("nestedContainerDiagnosticSampleCap", nestedContainerDiagnosticSampleCap());
+        json.addProperty("sourceOverridesEnabled", sourceOverridesEnabled());
+        json.addProperty("sourceExclusionsEnabled", sourceExclusionsEnabled());
+        json.addProperty("sourceContainmentEnabled", sourceContainmentEnabled());
+        json.addProperty("forcedSourcesEnabled", forcedSourcesEnabled());
+        json.addProperty("sourceOverrideDiagnosticSampleCap", sourceOverrideDiagnosticSampleCap());
         json.addProperty("createTransientCarriersEnabled", createTransientCarriersEnabled());
         json.addProperty("createTransientCarrierNbtScanEnabled", createTransientCarrierNbtScanEnabled());
         json.addProperty("createTransientCarrierMaxScanRadius", createTransientCarrierMaxScanRadius());

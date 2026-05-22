@@ -86,7 +86,8 @@ public final class BlockItemHandlerSourceProvider {
                 rules,
                 summary,
                 handlerDiagnostics,
-                nestedDiagnostics);
+                nestedDiagnostics,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -107,9 +108,29 @@ public final class BlockItemHandlerSourceProvider {
             SourceScanSummary.Builder summary,
             HandlerDiagnostics.Builder handlerDiagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics) {
+        return collect(
+                level,
+                targetPosition,
+                center,
+                rules,
+                summary,
+                handlerDiagnostics,
+                nestedDiagnostics,
+                ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         return PerformanceStats.timeValue(
                 "itemHandlerScan",
-                () -> collectTimed(level, targetPosition, center, rules, summary, handlerDiagnostics, nestedDiagnostics));
+                () -> collectTimed(level, targetPosition, center, rules, summary, handlerDiagnostics, nestedDiagnostics, candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -119,7 +140,8 @@ public final class BlockItemHandlerSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             HandlerDiagnostics.Builder handlerDiagnostics,
-            NestedContainerDiagnostics.Builder nestedDiagnostics) {
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.itemRules() == 0) {
             return sources;
@@ -160,7 +182,8 @@ public final class BlockItemHandlerSourceProvider {
                     rules,
                     sources,
                     summary,
-                    nestedDiagnostics);
+                    nestedDiagnostics,
+                    candidateSink);
             if (scanResult.matches() == 0) {
                 handlerDiagnostics.addItemHandlerSample(
                         blockId,
@@ -198,7 +221,8 @@ public final class BlockItemHandlerSourceProvider {
             RadiationRules rules,
             List<RadiationSource> sources,
             SourceScanSummary.Builder summary,
-            NestedContainerDiagnostics.Builder nestedDiagnostics) {
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         final int maxContents = 5;
         int slotsChecked = 0;
         int matches = 0;
@@ -249,6 +273,27 @@ public final class BlockItemHandlerSourceProvider {
             for (NestedContainerExtractor.ExtractedStack extracted : extractedStacks) {
                 RadiationRule rule = rules.itemRule(extracted.itemId()).orElse(null);
                 if (rule == null) {
+                    candidateSink.observe(new ForceSourceCandidate(
+                            ForceSourceCandidate.CandidateKind.ITEM,
+                            RadiationSourceType.BLOCK_ITEM_HANDLER,
+                            blockId,
+                            extracted.itemId(),
+                            null,
+                            pos.immutable(),
+                            null,
+                            null,
+                            extracted.containerItemId(),
+                            extracted.containerPath(),
+                            blockId,
+                            null,
+                            extracted.count(),
+                            0,
+                            distance,
+                            true,
+                            extracted.nested(),
+                            extracted.nestedDepth(),
+                            extracted.extractionMode(),
+                            "block_item_handler_observed_without_item_rule"));
                     continue;
                 }
                 matchedInAny = true;

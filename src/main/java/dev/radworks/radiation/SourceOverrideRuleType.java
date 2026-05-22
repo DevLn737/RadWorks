@@ -3,15 +3,14 @@ package dev.radworks.radiation;
 import java.util.Locale;
 import java.util.Optional;
 
-public enum RadiationTargetKind {
-    PLAYER("player"),
-    MOB("mob"),
-    ARMOR_STAND("armor_stand"),
-    OTHER_LIVING("other_living");
+public enum SourceOverrideRuleType {
+    EXCLUDE("exclude"),
+    CONTAIN("contain"),
+    FORCE("force");
 
     private final String id;
 
-    RadiationTargetKind(String id) {
+    SourceOverrideRuleType(String id) {
         this.id = id;
     }
 
@@ -19,12 +18,12 @@ public enum RadiationTargetKind {
         return id;
     }
 
-    public static Optional<RadiationTargetKind> fromId(String rawId) {
+    public static Optional<SourceOverrideRuleType> fromId(String rawId) {
         if (rawId == null || rawId.isBlank()) {
             return Optional.empty();
         }
         String normalized = rawId.trim().toLowerCase(Locale.ROOT);
-        for (RadiationTargetKind value : values()) {
+        for (SourceOverrideRuleType value : values()) {
             if (value.id.equals(normalized)) {
                 return Optional.of(value);
             }

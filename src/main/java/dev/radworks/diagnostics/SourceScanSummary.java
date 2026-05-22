@@ -54,6 +54,13 @@ public record SourceScanSummary(
         int livingShieldingSourcesReduced,
         int livingShieldingSamplesChecked,
         int aggregateRowsProduced,
+        int sourcesExcludedByOverride,
+        int sourcesAfterOverrides,
+        int sourcesContainedByOverride,
+        int sourcesAfterContainment,
+        int forceCandidatesObserved,
+        int forcedSourcesAdded,
+        int sourcesAfterForce,
         int sourcesShown,
         int sourcesOmitted) {
     private static volatile SourceScanSummary lastSummary;
@@ -119,6 +126,13 @@ public record SourceScanSummary(
                 lastSummary.livingShieldingSourcesReduced,
                 lastSummary.livingShieldingSamplesChecked,
                 lastSummary.aggregateRowsProduced,
+                lastSummary.sourcesExcludedByOverride,
+                lastSummary.sourcesAfterOverrides,
+                lastSummary.sourcesContainedByOverride,
+                lastSummary.sourcesAfterContainment,
+                lastSummary.forceCandidatesObserved,
+                lastSummary.forcedSourcesAdded,
+                lastSummary.sourcesAfterForce,
                 sourcesShown,
                 sourcesOmitted);
     }
@@ -180,6 +194,13 @@ public record SourceScanSummary(
         json.addProperty("livingShieldingSourcesReduced", livingShieldingSourcesReduced);
         json.addProperty("livingShieldingSamplesChecked", livingShieldingSamplesChecked);
         json.addProperty("aggregateRowsProduced", aggregateRowsProduced);
+        json.addProperty("sourcesExcludedByOverride", sourcesExcludedByOverride);
+        json.addProperty("sourcesAfterOverrides", sourcesAfterOverrides);
+        json.addProperty("sourcesContainedByOverride", sourcesContainedByOverride);
+        json.addProperty("sourcesAfterContainment", sourcesAfterContainment);
+        json.addProperty("forceCandidatesObserved", forceCandidatesObserved);
+        json.addProperty("forcedSourcesAdded", forcedSourcesAdded);
+        json.addProperty("sourcesAfterForce", sourcesAfterForce);
         json.addProperty("sourcesShown", sourcesShown);
         json.addProperty("sourcesOmitted", sourcesOmitted);
 
@@ -239,6 +260,13 @@ public record SourceScanSummary(
         private int livingShieldingSourcesReduced;
         private int livingShieldingSamplesChecked;
         private int aggregateRowsProduced;
+        private int sourcesExcludedByOverride;
+        private int sourcesAfterOverrides;
+        private int sourcesContainedByOverride;
+        private int sourcesAfterContainment;
+        private int forceCandidatesObserved;
+        private int forcedSourcesAdded;
+        private int sourcesAfterForce;
 
         public void inventoryStackChecked() {
             inventoryStacksChecked++;
@@ -428,6 +456,34 @@ public record SourceScanSummary(
             aggregateRowsProduced++;
         }
 
+        public void sourceExcludedByOverride() {
+            sourcesExcludedByOverride++;
+        }
+
+        public void sourceKeptAfterOverrides() {
+            sourcesAfterOverrides++;
+        }
+
+        public void sourceContainedByOverride() {
+            sourcesContainedByOverride++;
+        }
+
+        public void sourceAfterContainment() {
+            sourcesAfterContainment++;
+        }
+
+        public void forceCandidateObserved() {
+            forceCandidatesObserved++;
+        }
+
+        public void forcedSourceAdded() {
+            forcedSourcesAdded++;
+        }
+
+        public void sourceAfterForce() {
+            sourcesAfterForce++;
+        }
+
         private SourceScanSummary build(int sourcesShown, int sourcesOmitted) {
             return new SourceScanSummary(
                     Instant.now(),
@@ -478,6 +534,13 @@ public record SourceScanSummary(
                     livingShieldingSourcesReduced,
                     livingShieldingSamplesChecked,
                     aggregateRowsProduced,
+                    sourcesExcludedByOverride,
+                    sourcesAfterOverrides,
+                    sourcesContainedByOverride,
+                    sourcesAfterContainment,
+                    forceCandidatesObserved,
+                    forcedSourcesAdded,
+                    sourcesAfterForce,
                     sourcesShown,
                     sourcesOmitted);
         }

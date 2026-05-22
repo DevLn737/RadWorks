@@ -34,6 +34,11 @@ class RadWorksConfigTest {
         assertEquals(2, RadWorksConfig.nestedContainerMaxDepth());
         assertEquals(128, RadWorksConfig.nestedContainerMaxItemsPerSource());
         assertEquals(20, RadWorksConfig.nestedContainerDiagnosticSampleCap());
+        assertTrue(RadWorksConfig.sourceOverridesEnabled());
+        assertTrue(RadWorksConfig.sourceExclusionsEnabled());
+        assertTrue(RadWorksConfig.sourceContainmentEnabled());
+        assertTrue(RadWorksConfig.forcedSourcesEnabled());
+        assertEquals(20, RadWorksConfig.sourceOverrideDiagnosticSampleCap());
         assertTrue(RadWorksConfig.createTransientCarriersEnabled());
         assertTrue(RadWorksConfig.createTransientCarrierNbtScanEnabled());
         assertEquals(8, RadWorksConfig.createTransientCarrierMaxScanRadius());

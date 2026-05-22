@@ -31,7 +31,14 @@ public final class WorldFluidSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             WorldFluidDiagnostics.Builder diagnostics) {
-        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary, diagnostics);
+        return collect(
+                player.serverLevel(),
+                player.position(),
+                player.blockPosition(),
+                rules,
+                summary,
+                diagnostics,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -41,9 +48,20 @@ public final class WorldFluidSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             WorldFluidDiagnostics.Builder diagnostics) {
+        return collect(level, targetPosition, targetCenter, rules, summary, diagnostics, ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos targetCenter,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            WorldFluidDiagnostics.Builder diagnostics,
+            ForceSourceCandidateSink candidateSink) {
         return PerformanceStats.timeValue(
                 "worldFluidScan",
-                () -> collectTimed(level, targetPosition, targetCenter, rules, summary, diagnostics));
+                () -> collectTimed(level, targetPosition, targetCenter, rules, summary, diagnostics, candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -52,7 +70,8 @@ public final class WorldFluidSourceProvider {
             BlockPos targetCenter,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
-            WorldFluidDiagnostics.Builder diagnostics) {
+            WorldFluidDiagnostics.Builder diagnostics,
+            ForceSourceCandidateSink candidateSink) {
         if (!rules.loaded() || rules.fluidRules() == 0) {
             return List.of();
         }
@@ -91,6 +110,29 @@ public final class WorldFluidSourceProvider {
             RadiationRules.FluidRuleMatch ruleMatch = rules.resolveFluidRule(fluidId).orElse(null);
             if (ruleMatch == null) {
                 summary.worldFluidSkipped();
+                ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock());
+                double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.FLUID,
+                        RadiationSourceType.WORLD_FLUID,
+                        blockId,
+                        null,
+                        fluidId,
+                        pos.immutable(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        blockId,
+                        null,
+                        0,
+                        WORLD_FLUID_FULL_BLOCK_AMOUNT_MB,
+                        distance,
+                        true,
+                        false,
+                        0,
+                        null,
+                        "world_fluid_observed_without_fluid_rule"));
                 diagnostics.skip(
                         fluidId,
                         null,
@@ -120,7 +162,8 @@ public final class WorldFluidSourceProvider {
                 summary,
                 diagnostics,
                 discoveryRadius,
-                targetCenter);
+                targetCenter,
+                candidateSink);
     }
 
     static List<RadiationSource> collectFromSamples(
@@ -131,6 +174,26 @@ public final class WorldFluidSourceProvider {
             WorldFluidDiagnostics.Builder diagnostics,
             int discoveryRadius,
             BlockPos discoveryCenter) {
+        return collectFromSamples(
+                playerPosition,
+                rules,
+                samples,
+                summary,
+                diagnostics,
+                discoveryRadius,
+                discoveryCenter,
+                ForceSourceCandidateSink.NO_OP);
+    }
+
+    static List<RadiationSource> collectFromSamples(
+            Vec3 playerPosition,
+            RadiationRules rules,
+            List<FluidSample> samples,
+            SourceScanSummary.Builder summary,
+            WorldFluidDiagnostics.Builder diagnostics,
+            int discoveryRadius,
+            BlockPos discoveryCenter,
+            ForceSourceCandidateSink candidateSink) {
         if (!rules.loaded() || rules.fluidRules() == 0 || samples.isEmpty()) {
             return List.of();
         }
@@ -187,6 +250,27 @@ public final class WorldFluidSourceProvider {
 
             if (!matched.activeBecause()) {
                 summary.worldFluidSkipped();
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.FLUID,
+                        RadiationSourceType.WORLD_FLUID,
+                        nearest.blockId(),
+                        null,
+                        selection.primaryFluidId(),
+                        nearest.position(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        nearest.blockId(),
+                        null,
+                        0,
+                        aggregateAmountMb,
+                        distance,
+                        selection.rule().respectsShielding(),
+                        false,
+                        0,
+                        null,
+                        DynamicRadiusModel.outsideDynamicRadiusReason()));
                 diagnostics.skip(
                         selection.primaryFluidId(),
                         selection.matchedRuleId(),

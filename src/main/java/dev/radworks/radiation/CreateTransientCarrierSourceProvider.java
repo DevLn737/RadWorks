@@ -45,9 +45,20 @@ public final class CreateTransientCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics) {
+        return collect(level, targetPosition, center, rules, summary, diagnostics, ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            CreateCarrierDiagnostics.Builder diagnostics,
+            ForceSourceCandidateSink candidateSink) {
         return PerformanceStats.timeValue(
                 "createTransientCarrierScan",
-                () -> collectTimed(level, targetPosition, center, rules, summary, diagnostics));
+                () -> collectTimed(level, targetPosition, center, rules, summary, diagnostics, candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -56,7 +67,8 @@ public final class CreateTransientCarrierSourceProvider {
             BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
-            CreateCarrierDiagnostics.Builder diagnostics) {
+            CreateCarrierDiagnostics.Builder diagnostics,
+            ForceSourceCandidateSink candidateSink) {
         if (!rules.loaded()) {
             return List.of();
         }
@@ -127,7 +139,8 @@ public final class CreateTransientCarrierSourceProvider {
                     itemAggregates,
                     summary,
                     diagnostics,
-                    localPathSamples);
+                    localPathSamples,
+                    candidateSink);
             localPathSamples = collectKnownItemPath(
                     tag,
                     "HeldItem",
@@ -139,7 +152,8 @@ public final class CreateTransientCarrierSourceProvider {
                     itemAggregates,
                     summary,
                     diagnostics,
-                    localPathSamples);
+                    localPathSamples,
+                    candidateSink);
 
             localPathSamples = collectFluidPipeSides(
                     tag,
@@ -151,7 +165,8 @@ public final class CreateTransientCarrierSourceProvider {
                     fluidAggregates,
                     summary,
                     diagnostics,
-                    localPathSamples);
+                    localPathSamples,
+                    candidateSink);
 
             if (carrierKind == CarrierKind.PIPETTE) {
                 localPathSamples = collectOptionalFluidPath(
@@ -165,7 +180,8 @@ public final class CreateTransientCarrierSourceProvider {
                         fluidAggregates,
                         summary,
                         diagnostics,
-                        localPathSamples);
+                        localPathSamples,
+                        candidateSink);
                 localPathSamples = collectOptionalFluidPath(
                         tag,
                         "ContainedFluid",
@@ -177,7 +193,8 @@ public final class CreateTransientCarrierSourceProvider {
                         fluidAggregates,
                         summary,
                         diagnostics,
-                        localPathSamples);
+                        localPathSamples,
+                        candidateSink);
             }
             if (itemAggregates.size() == itemAggregateSizeBefore
                     && fluidAggregates.size() == fluidAggregateSizeBefore) {
@@ -191,6 +208,27 @@ public final class CreateTransientCarrierSourceProvider {
             double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
             double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
             if (!DynamicRadiusModel.isActive(aggregate.distance(), effectiveRadius)) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.ITEM,
+                        RadiationSourceType.CREATE_TRANSIENT_ITEM,
+                        aggregate.key().blockId(),
+                        aggregate.key().itemId(),
+                        null,
+                        aggregate.key().position(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        aggregate.key().blockId(),
+                        null,
+                        aggregate.aggregateCount(),
+                        0,
+                        aggregate.distance(),
+                        aggregate.rule().respectsShielding(),
+                        false,
+                        0,
+                        "safe_data_path",
+                        DynamicRadiusModel.outsideDynamicRadiusReason()));
                 continue;
             }
             summary.createCarrierItemMatch();
@@ -226,6 +264,27 @@ public final class CreateTransientCarrierSourceProvider {
             double units = DynamicRadiusModel.aggregateUnitsForFluids(aggregate.aggregateAmountMb());
             double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
             if (!DynamicRadiusModel.isActive(aggregate.distance(), effectiveRadius)) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.FLUID,
+                        RadiationSourceType.CREATE_TRANSIENT_FLUID,
+                        aggregate.key().blockId(),
+                        null,
+                        aggregate.key().fluidId(),
+                        aggregate.key().position(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        aggregate.key().blockId(),
+                        null,
+                        0,
+                        aggregate.aggregateAmountMb(),
+                        aggregate.distance(),
+                        aggregate.rule().respectsShielding(),
+                        false,
+                        0,
+                        "safe_data_path",
+                        DynamicRadiusModel.outsideDynamicRadiusReason()));
                 diagnostics.fluidPathSample(
                         aggregate.key().blockId(),
                         aggregate.key().position(),
@@ -286,7 +345,8 @@ public final class CreateTransientCarrierSourceProvider {
             Map<AggregatedSourceAccumulator.ItemGroupKey, AggregatedSourceAccumulator.ItemAggregate> aggregates,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics,
-            int localPathSamples) {
+            int localPathSamples,
+            ForceSourceCandidateSink candidateSink) {
         if (!carrierKind.supportsItemPath(path)) {
             return localPathSamples;
         }
@@ -306,6 +366,27 @@ public final class CreateTransientCarrierSourceProvider {
         int count = parsed.get().count();
         RadiationRule rule = rules.itemRule(itemId).orElse(null);
         if (rule == null) {
+            candidateSink.observe(new ForceSourceCandidate(
+                    ForceSourceCandidate.CandidateKind.ITEM,
+                    RadiationSourceType.CREATE_TRANSIENT_ITEM,
+                    blockId,
+                    itemId,
+                    null,
+                    pos.immutable(),
+                    null,
+                    null,
+                    null,
+                    path,
+                    blockId,
+                    null,
+                    count,
+                    0,
+                    distance,
+                    true,
+                    false,
+                    0,
+                    "safe_data_path",
+                    "create_transient_item_observed_without_item_rule"));
             return localPathSamples;
         }
 
@@ -334,7 +415,8 @@ public final class CreateTransientCarrierSourceProvider {
             Map<AggregatedSourceAccumulator.FluidGroupKey, FluidAggregateWithMode> aggregates,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics,
-            int localPathSamples) {
+            int localPathSamples,
+            ForceSourceCandidateSink candidateSink) {
         if (!carrierKind.supportsSideFlows()) {
             return localPathSamples;
         }
@@ -377,7 +459,8 @@ public final class CreateTransientCarrierSourceProvider {
                     aggregates,
                     summary,
                     diagnostics,
-                    localPathSamples);
+                    localPathSamples,
+                    candidateSink);
         }
         return localPathSamples;
     }
@@ -393,7 +476,8 @@ public final class CreateTransientCarrierSourceProvider {
             Map<AggregatedSourceAccumulator.FluidGroupKey, FluidAggregateWithMode> aggregates,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics,
-            int localPathSamples) {
+            int localPathSamples,
+            ForceSourceCandidateSink candidateSink) {
         if (!root.contains(path, Tag.TAG_COMPOUND)) {
             return localPathSamples;
         }
@@ -421,7 +505,8 @@ public final class CreateTransientCarrierSourceProvider {
                 aggregates,
                 summary,
                 diagnostics,
-                localPathSamples);
+                localPathSamples,
+                candidateSink);
     }
 
     private static int collectParsedFluidAtPath(
@@ -436,12 +521,34 @@ public final class CreateTransientCarrierSourceProvider {
             Map<AggregatedSourceAccumulator.FluidGroupKey, FluidAggregateWithMode> aggregates,
             SourceScanSummary.Builder summary,
             CreateCarrierDiagnostics.Builder diagnostics,
-            int localPathSamples) {
+            int localPathSamples,
+            ForceSourceCandidateSink candidateSink) {
         ResourceLocation fluidId = parsedFluid.id();
         int amountMb = parsedFluid.amountMb();
 
         RadiationRules.FluidRuleMatch ruleMatch = rules.resolveFluidRule(fluidId).orElse(null);
         if (ruleMatch == null) {
+            candidateSink.observe(new ForceSourceCandidate(
+                    ForceSourceCandidate.CandidateKind.FLUID,
+                    RadiationSourceType.CREATE_TRANSIENT_FLUID,
+                    blockId,
+                    null,
+                    fluidId,
+                    pos.immutable(),
+                    null,
+                    null,
+                    null,
+                    path,
+                    blockId,
+                    null,
+                    0,
+                    amountMb,
+                    distance,
+                    true,
+                    false,
+                    0,
+                    "safe_data_path",
+                    "create_transient_fluid_observed_without_fluid_rule"));
             return addFluidPathSample(
                     diagnostics,
                     blockId,

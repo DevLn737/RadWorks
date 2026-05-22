@@ -1,5 +1,122 @@
 # Migration Status
 
+## Beta 0.6.5 - Override rules closure / regression / handoff / merge prep
+Status: implemented locally; regression gates green in this step; final external retest pending before closure in tracker.
+
+Closure summary:
+- Beta 0.6 baseline finalized:
+  - `exclude` application (0.6.2)
+  - `contain` application (0.6.3)
+  - `force` application from observed candidates only (0.6.4)
+- Final precedence:
+  - discover/aggregate
+  - exclude
+  - contain
+  - force (observed candidates only)
+  - contain(forced rows)
+  - shielding
+  - exposure/effect decision
+- Safety guarantees retained:
+  - no new scanners
+  - no scan radius expansion
+  - no additional capability lookups
+  - no broad arbitrary NBT/components scan
+  - `exclude` wins over `force`
+- Closure step is documentation/regression only; gameplay behavior unchanged.
+
+## Beta 0.6.4 - Forced source application
+Status: implemented locally; automated gates green in this step; external retest recommended for modpack behavior confirmation.
+
+Implemented:
+- Added force runtime fields and validation:
+  - `forceStrength > 0`
+  - `forceRadius > 0`
+  - `forceUnitMode` (`item_count|fluid_mb|block|fixed`)
+  - `forceRespectsShielding` (default `true`)
+- Added `ForceSourceCandidate` model and candidate collection only inside existing provider loops.
+- Added force application pass over observed candidates only:
+  - no new discovery paths;
+  - no scan-radius expansion;
+  - no additional capability lookups;
+  - no extra NBT/component traversal outside existing providers.
+- Precedence:
+  - `exclude` wins over `force`;
+  - force cannot resurrect excluded identity;
+  - force is skipped when matching source identity already exists.
+- Forced rows are now diagnostics-visible and can be contained (0.6.3 rules) before shielding.
+- Positioned forced rows can be shielded when `forceRespectsShielding=true`.
+- Extended runtime counters in:
+  - `sourceOverrideDiagnostics` (`forceCandidatesObserved`, `forcedSourcesAdded`, skip reasons);
+  - `sourceScanSummary` (`forceCandidatesObserved`, `forcedSourcesAdded`, `sourcesAfterForce`).
+
+## Beta 0.6.3 - Containment application
+Status: implemented locally; automated gates green in this step; external retest recommended for modpack behavior confirmation.
+
+Implemented:
+- Added runtime contain-rule application on post-exclusion source rows and before shielding.
+- Applied only when:
+  - `rules.sourceOverridesEnabled=true`
+  - `rules.sourceContainmentEnabled=true`
+- Containment semantics:
+  - `mode=suppress` -> contribution/finalContribution `0`, row stays visible with `overrideMode=contained`;
+  - `mode=scale` -> contribution/finalContribution scaled by rule multiplier, radius unchanged.
+- Deterministic conflict handling:
+  - `suppress` wins over `scale`;
+  - `scale` vs `scale` selects lowest multiplier.
+- Suppressed rows are excluded from shielding input but remain in diagnostics/source rows.
+- Added containment diagnostics counters/samples and summary counters:
+  - `sourceOverrideDiagnostics` containment runtime fields;
+  - `sourceScanSummary.sourcesContainedByOverride`;
+  - `sourceScanSummary.sourcesAfterContainment`.
+
+Not applied in 0.6.3:
+- forced-source rules (planned 0.6.4)
+
+## Beta 0.6.2 - Apply exclusions on existing sources only
+Status: implemented locally; automated gates pending in this step; external retest recommended for modpack behavior confirmation.
+
+Implemented:
+- Added runtime exclude-rule application after source discovery/aggregation and before shielding.
+- Applied only when:
+  - `rules.sourceOverridesEnabled=true`
+  - `rules.sourceExclusionsEnabled=true`
+- Excluded rows now:
+  - contribute `0` to exposure;
+  - skip shielding path;
+  - keep diagnostics fields (`overrideMode=excluded`, `overrideRuleId`, original/suppressed contribution/radius context).
+- Added runtime diagnostics counters/samples:
+  - `sourceOverrideDiagnostics` application counters;
+  - `sourceScanSummary.sourcesExcludedByOverride`;
+  - `sourceScanSummary.sourcesAfterOverrides`.
+
+Not applied in 0.6.2:
+- containment rules (planned 0.6.3)
+- forced-source rules (planned 0.6.4)
+
+## Beta 0.6.1 - Source override schema/loader/validator/diagnostics-only
+Status: implemented locally; automated gates pending in this step; external retest not required for behavior because gameplay is unchanged.
+
+Implemented:
+- Added data-pack path support for override rules:
+  - `data/radworks/source_override_rules/*.json`
+- Added schema model and loader for rule types:
+  - `exclude`
+  - `contain`
+  - `force`
+- Added optional-safe validation and bounded diagnostics section:
+  - `sourceOverrideDiagnostics`
+- Added config toggles/caps:
+  - `rules.sourceOverridesEnabled`
+  - `rules.sourceExclusionsEnabled`
+  - `rules.sourceContainmentEnabled`
+  - `rules.forcedSourcesEnabled`
+  - `rules.sourceOverrideDiagnosticSampleCap`
+- Added validate command summary for source override loading/validation state.
+
+Important:
+- Beta 0.6.1 is diagnostics-only.
+- Source override rules do not change exposure/source/effect behavior until later phases.
+
 ## Beta 0.5.3 - Nested closure / tester handoff / research split
 Status: implemented locally; regression gates green; external retest pending; ready for merge prep after retest.
 

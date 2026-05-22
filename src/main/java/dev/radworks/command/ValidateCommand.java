@@ -6,6 +6,9 @@ import dev.radworks.config.RadWorksConfig;
 import dev.radworks.radiation.RadiationRuleValidationResult;
 import dev.radworks.radiation.RadiationRules;
 import dev.radworks.radiation.RadiationRulesLoader;
+import dev.radworks.radiation.SourceOverrideRules;
+import dev.radworks.radiation.SourceOverrideRulesLoader;
+import dev.radworks.radiation.SourceOverrideRuleValidationResult;
 import dev.radworks.radiation.effects.EffectStrategyResult;
 import dev.radworks.radiation.effects.EffectStrategyService;
 import dev.radworks.radiation.shielding.ShieldingDiagnostics;
@@ -33,9 +36,12 @@ public final class ValidateCommand {
         }
 
         RadiationRuleValidationResult validation = rules.validationResult();
+        SourceOverrideRules sourceOverrideRules = SourceOverrideRulesLoader.currentRules();
+        SourceOverrideRuleValidationResult sourceOverrideValidation = sourceOverrideRules.validationResult();
         ShieldingDiagnostics.Report shieldingReport = ShieldingDiagnostics.report();
         EffectStrategyResult effectStrategy = EffectStrategyService.strategy();
         recordValidationIssues(validation);
+        recordSourceOverrideValidationIssues(sourceOverrideValidation);
         recordShieldingWarnings(shieldingReport);
         int totalRules = rules.activeRules().size() + rules.disabledRules() + rules.suppressedDevRules();
         int optionalPresent = rules.candidateCount("present");
@@ -122,6 +128,36 @@ public final class ValidateCommand {
                 + RadWorksConfig.dynamicRadiusMaxCap()
                 + " formula="
                 + RadWorksConfig.dynamicRadiusFormulaLabel()), false);
+        source.sendSuccess(() -> Component.literal("Source overrides: loaded="
+                + sourceOverrideRules.loaded()
+                + " rules="
+                + sourceOverrideRules.overrideRulesLoaded()
+                + " enabled="
+                + sourceOverrideRules.overrideRulesEnabled()
+                + " disabled="
+                + sourceOverrideRules.overrideRulesDisabled()
+                + " exclude="
+                + sourceOverrideRules.excludeRulesLoaded()
+                + " contain="
+                + sourceOverrideRules.containRulesLoaded()
+                + " force="
+                + sourceOverrideRules.forceRulesLoaded()
+                + " warnings="
+                + sourceOverrideValidation.warnings().size()
+                + " errors="
+                + sourceOverrideValidation.errors().size()), false);
+        source.sendSuccess(() -> Component.literal("Source override config: enabled="
+                + RadWorksConfig.sourceOverridesEnabled()
+                + " exclusions="
+                + RadWorksConfig.sourceExclusionsEnabled()
+                + " containment="
+                + RadWorksConfig.sourceContainmentEnabled()
+                + " forced="
+                + RadWorksConfig.forcedSourcesEnabled()
+                + " diagCap="
+                + RadWorksConfig.sourceOverrideDiagnosticSampleCap()
+                + " phase="
+                + SourceOverrideRules.APPLICATION_PHASE), false);
         source.sendSuccess(() -> Component.literal("Create transient carriers: createLoaded="
                 + ModList.get().isLoaded("create")
                 + " enabled="
@@ -171,9 +207,12 @@ public final class ValidateCommand {
         sendIssues(source, "ERROR", validation.errors());
         sendIssues(source, "WARNING", validation.warnings());
         sendIssues(source, "INFO", validation.infos());
+        sendOverrideIssues(source, "OVERRIDE ERROR", sourceOverrideValidation.errors());
+        sendOverrideIssues(source, "OVERRIDE WARNING", sourceOverrideValidation.warnings());
+        sendOverrideIssues(source, "OVERRIDE INFO", sourceOverrideValidation.infos());
         sendIssues(source, "SHIELDING WARNING", shieldingReport.warnings());
         sendIssues(source, "SHIELDING INFO", shieldingReport.infos());
-        return validation.hasErrors() ? 0 : 1;
+        return validation.hasErrors() || sourceOverrideValidation.hasErrors() ? 0 : 1;
     }
 
     private static String valueOrDash(String value) {
@@ -204,6 +243,15 @@ public final class ValidateCommand {
         }
     }
 
+    private static void recordSourceOverrideValidationIssues(SourceOverrideRuleValidationResult validation) {
+        for (SourceOverrideRuleValidationResult.Issue issue : validation.errors()) {
+            WarningBuffer.add(issue.category(), "override-validate:" + issue.source(), issue.message());
+        }
+        for (SourceOverrideRuleValidationResult.Issue issue : validation.warnings()) {
+            WarningBuffer.add(issue.category(), "override-validate:" + issue.source(), issue.message());
+        }
+    }
+
     private static void sendIssues(
             CommandSourceStack source,
             String level,
@@ -214,6 +262,20 @@ public final class ValidateCommand {
             source.sendSuccess(() -> Component.literal(level + " " + issue.summary()), false);
         }
 
+        if (issues.size() > shown) {
+            source.sendSuccess(() -> Component.literal(level + " ... " + (issues.size() - shown) + " more"), false);
+        }
+    }
+
+    private static void sendOverrideIssues(
+            CommandSourceStack source,
+            String level,
+            java.util.List<SourceOverrideRuleValidationResult.Issue> issues) {
+        int shown = Math.min(issues.size(), ISSUE_LIMIT);
+        for (int index = 0; index < shown; index++) {
+            SourceOverrideRuleValidationResult.Issue issue = issues.get(index);
+            source.sendSuccess(() -> Component.literal(level + " " + issue.summary()), false);
+        }
         if (issues.size() > shown) {
             source.sendSuccess(() -> Component.literal(level + " ... " + (issues.size() - shown) + " more"), false);
         }

@@ -5,6 +5,7 @@ import dev.radworks.config.RadWorksConfig;
 import dev.radworks.diagnostics.RadiusVisualizationService;
 import dev.radworks.gameplay.RadiationGameplayService;
 import dev.radworks.radiation.RadiationRulesLoader;
+import dev.radworks.radiation.SourceOverrideRulesLoader;
 import dev.radworks.registry.RadWorksEffects;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -22,6 +23,7 @@ public final class RadWorks {
         RadWorksEffects.register(modEventBus);
         NeoForge.EVENT_BUS.addListener(RadWorksCommands::register);
         NeoForge.EVENT_BUS.addListener(RadiationRulesLoader::addReloadListener);
+        NeoForge.EVENT_BUS.addListener(SourceOverrideRulesLoader::addReloadListener);
         NeoForge.EVENT_BUS.addListener(RadiationGameplayService::onPlayerTickPost);
         NeoForge.EVENT_BUS.addListener(RadiusVisualizationService::onPlayerTickPost);
     }
