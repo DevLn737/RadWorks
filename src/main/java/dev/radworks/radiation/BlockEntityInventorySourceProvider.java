@@ -51,7 +51,14 @@ public final class BlockEntityInventorySourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             NestedContainerDiagnostics.Builder nestedDiagnostics) {
-        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary, nestedDiagnostics);
+        return collect(
+                player.serverLevel(),
+                player.position(),
+                player.blockPosition(),
+                rules,
+                summary,
+                nestedDiagnostics,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -61,9 +68,20 @@ public final class BlockEntityInventorySourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             NestedContainerDiagnostics.Builder nestedDiagnostics) {
+        return collect(level, targetPosition, center, rules, summary, nestedDiagnostics, ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         return PerformanceStats.timeValue(
                 "blockEntityInventoryScan",
-                () -> collectTimed(level, targetPosition, center, rules, summary, nestedDiagnostics));
+                () -> collectTimed(level, targetPosition, center, rules, summary, nestedDiagnostics, candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -72,7 +90,8 @@ public final class BlockEntityInventorySourceProvider {
             BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
-            NestedContainerDiagnostics.Builder nestedDiagnostics) {
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.itemRules() == 0) {
             return sources;
@@ -99,7 +118,16 @@ public final class BlockEntityInventorySourceProvider {
             BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
-            collectContainerSlots(blockId, pos, distance, container, rules, sources, summary, nestedDiagnostics);
+            collectContainerSlots(
+                    blockId,
+                    pos,
+                    distance,
+                    container,
+                    rules,
+                    sources,
+                    summary,
+                    nestedDiagnostics,
+                    candidateSink);
         }
 
         return List.copyOf(sources);
@@ -113,7 +141,8 @@ public final class BlockEntityInventorySourceProvider {
             RadiationRules rules,
             List<RadiationSource> sources,
             SourceScanSummary.Builder summary,
-            NestedContainerDiagnostics.Builder nestedDiagnostics) {
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         Map<Key, AggregatedSourceAccumulator.ItemAggregate> aggregates = new LinkedHashMap<>();
         Map<Key, NestedAggregateMeta> nestedMeta = new LinkedHashMap<>();
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
@@ -138,6 +167,27 @@ public final class BlockEntityInventorySourceProvider {
             for (NestedContainerExtractor.ExtractedStack extracted : extractedStacks) {
                 RadiationRule rule = rules.itemRule(extracted.itemId()).orElse(null);
                 if (rule == null) {
+                    candidateSink.observe(new ForceSourceCandidate(
+                            ForceSourceCandidate.CandidateKind.ITEM,
+                            RadiationSourceType.BLOCK_ENTITY_INVENTORY,
+                            blockId,
+                            extracted.itemId(),
+                            null,
+                            containerPos.immutable(),
+                            null,
+                            null,
+                            extracted.containerItemId(),
+                            extracted.containerPath(),
+                            blockId,
+                            null,
+                            extracted.count(),
+                            0,
+                            distance,
+                            true,
+                            extracted.nested(),
+                            extracted.nestedDepth(),
+                            extracted.extractionMode(),
+                            "block_entity_inventory_observed_without_item_rule"));
                     continue;
                 }
                 Key key = new Key(extracted.itemId(), rule.key());

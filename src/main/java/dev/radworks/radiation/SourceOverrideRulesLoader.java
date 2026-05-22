@@ -90,9 +90,9 @@ public final class SourceOverrideRulesLoader extends SimplePreparableReloadListe
                     rule.enabled()));
             if (rule.type() == SourceOverrideRuleType.FORCE) {
                 addSample(samples, new SourceOverrideDiagnosticsSample(
-                        "force_schema_only",
+                        "force_rule_loaded",
                         rule.source(),
-                        "Force rules are not applied in beta 0.6.2; application starts in beta 0.6.4",
+                        "Force rule loaded",
                         rule.id().toString(),
                         rule.enabled()));
             }
@@ -145,6 +145,8 @@ public final class SourceOverrideRulesLoader extends SimplePreparableReloadListe
 
             if (rule.type() == SourceOverrideRuleType.CONTAIN) {
                 validateContainRule(rule, validation, samples);
+            } else if (rule.type() == SourceOverrideRuleType.FORCE) {
+                validateForceRule(rule, validation, samples);
             } else if (rule.containmentMode() != null || rule.containmentMultiplier() != null) {
                 validation.warning(
                         "UNUSED_CONTAIN_FIELDS",
@@ -176,9 +178,23 @@ public final class SourceOverrideRulesLoader extends SimplePreparableReloadListe
 
         SourceContainmentMode mode = null;
         Double multiplier = null;
+        Double forceStrength = null;
+        Double forceRadius = null;
+        ForceUnitMode forceUnitMode = null;
+        Boolean forceRespectsShielding = null;
         if (type == SourceOverrideRuleType.CONTAIN) {
             mode = readContainMode(json, source, validation);
             multiplier = readContainMultiplier(json, source, validation);
+        } else if (type == SourceOverrideRuleType.FORCE) {
+            forceStrength = readPositiveDouble(json, "forceStrength", source, validation);
+            forceRadius = readPositiveDouble(json, "forceRadius", source, validation);
+            forceUnitMode = readForceUnitMode(json, source, validation);
+            forceRespectsShielding = readOptionalBoolean(
+                    json,
+                    "forceRespectsShielding",
+                    true,
+                    source,
+                    validation);
         } else {
             if (json.has("mode")) {
                 mode = readContainMode(json, source, validation);
@@ -202,6 +218,10 @@ public final class SourceOverrideRulesLoader extends SimplePreparableReloadListe
                 description,
                 mode,
                 multiplier,
+                forceStrength,
+                forceRadius,
+                forceUnitMode,
+                forceRespectsShielding,
                 source);
     }
 
@@ -325,6 +345,44 @@ public final class SourceOverrideRulesLoader extends SimplePreparableReloadListe
         });
     }
 
+    private static ForceUnitMode readForceUnitMode(
+            JsonObject json,
+            String source,
+            SourceOverrideRuleValidationResult validation) {
+        if (!json.has("forceUnitMode")) {
+            validation.error("INVALID_FORCE_RULE", source, "Force rule requires field forceUnitMode");
+            return null;
+        }
+        String rawMode = GsonHelper.getAsString(json, "forceUnitMode");
+        return ForceUnitMode.fromId(rawMode).orElseGet(() -> {
+            validation.error("INVALID_FORCE_RULE", source, "Unknown forceUnitMode: " + rawMode);
+            return null;
+        });
+    }
+
+    private static Double readPositiveDouble(
+            JsonObject json,
+            String field,
+            String source,
+            SourceOverrideRuleValidationResult validation) {
+        if (!json.has(field)) {
+            validation.error("INVALID_FORCE_RULE", source, "Force rule requires field " + field);
+            return null;
+        }
+        double value;
+        try {
+            value = GsonHelper.getAsDouble(json, field);
+        } catch (RuntimeException exception) {
+            validation.error("INVALID_FORCE_RULE", source, "Field " + field + " must be numeric");
+            return null;
+        }
+        if (value <= 0.0D) {
+            validation.error("INVALID_FORCE_RULE", source, "Field " + field + " must be > 0");
+            return null;
+        }
+        return value;
+    }
+
     private static Double readContainMultiplier(
             JsonObject json,
             String source,
@@ -423,6 +481,60 @@ public final class SourceOverrideRulesLoader extends SimplePreparableReloadListe
                     rule.source(),
                     "Contain suppress rule ignores multiplier");
         }
+    }
+
+    private static void validateForceRule(
+            SourceOverrideRule rule,
+            SourceOverrideRuleValidationResult validation,
+            List<SourceOverrideDiagnosticsSample> samples) {
+        if (rule.forceStrength() == null) {
+            validation.error("INVALID_FORCE_RULE", rule.source(), "Force rule requires forceStrength > 0");
+            addSample(samples, new SourceOverrideDiagnosticsSample(
+                    "force_invalid_rule",
+                    rule.source(),
+                    "Missing/invalid forceStrength",
+                    rule.id().toString(),
+                    rule.enabled()));
+        }
+        if (rule.forceRadius() == null) {
+            validation.error("INVALID_FORCE_RULE", rule.source(), "Force rule requires forceRadius > 0");
+            addSample(samples, new SourceOverrideDiagnosticsSample(
+                    "force_invalid_rule",
+                    rule.source(),
+                    "Missing/invalid forceRadius",
+                    rule.id().toString(),
+                    rule.enabled()));
+        }
+        if (rule.forceUnitMode() == null) {
+            validation.error("INVALID_FORCE_RULE", rule.source(), "Force rule requires forceUnitMode");
+            addSample(samples, new SourceOverrideDiagnosticsSample(
+                    "force_invalid_rule",
+                    rule.source(),
+                    "Missing/invalid forceUnitMode",
+                    rule.id().toString(),
+                    rule.enabled()));
+        }
+        if (!hasConcreteForceSelector(rule.selectors())) {
+            validation.error(
+                    "INVALID_FORCE_RULE",
+                    rule.source(),
+                    "Force rule requires at least one concrete selector: itemId|blockId|fluidId|containerItemId|carrierBlockId|carrierEntityType");
+            addSample(samples, new SourceOverrideDiagnosticsSample(
+                    "force_invalid_rule",
+                    rule.source(),
+                    "No concrete selector for force rule",
+                    rule.id().toString(),
+                    rule.enabled()));
+        }
+    }
+
+    private static boolean hasConcreteForceSelector(SourceOverrideRuleSelector selectors) {
+        return selectors.itemId() != null
+                || selectors.blockId() != null
+                || selectors.fluidId() != null
+                || selectors.containerItemId() != null
+                || selectors.carrierBlockId() != null
+                || selectors.carrierEntityType() != null;
     }
 
     private static SourceOverrideRuleValidationResult mergeValidation(

@@ -29,10 +29,25 @@ public final class SourceOverrideDiagnostics {
         Snapshot snapshot = lastSnapshot;
         if (snapshot == null) {
             json.addProperty("sourcesCheckedForOverrides", 0);
+            json.addProperty("sourcesCheckedForContainment", 0);
             json.addProperty("sourcesExcluded", 0);
+            json.addProperty("sourcesContained", 0);
             json.addProperty("sourcesKeptAfterOverrides", 0);
             json.addProperty("excludeRulesApplied", 0);
             json.addProperty("excludeRuleMatchAttempts", 0);
+            json.addProperty("containmentRulesApplied", 0);
+            json.addProperty("containmentRuleMatchAttempts", 0);
+            json.addProperty("containmentSuppressedSources", 0);
+            json.addProperty("containmentScaledSources", 0);
+            json.addProperty("containmentConflictsResolved", 0);
+            json.addProperty("containmentSkippedBecauseExcluded", 0);
+            json.addProperty("forceCandidatesObserved", 0);
+            json.addProperty("forceRulesApplied", 0);
+            json.addProperty("forcedSourcesAdded", 0);
+            json.addProperty("forceCandidatesSkippedExistingSource", 0);
+            json.addProperty("forceCandidatesSkippedExcluded", 0);
+            json.addProperty("forceCandidatesSkippedInvalidRule", 0);
+            json.addProperty("forceCandidatesSkippedNoConcreteSelector", 0);
             json.addProperty("containRulesApplicationSkipped", 0);
             json.addProperty("forceRulesApplicationSkipped", 0);
             json.addProperty("applicationRuntimeAvailable", false);
@@ -42,10 +57,25 @@ public final class SourceOverrideDiagnostics {
         json.addProperty("applicationRuntimeAvailable", true);
         json.addProperty("createdAt", snapshot.createdAt.toString());
         json.addProperty("sourcesCheckedForOverrides", snapshot.sourcesCheckedForOverrides);
+        json.addProperty("sourcesCheckedForContainment", snapshot.sourcesCheckedForContainment);
         json.addProperty("sourcesExcluded", snapshot.sourcesExcluded);
+        json.addProperty("sourcesContained", snapshot.sourcesContained);
         json.addProperty("sourcesKeptAfterOverrides", snapshot.sourcesKeptAfterOverrides);
         json.addProperty("excludeRulesApplied", snapshot.excludeRulesApplied);
         json.addProperty("excludeRuleMatchAttempts", snapshot.excludeRuleMatchAttempts);
+        json.addProperty("containmentRulesApplied", snapshot.containmentRulesApplied);
+        json.addProperty("containmentRuleMatchAttempts", snapshot.containmentRuleMatchAttempts);
+        json.addProperty("containmentSuppressedSources", snapshot.containmentSuppressedSources);
+        json.addProperty("containmentScaledSources", snapshot.containmentScaledSources);
+        json.addProperty("containmentConflictsResolved", snapshot.containmentConflictsResolved);
+        json.addProperty("containmentSkippedBecauseExcluded", snapshot.containmentSkippedBecauseExcluded);
+        json.addProperty("forceCandidatesObserved", snapshot.forceCandidatesObserved);
+        json.addProperty("forceRulesApplied", snapshot.forceRulesApplied);
+        json.addProperty("forcedSourcesAdded", snapshot.forcedSourcesAdded);
+        json.addProperty("forceCandidatesSkippedExistingSource", snapshot.forceCandidatesSkippedExistingSource);
+        json.addProperty("forceCandidatesSkippedExcluded", snapshot.forceCandidatesSkippedExcluded);
+        json.addProperty("forceCandidatesSkippedInvalidRule", snapshot.forceCandidatesSkippedInvalidRule);
+        json.addProperty("forceCandidatesSkippedNoConcreteSelector", snapshot.forceCandidatesSkippedNoConcreteSelector);
         json.addProperty("containRulesApplicationSkipped", snapshot.containRulesApplicationSkipped);
         json.addProperty("forceRulesApplicationSkipped", snapshot.forceRulesApplicationSkipped);
         JsonArray samples = new JsonArray();
@@ -59,10 +89,25 @@ public final class SourceOverrideDiagnostics {
     public static final class Builder {
         private final List<Sample> samples = new ArrayList<>();
         private int sourcesCheckedForOverrides;
+        private int sourcesCheckedForContainment;
         private int sourcesExcluded;
+        private int sourcesContained;
         private int sourcesKeptAfterOverrides;
         private int excludeRulesApplied;
         private int excludeRuleMatchAttempts;
+        private int containmentRulesApplied;
+        private int containmentRuleMatchAttempts;
+        private int containmentSuppressedSources;
+        private int containmentScaledSources;
+        private int containmentConflictsResolved;
+        private int containmentSkippedBecauseExcluded;
+        private int forceCandidatesObserved;
+        private int forceRulesApplied;
+        private int forcedSourcesAdded;
+        private int forceCandidatesSkippedExistingSource;
+        private int forceCandidatesSkippedExcluded;
+        private int forceCandidatesSkippedInvalidRule;
+        private int forceCandidatesSkippedNoConcreteSelector;
         private int containRulesApplicationSkipped;
         private int forceRulesApplicationSkipped;
 
@@ -72,6 +117,14 @@ public final class SourceOverrideDiagnostics {
 
         public void sourceExcluded() {
             sourcesExcluded++;
+        }
+
+        public void sourceCheckedForContainment() {
+            sourcesCheckedForContainment++;
+        }
+
+        public void sourceContained() {
+            sourcesContained++;
         }
 
         public void sourceKept() {
@@ -84,6 +137,58 @@ public final class SourceOverrideDiagnostics {
 
         public void excludeRuleMatchAttempt() {
             excludeRuleMatchAttempts++;
+        }
+
+        public void containmentRuleApplied() {
+            containmentRulesApplied++;
+        }
+
+        public void containmentRuleMatchAttempt() {
+            containmentRuleMatchAttempts++;
+        }
+
+        public void containmentSuppressedSource() {
+            containmentSuppressedSources++;
+        }
+
+        public void containmentScaledSource() {
+            containmentScaledSources++;
+        }
+
+        public void containmentConflictResolved() {
+            containmentConflictsResolved++;
+        }
+
+        public void containmentSkippedBecauseExcluded() {
+            containmentSkippedBecauseExcluded++;
+        }
+
+        public void forceCandidateObserved() {
+            forceCandidatesObserved++;
+        }
+
+        public void forceRuleApplied() {
+            forceRulesApplied++;
+        }
+
+        public void forcedSourceAdded() {
+            forcedSourcesAdded++;
+        }
+
+        public void forceCandidateSkippedExistingSource() {
+            forceCandidatesSkippedExistingSource++;
+        }
+
+        public void forceCandidateSkippedExcluded() {
+            forceCandidatesSkippedExcluded++;
+        }
+
+        public void forceCandidateSkippedInvalidRule() {
+            forceCandidatesSkippedInvalidRule++;
+        }
+
+        public void forceCandidateSkippedNoConcreteSelector() {
+            forceCandidatesSkippedNoConcreteSelector++;
         }
 
         public void containRuleApplicationSkipped() {
@@ -120,10 +225,25 @@ public final class SourceOverrideDiagnostics {
             return new Snapshot(
                     Instant.now(),
                     sourcesCheckedForOverrides,
+                    sourcesCheckedForContainment,
                     sourcesExcluded,
+                    sourcesContained,
                     sourcesKeptAfterOverrides,
                     excludeRulesApplied,
                     excludeRuleMatchAttempts,
+                    containmentRulesApplied,
+                    containmentRuleMatchAttempts,
+                    containmentSuppressedSources,
+                    containmentScaledSources,
+                    containmentConflictsResolved,
+                    containmentSkippedBecauseExcluded,
+                    forceCandidatesObserved,
+                    forceRulesApplied,
+                    forcedSourcesAdded,
+                    forceCandidatesSkippedExistingSource,
+                    forceCandidatesSkippedExcluded,
+                    forceCandidatesSkippedInvalidRule,
+                    forceCandidatesSkippedNoConcreteSelector,
                     containRulesApplicationSkipped,
                     forceRulesApplicationSkipped,
                     List.copyOf(samples));
@@ -133,10 +253,25 @@ public final class SourceOverrideDiagnostics {
     private record Snapshot(
             Instant createdAt,
             int sourcesCheckedForOverrides,
+            int sourcesCheckedForContainment,
             int sourcesExcluded,
+            int sourcesContained,
             int sourcesKeptAfterOverrides,
             int excludeRulesApplied,
             int excludeRuleMatchAttempts,
+            int containmentRulesApplied,
+            int containmentRuleMatchAttempts,
+            int containmentSuppressedSources,
+            int containmentScaledSources,
+            int containmentConflictsResolved,
+            int containmentSkippedBecauseExcluded,
+            int forceCandidatesObserved,
+            int forceRulesApplied,
+            int forcedSourcesAdded,
+            int forceCandidatesSkippedExistingSource,
+            int forceCandidatesSkippedExcluded,
+            int forceCandidatesSkippedInvalidRule,
+            int forceCandidatesSkippedNoConcreteSelector,
             int containRulesApplicationSkipped,
             int forceRulesApplicationSkipped,
             List<Sample> samples) {

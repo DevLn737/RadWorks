@@ -33,6 +33,15 @@ public final class PlayerInventorySourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             NestedContainerDiagnostics.Builder nestedDiagnostics) {
+        return collect(player, rules, summary, nestedDiagnostics, ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerPlayer player,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         Map<Key, AggregatedSourceAccumulator.ItemAggregate> aggregates = new LinkedHashMap<>();
         Map<Key, NestedAggregateMeta> nestedMeta = new LinkedHashMap<>();
         if (!rules.loaded()) {
@@ -49,7 +58,8 @@ public final class PlayerInventorySourceProvider {
                     nestedMeta,
                     summary,
                     nestedDiagnostics,
-                    "player_inventory.slot[" + slot + "]");
+                    "player_inventory.slot[" + slot + "]",
+                    candidateSink);
         }
         for (int slot = 0; slot < inventory.offhand.size(); slot++) {
             summary.inventoryStackChecked();
@@ -60,7 +70,8 @@ public final class PlayerInventorySourceProvider {
                     nestedMeta,
                     summary,
                     nestedDiagnostics,
-                    "player_inventory.offhand[" + slot + "]");
+                    "player_inventory.offhand[" + slot + "]",
+                    candidateSink);
         }
 
         List<RadiationSource> sources = new ArrayList<>();
@@ -110,7 +121,8 @@ public final class PlayerInventorySourceProvider {
             Map<Key, NestedAggregateMeta> nestedMeta,
             SourceScanSummary.Builder summary,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            String sourcePath) {
+            String sourcePath,
+            ForceSourceCandidateSink candidateSink) {
         if (stack.isEmpty()) {
             return;
         }
@@ -120,6 +132,27 @@ public final class PlayerInventorySourceProvider {
         for (NestedContainerExtractor.ExtractedStack extracted : extractedStacks) {
             Optional<RadiationRule> rule = rules.itemRule(extracted.itemId());
             if (rule.isEmpty()) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.ITEM,
+                        RadiationSourceType.PLAYER_INVENTORY,
+                        null,
+                        extracted.itemId(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        extracted.containerItemId(),
+                        extracted.containerPath(),
+                        null,
+                        RadiationTargetKind.PLAYER,
+                        extracted.count(),
+                        0,
+                        0.0D,
+                        true,
+                        extracted.nested(),
+                        extracted.nestedDepth(),
+                        extracted.extractionMode(),
+                        "player_inventory_observed_without_item_rule"));
                 continue;
             }
             summary.inventoryMatch();

@@ -73,7 +73,10 @@ class SourceOverrideRulesLoaderTest {
                           "enabled": true,
                           "type": "force",
                           "selectors": { "fluidId": "createnuclear:uranium" },
-                          "description": "schema-only in 0.6.1"
+                          "forceStrength": 1.5,
+                          "forceRadius": 4.0,
+                          "forceUnitMode": "fluid_mb",
+                          "forceRespectsShielding": true
                         }
                         """)));
         assertEquals(1, rules.forceRulesLoaded());
@@ -82,6 +85,73 @@ class SourceOverrideRulesLoaderTest {
         assertEquals(
                 SourceOverrideRules.APPLICATION_PHASE,
                 diagnostics.get("applicationPhase").getAsString());
+    }
+
+    @Test
+    void invalidForceRuleMissingRuntimeFieldsProducesValidationIssues() {
+        SourceOverrideRules missingStrength = SourceOverrideRulesLoader.parseForTests(Map.of(
+                "test:force_missing_strength",
+                parse(
+                        """
+                        {
+                          "id": "radworks:force_missing_strength",
+                          "enabled": true,
+                          "type": "force",
+                          "selectors": { "itemId": "minecraft:apple" },
+                          "forceRadius": 4.0,
+                          "forceUnitMode": "item_count"
+                        }
+                        """)));
+        assertTrue(missingStrength.validationResult().hasErrors());
+
+        SourceOverrideRules missingRadius = SourceOverrideRulesLoader.parseForTests(Map.of(
+                "test:force_missing_radius",
+                parse(
+                        """
+                        {
+                          "id": "radworks:force_missing_radius",
+                          "enabled": true,
+                          "type": "force",
+                          "selectors": { "itemId": "minecraft:apple" },
+                          "forceStrength": 1.0,
+                          "forceUnitMode": "item_count"
+                        }
+                        """)));
+        assertTrue(missingRadius.validationResult().hasErrors());
+
+        SourceOverrideRules missingUnit = SourceOverrideRulesLoader.parseForTests(Map.of(
+                "test:force_missing_unit",
+                parse(
+                        """
+                        {
+                          "id": "radworks:force_missing_unit",
+                          "enabled": true,
+                          "type": "force",
+                          "selectors": { "itemId": "minecraft:apple" },
+                          "forceStrength": 1.0,
+                          "forceRadius": 4.0
+                        }
+                        """)));
+        assertTrue(missingUnit.validationResult().hasErrors());
+    }
+
+    @Test
+    void forceRuleRequiresConcreteSelector() {
+        SourceOverrideRules noConcreteSelector = SourceOverrideRulesLoader.parseForTests(Map.of(
+                "test:force_no_selector",
+                parse(
+                        """
+                        {
+                          "id": "radworks:force_no_selector",
+                          "enabled": true,
+                          "type": "force",
+                          "selectors": { "sourceType": "player_inventory", "targetKind": "player" },
+                          "forceStrength": 2.0,
+                          "forceRadius": 4.0,
+                          "forceUnitMode": "item_count"
+                        }
+                        """)));
+        assertTrue(noConcreteSelector.validationResult().hasErrors());
     }
 
     @Test

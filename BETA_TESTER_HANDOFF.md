@@ -1,4 +1,26 @@
-# RadWorks Beta 0.5 Final Retest Handoff
+# RadWorks Beta 0.6 Final Retest Handoff
+
+## Beta 0.6.5 closure note
+- Beta 0.6 override-rules baseline is functionally complete:
+  - 0.6.1 schema/loader/validator
+  - 0.6.2 exclude
+  - 0.6.3 contain
+  - 0.6.4 force
+  - 0.6.5 closure/regression/handoff
+- This closure step adds no gameplay changes; it consolidates regression and retest workflow.
+
+## Beta 0.6.4 note (force application)
+- Enabled `force` rules now create rows only from observed candidates passed by existing provider loops.
+- No new scanners/discovery radius/capability lookups are introduced by force.
+- Runtime precedence:
+  - `exclude` wins over `force`;
+  - forced rows can still be processed by `contain`;
+  - positioned forced rows can be shielded (if `forceRespectsShielding=true`).
+- Quick checks:
+  - `/radworks validate` (force rules loaded/valid)
+  - `/radworks sources` (forced rows show `overrideMode=forced` unless subsequently contained)
+  - `/radworks exposure` (post-force totals)
+  - `/radworks dump` (`sourceOverrideDiagnostics` force counters/samples)
 
 ## Beta 0.6.1 note (diagnostics-only)
 - Source override rules are now loaded/validated from:
@@ -15,6 +37,19 @@
   - `/radworks sources` (excluded rows should show `overrideMode=excluded`)
   - `/radworks exposure` (excluded rows contribute `0`)
   - `/radworks dump` (`sourceOverrideDiagnostics` + override counters in `sourceScanSummary`)
+
+## Beta 0.6.3 note (containment application)
+- Enabled `contain` override rules now apply on post-exclusion rows and before shielding.
+- `mode=suppress` sets contribution to `0` and keeps row visible as `overrideMode=contained`.
+- `mode=scale` reduces contribution by multiplier; radius model is unchanged.
+- Deterministic conflict policy:
+  - `suppress` wins over `scale`;
+  - scale conflicts choose the lowest multiplier.
+- `force` is still not applied in this phase.
+- Quick checks:
+  - `/radworks sources` (contained rows show `overrideMode=contained`, `overrideRuleId`)
+  - `/radworks exposure` (post-containment contribution is used)
+  - `/radworks dump` (`sourceOverrideDiagnostics` containment counters and samples)
 
 ## Target
 - Minecraft: `1.21.1`
@@ -35,6 +70,32 @@
 /radworks radius show 10
 /radworks dump
 ```
+
+## Beta 0.6 override-rules retest scenarios
+1. Exclude:
+   - pick a normally-radiating item/block/fluid;
+   - add an `exclude` rule;
+   - confirm source remains explainable while contribution becomes `0` and total exposure drops.
+2. Contain:
+   - container/tank content source with uranium;
+   - test `mode=suppress` and `mode=scale`;
+   - if convenient, test nested shulker/bundle in contained context.
+3. Force:
+   - use an observed non-radiating candidate (item/block/fluid);
+   - add force rule with `forceStrength`, `forceRadius`, `forceUnitMode`;
+   - confirm forced row appears;
+   - confirm force does not create source for non-observed context.
+4. Interaction:
+   - verify `exclude` wins over `force`;
+   - verify contained forced row is possible;
+   - verify positioned forced row is still shielded;
+   - verify player/living exposure uses post-override totals.
+
+When reporting failures/confusing behavior, attach:
+- dump file(s);
+- exact `source_override_rules` JSON used;
+- mod versions;
+- `latest.log` only if crash/warning/confusing behavior appears.
 
 ## Beta 0.4 baseline regression scenarios
 1. World fluid: `createnuclear:uranium`
@@ -73,3 +134,4 @@
 - Beta 0.5 baseline supports vanilla component-based nested extraction only.
 - Create toolbox / Sophisticated nested formats remain research-first follow-up.
 - Non-player armor protection is not in Beta 0.4 baseline.
+- Force stage (0.6.4) is candidate-based only; no new discovery path support is expected.

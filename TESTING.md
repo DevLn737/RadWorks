@@ -16,6 +16,103 @@ Run:
 ./gradlew build
 ```
 
+## Beta 0.6.5 final override regression workflow
+Run in order:
+
+```bash
+./gradlew test
+./gradlew build
+```
+
+Expected:
+- green gates with no gameplay behavior changes in this closure step;
+- override pipeline remains `exclude -> contain -> force(observed candidates only) -> contain(forced) -> shielding`.
+
+Recommended manual review artifacts (from external tester only when needed):
+- `/radworks validate`
+- `/radworks sources`
+- `/radworks exposure`
+- `/radworks dump`
+
+## Beta 0.6.4 automated checks (force application on observed candidates)
+- `SourceOverrideRulesLoaderTest`:
+  - valid force rule with runtime fields loads;
+  - missing `forceStrength` / `forceRadius` / `forceUnitMode` fails validation;
+  - force rule without concrete selector fails validation.
+- `SourceOverrideEngineTest`:
+  - force creates source from observed item/block candidates when normal source is absent;
+  - existing source identity prevents forced duplicate;
+  - exclude identity blocks force;
+  - forced rows can be contained by contain rules;
+  - force-disabled config path skips application.
+- Order/behavior checks:
+  - pipeline uses `exclude -> contain -> force -> contain(forced) -> shielding`;
+  - forced positioned rows remain shieldable;
+  - forced non-positioned rows are `shielding=not_applicable`.
+
+Behavior note:
+- 0.6.4 applies `exclude` + `contain` + `force`.
+- force uses observed candidates only (no new scanners/discovery paths).
+
+### Beta 0.6 override rule examples (for retest)
+Exclude by `itemId`:
+```json
+{
+  "id": "radworks:exclude_uranium_item",
+  "enabled": true,
+  "type": "exclude",
+  "selectors": { "itemId": "createnuclear:raw_uranium" }
+}
+```
+
+Contain by `carrierBlockId` with scale:
+```json
+{
+  "id": "radworks:contain_chest_scale_half",
+  "enabled": true,
+  "type": "contain",
+  "selectors": { "carrierBlockId": "minecraft:chest", "sourceType": "block_entity_inventory" },
+  "mode": "scale",
+  "multiplier": 0.5
+}
+```
+
+Force by `blockId`:
+```json
+{
+  "id": "radworks:force_stone_block",
+  "enabled": true,
+  "type": "force",
+  "selectors": { "blockId": "minecraft:stone", "sourceType": "block" },
+  "forceStrength": 3.0,
+  "forceRadius": 4.0,
+  "forceUnitMode": "block",
+  "forceRespectsShielding": true
+}
+```
+
+## Beta 0.6.3 automated checks (contain application only)
+- `SourceOverrideEngineTest`:
+  - contain `suppress` by nested `containerItemId` suppresses matching nested rows;
+  - contain `scale` by `carrierEntityType` scales matching entity inventory rows;
+  - direct non-nested items do not match `containerItemId` containment;
+  - precedence/conflicts are deterministic:
+    - `exclude` wins over `contain`;
+    - `suppress` wins over `scale`;
+    - scale conflicts use lowest multiplier;
+  - containment disable paths keep rows unchanged;
+  - force rules remain not applied.
+- Shielding-order contract checks:
+  - scale is applied before shielding input;
+  - suppress rows are excluded from shielding input.
+- `SourceScanSummary` override counters:
+  - `sourcesContainedByOverride`
+  - `sourcesAfterContainment`
+
+Behavior note:
+- 0.6.3 applied `exclude` + `contain` before force phase.
+- containment changes contribution only (radius model unchanged).
+
 ## Beta 0.6.1 automated checks (source override diagnostics-only)
 - `SourceOverrideRulesLoaderTest`:
   - valid `exclude` / `contain` / `force` rules load;

@@ -1,6 +1,24 @@
 # Changelog
 
 ## Unreleased
+- Beta 0.6.5 override-rules closure / regression / handoff / merge prep:
+  - consolidated Beta 0.6 as stable source-override baseline (`exclude` + `contain` + `force`);
+  - documented final precedence and runtime guarantees (`force` over observed candidates only, exclude wins over force);
+  - aligned final regression workflow and tester handoff for override scenarios;
+  - no gameplay formula or discovery-path changes in this closure step.
+- Beta 0.6.4 apply forced-source rules from observed candidates:
+  - added force runtime rule fields (`forceStrength`, `forceRadius`, `forceUnitMode`, `forceRespectsShielding`) and validation gates;
+  - added `ForceSourceCandidate` pipeline collected only from existing provider loops (no new scanners/radius/capability lookups);
+  - applied force after exclude+contain with strict precedence (`exclude` wins, no resurrection of excluded identity, no duplicate over existing source identity);
+  - allowed containment to process forced rows; shielding applies to positioned forced rows when `forceRespectsShielding=true`;
+  - extended override diagnostics and scan-summary counters for force observed/added/skipped states.
+- Beta 0.6.3 apply containment rules on existing sources:
+  - added contain-rule application after exclude and before shielding/effect decisions;
+  - implemented deterministic containment precedence: `suppress` wins over `scale`, scale conflicts choose the lowest multiplier;
+  - `suppress` rows now contribute `0`, skip shielding input, and remain diagnostics-visible as `overrideMode=contained`;
+  - `scale` rows keep radius model unchanged and proceed to shielding with pre-scaled contribution;
+  - extended source-override diagnostics and scan-summary counters for containment application/conflict resolution;
+  - kept `force` as not-applied in this phase.
 - Beta 0.6.2 apply exclusions on existing sources only:
   - added source-override application layer for enabled `exclude` rules after discovery/aggregation and before shielding;
   - excluded rows now contribute `0`, skip shielding path, and remain diagnostics-visible with override metadata;

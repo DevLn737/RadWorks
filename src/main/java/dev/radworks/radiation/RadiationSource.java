@@ -636,6 +636,72 @@ public record RadiationSource(
                 null);
     }
 
+    public static RadiationSource forcedFromCandidate(
+            ForceSourceCandidate candidate,
+            SourceOverrideRule forceRule,
+            double baseRadius,
+            double effectiveRadius,
+            double contribution,
+            String matchReason) {
+        int aggregateCount = candidate.candidateKind() == ForceSourceCandidate.CandidateKind.ITEM
+                ? Math.max(1, candidate.count())
+                : 0;
+        int aggregateAmountMb = candidate.candidateKind() == ForceSourceCandidate.CandidateKind.FLUID
+                ? Math.max(1, candidate.amountMb())
+                : 0;
+        ResourceLocation blockId = candidate.blockId() != null ? candidate.blockId() : candidate.carrierBlockId();
+        boolean respectsShielding = forceRule.forceRespectsShielding() == null || forceRule.forceRespectsShielding();
+        return new RadiationSource(
+                candidate.sourceType(),
+                candidate.itemId(),
+                candidate.fluidId(),
+                blockId,
+                null,
+                null,
+                aggregateCount,
+                aggregateAmountMb,
+                candidate.position() == null ? null : candidate.position().immutable(),
+                null,
+                forceRule.forceStrength() == null ? 0.0D : forceRule.forceStrength(),
+                forceRule.forceRadius() == null ? 0.0D : forceRule.forceRadius(),
+                baseRadius,
+                effectiveRadius,
+                DynamicRadiusModel.dynamicRadiusBonus(baseRadius, effectiveRadius),
+                DynamicRadiusModel.radiusFormulaLabel(),
+                aggregateCount,
+                aggregateAmountMb,
+                1,
+                candidate.distance(),
+                DynamicRadiusModel.isActive(candidate.distance(), effectiveRadius),
+                respectsShielding,
+                contribution,
+                candidate.position() == null || !respectsShielding ? "not_applicable" : "clear",
+                0,
+                1.0D,
+                0.0D,
+                contribution,
+                null,
+                candidate.carrierEntityType(),
+                candidate.carrierEntityId(),
+                null,
+                candidate.containerPath(),
+                candidate.extractionMode(),
+                candidate.nested(),
+                candidate.nestedDepth(),
+                candidate.containerItemId(),
+                candidate.containerPath(),
+                "force",
+                matchReason,
+                "forced",
+                forceRule.id().toString(),
+                null,
+                0.0D,
+                0.0D,
+                0.0D,
+                0.0D,
+                "forced_by_override_rule");
+    }
+
     public RadiationSource withShielding(ShieldingResult result) {
         return new RadiationSource(
                 type,
@@ -1025,6 +1091,67 @@ public record RadiationSource(
                 finalContribution,
                 effectiveRadius,
                 effectiveRadius,
+                reason);
+    }
+
+    public RadiationSource withContainedOverride(
+            String ruleId,
+            SourceContainmentMode mode,
+            double multiplier,
+            String reason) {
+        double safeMultiplier = Math.max(0.0D, Math.min(1.0D, multiplier));
+        double original = finalContribution;
+        double containedFinal = mode == SourceContainmentMode.SUPPRESS ? 0.0D : original * safeMultiplier;
+        double suppressed = Math.max(0.0D, original - containedFinal);
+        boolean suppressedMode = mode == SourceContainmentMode.SUPPRESS;
+        return new RadiationSource(
+                type,
+                itemId,
+                fluidId,
+                blockId,
+                slot,
+                tank,
+                count,
+                amountMb,
+                position,
+                capabilityContext,
+                ruleStrength,
+                ruleRadius,
+                baseRadius,
+                effectiveRadius,
+                dynamicRadiusBonus,
+                radiusFormula,
+                aggregateCount,
+                aggregateAmountMb,
+                contributingStacks,
+                distance,
+                suppressedMode ? false : activeBecause,
+                respectsShielding,
+                rawContribution,
+                suppressedMode ? "not_applicable" : shielding,
+                shieldingBlocksHit,
+                shieldingMultiplier,
+                shieldingReduction,
+                containedFinal,
+                carrierKind,
+                carrierEntityType,
+                carrierEntityId,
+                carrierSourceKind,
+                dataPath,
+                extractionMode,
+                nested,
+                nestedDepth,
+                containerItemId,
+                containerPath,
+                ruleMatchMode,
+                matchReason,
+                "contained",
+                ruleId,
+                ruleId,
+                original,
+                suppressed,
+                effectiveRadius,
+                suppressedMode ? effectiveRadius : 0.0D,
                 reason);
     }
 

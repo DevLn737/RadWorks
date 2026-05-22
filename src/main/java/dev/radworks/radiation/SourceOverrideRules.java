@@ -7,7 +7,7 @@ import java.util.List;
 
 public final class SourceOverrideRules {
     public static final String VALIDATION_MODE = "schema_only/beta_0_6_1";
-    public static final String APPLICATION_PHASE = "exclude_applied_only_beta_0_6_2";
+    public static final String APPLICATION_PHASE = "exclude_contain_force_applied_beta_0_6_4";
 
     private static final SourceOverrideRules NOT_LOADED = new SourceOverrideRules(
             false,
@@ -113,8 +113,8 @@ public final class SourceOverrideRules {
         json.addProperty("overrideRuleWarnings", validationResult.warnings().size());
         json.addProperty("overrideRuleErrors", validationResult.errors().size());
         json.addProperty("excludeApplicationActive", true);
-        json.addProperty("containApplicationActive", false);
-        json.addProperty("forceApplicationActive", false);
+        json.addProperty("containApplicationActive", true);
+        json.addProperty("forceApplicationActive", true);
 
         JsonObject config = new JsonObject();
         config.addProperty("sourceOverridesEnabled", RadWorksConfig.sourceOverridesEnabled());

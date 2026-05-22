@@ -55,7 +55,14 @@ public final class BlockFluidHandlerSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             HandlerDiagnostics.Builder handlerDiagnostics) {
-        return collect(player.serverLevel(), player.position(), player.blockPosition(), rules, summary, handlerDiagnostics);
+        return collect(
+                player.serverLevel(),
+                player.position(),
+                player.blockPosition(),
+                rules,
+                summary,
+                handlerDiagnostics,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -65,9 +72,20 @@ public final class BlockFluidHandlerSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             HandlerDiagnostics.Builder handlerDiagnostics) {
+        return collect(level, targetPosition, center, rules, summary, handlerDiagnostics, ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            ServerLevel level,
+            Vec3 targetPosition,
+            BlockPos center,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            HandlerDiagnostics.Builder handlerDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         return PerformanceStats.timeValue(
                 "fluidHandlerScan",
-                () -> collectTimed(level, targetPosition, center, rules, summary, handlerDiagnostics));
+                () -> collectTimed(level, targetPosition, center, rules, summary, handlerDiagnostics, candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -76,7 +94,8 @@ public final class BlockFluidHandlerSourceProvider {
             BlockPos center,
             RadiationRules rules,
             SourceScanSummary.Builder summary,
-            HandlerDiagnostics.Builder handlerDiagnostics) {
+            HandlerDiagnostics.Builder handlerDiagnostics,
+            ForceSourceCandidateSink candidateSink) {
         List<RadiationSource> sources = new ArrayList<>();
         if (!rules.loaded() || rules.fluidRules() == 0) {
             return sources;
@@ -103,7 +122,15 @@ public final class BlockFluidHandlerSourceProvider {
             BlockState state = level.getBlockState(pos);
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             double distance = targetPosition.distanceTo(Vec3.atCenterOf(pos));
-            HandlerScanResult scanResult = collectTanks(blockId, pos, distance, lookup, rules, sources, summary);
+            HandlerScanResult scanResult = collectTanks(
+                    blockId,
+                    pos,
+                    distance,
+                    lookup,
+                    rules,
+                    sources,
+                    summary,
+                    candidateSink);
             if (scanResult.matches() == 0) {
                 handlerDiagnostics.addFluidHandlerSample(
                         blockId,
@@ -140,7 +167,8 @@ public final class BlockFluidHandlerSourceProvider {
             HandlerLookup lookup,
             RadiationRules rules,
             List<RadiationSource> sources,
-            SourceScanSummary.Builder summary) {
+            SourceScanSummary.Builder summary,
+            ForceSourceCandidateSink candidateSink) {
         final int maxContents = 5;
         int tanksChecked = 0;
         int matches = 0;
@@ -178,6 +206,27 @@ public final class BlockFluidHandlerSourceProvider {
             ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(stack.getFluid());
             RadiationRules.FluidRuleMatch ruleMatch = rules.resolveFluidRule(fluidId).orElse(null);
             if (ruleMatch == null) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.FLUID,
+                        RadiationSourceType.BLOCK_FLUID_HANDLER,
+                        blockId,
+                        null,
+                        fluidId,
+                        pos.immutable(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        blockId,
+                        null,
+                        0,
+                        stack.getAmount(),
+                        distance,
+                        true,
+                        false,
+                        0,
+                        "fluid_handler",
+                        "block_fluid_handler_observed_without_fluid_rule"));
                 addFluidSample(contents, maxContents, tank, fluidId, stack.getAmount(), "no_active_rule", distance, null, null, null);
                 continue;
             }
@@ -203,6 +252,27 @@ public final class BlockFluidHandlerSourceProvider {
             double units = DynamicRadiusModel.aggregateUnitsForFluids(aggregate.aggregateAmountMb());
             double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
             if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.FLUID,
+                        RadiationSourceType.BLOCK_FLUID_HANDLER,
+                        blockId,
+                        null,
+                        aggregate.key().fluidId(),
+                        pos.immutable(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        blockId,
+                        null,
+                        0,
+                        aggregate.aggregateAmountMb(),
+                        distance,
+                        aggregate.rule().respectsShielding(),
+                        false,
+                        0,
+                        "fluid_handler",
+                        DynamicRadiusModel.outsideDynamicRadiusReason()));
                 addFluidSample(
                         contents,
                         maxContents,

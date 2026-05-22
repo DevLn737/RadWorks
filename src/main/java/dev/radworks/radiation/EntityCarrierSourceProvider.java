@@ -32,7 +32,15 @@ public final class EntityCarrierSourceProvider {
             RadiationRules rules,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics) {
-        return collect(player, player, rules, summary, diagnostics, NestedContainerDiagnostics.builder(), false);
+        return collect(
+                player,
+                player,
+                rules,
+                summary,
+                diagnostics,
+                NestedContainerDiagnostics.builder(),
+                false,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -41,7 +49,15 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics) {
-        return collect(player, player, rules, summary, diagnostics, nestedDiagnostics, false);
+        return collect(
+                player,
+                player,
+                rules,
+                summary,
+                diagnostics,
+                nestedDiagnostics,
+                false,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -57,7 +73,8 @@ public final class EntityCarrierSourceProvider {
                 summary,
                 diagnostics,
                 NestedContainerDiagnostics.builder(),
-                includeSelfEntityInventory);
+                includeSelfEntityInventory,
+                ForceSourceCandidateSink.NO_OP);
     }
 
     public static List<RadiationSource> collect(
@@ -67,7 +84,34 @@ public final class EntityCarrierSourceProvider {
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
             boolean includeSelfEntityInventory) {
-        return collect(target, target, rules, summary, diagnostics, nestedDiagnostics, includeSelfEntityInventory);
+        return collect(
+                target,
+                target,
+                rules,
+                summary,
+                diagnostics,
+                nestedDiagnostics,
+                includeSelfEntityInventory,
+                ForceSourceCandidateSink.NO_OP);
+    }
+
+    public static List<RadiationSource> collect(
+            LivingEntity target,
+            RadiationRules rules,
+            SourceScanSummary.Builder summary,
+            EntityCarrierDiagnostics.Builder diagnostics,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            boolean includeSelfEntityInventory,
+            ForceSourceCandidateSink candidateSink) {
+        return collect(
+                target,
+                target,
+                rules,
+                summary,
+                diagnostics,
+                nestedDiagnostics,
+                includeSelfEntityInventory,
+                candidateSink);
     }
 
     private static List<RadiationSource> collect(
@@ -77,7 +121,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            boolean includeSelfEntityInventory) {
+            boolean includeSelfEntityInventory,
+            ForceSourceCandidateSink candidateSink) {
         return PerformanceStats.timeValue(
                 "entityCarrierScan",
                 () -> collectTimed(
@@ -87,7 +132,8 @@ public final class EntityCarrierSourceProvider {
                         summary,
                         diagnostics,
                         nestedDiagnostics,
-                        includeSelfEntityInventory));
+                        includeSelfEntityInventory,
+                        candidateSink));
     }
 
     private static List<RadiationSource> collectTimed(
@@ -97,7 +143,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            boolean includeSelfEntityInventory) {
+            boolean includeSelfEntityInventory,
+            ForceSourceCandidateSink candidateSink) {
         if (!rules.loaded() || rules.itemRules() == 0) {
             return List.of();
         }
@@ -124,7 +171,8 @@ public final class EntityCarrierSourceProvider {
                     summary,
                     diagnostics,
                     nestedDiagnostics,
-                    sources);
+                    sources,
+                    candidateSink);
         }
 
         List<Entity> entities = level.getEntities(excludedEntityForQuery, bounds, EntityCarrierSourceProvider::isRelevantEntity);
@@ -133,11 +181,11 @@ public final class EntityCarrierSourceProvider {
             diagnostics.scannedEntity();
 
             if (entity instanceof ItemEntity itemEntity) {
-                handleDroppedItemSource(targetPosition, itemEntity, rules, summary, diagnostics, nestedDiagnostics, sources);
+                handleDroppedItemSource(targetPosition, itemEntity, rules, summary, diagnostics, nestedDiagnostics, sources, candidateSink);
                 continue;
             }
             if (entity instanceof ItemFrame itemFrame) {
-                handleItemFrameSource(targetPosition, itemFrame, rules, summary, diagnostics, nestedDiagnostics, sources);
+                handleItemFrameSource(targetPosition, itemFrame, rules, summary, diagnostics, nestedDiagnostics, sources, candidateSink);
                 continue;
             }
             if (entity instanceof ServerPlayer auraPlayer) {
@@ -149,7 +197,8 @@ public final class EntityCarrierSourceProvider {
                         summary,
                         diagnostics,
                         nestedDiagnostics,
-                        sources);
+                        sources,
+                        candidateSink);
                 continue;
             }
             handleEntityInventorySource(
@@ -160,7 +209,8 @@ public final class EntityCarrierSourceProvider {
                     summary,
                     diagnostics,
                     nestedDiagnostics,
-                    sources);
+                    sources,
+                    candidateSink);
         }
 
         return List.copyOf(sources);
@@ -195,7 +245,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            ForceSourceCandidateSink candidateSink) {
         ItemStack stack = itemEntity.getItem();
         List<EntityCarrierExtraction.MatchedAggregate> aggregates = EntityCarrierExtraction.aggregateRadioactiveStackWithNested(
                 stack,
@@ -203,6 +254,17 @@ public final class EntityCarrierSourceProvider {
                 rules,
                 nestedDiagnostics);
         if (aggregates.isEmpty()) {
+            observeStackCandidate(
+                    candidateSink,
+                    RadiationSourceType.ENTITY_DROPPED_ITEM,
+                    itemEntity.blockPosition(),
+                    entityTypeId(itemEntity),
+                    itemEntity.getStringUUID(),
+                    stack,
+                    "entity_dropped_item.entity[" + itemEntity.getStringUUID() + "]",
+                    nestedDiagnostics,
+                    playerPosition.distanceTo(Vec3.atCenterOf(itemEntity.blockPosition())),
+                    "dropped_item_observed_without_item_rule");
             diagnostics.skippedEntity(
                     "dropped_item",
                     entityTypeId(itemEntity),
@@ -225,7 +287,8 @@ public final class EntityCarrierSourceProvider {
                     aggregate,
                     summary,
                     diagnostics,
-                    sources);
+                    sources,
+                    candidateSink);
         }
     }
 
@@ -236,7 +299,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            ForceSourceCandidateSink candidateSink) {
         ItemStack displayed = itemFrame.getItem();
         List<EntityCarrierExtraction.MatchedAggregate> aggregates = EntityCarrierExtraction.aggregateRadioactiveStackWithNested(
                 displayed,
@@ -244,6 +308,17 @@ public final class EntityCarrierSourceProvider {
                 rules,
                 nestedDiagnostics);
         if (aggregates.isEmpty()) {
+            observeStackCandidate(
+                    candidateSink,
+                    RadiationSourceType.ENTITY_ITEM_FRAME,
+                    itemFrame.blockPosition(),
+                    entityTypeId(itemFrame),
+                    itemFrame.getStringUUID(),
+                    displayed,
+                    "entity_item_frame.entity[" + itemFrame.getStringUUID() + "]",
+                    nestedDiagnostics,
+                    playerPosition.distanceTo(Vec3.atCenterOf(itemFrame.blockPosition())),
+                    "item_frame_observed_without_item_rule");
             diagnostics.skippedEntity(
                     "item_frame",
                     entityTypeId(itemFrame),
@@ -266,7 +341,8 @@ public final class EntityCarrierSourceProvider {
                     aggregate,
                     summary,
                     diagnostics,
-                    sources);
+                    sources,
+                    candidateSink);
         }
     }
 
@@ -278,7 +354,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            ForceSourceCandidateSink candidateSink) {
         if (EntityCarrierExtraction.shouldSkipSelfAura(targetUuid, auraPlayer.getUUID())) {
             diagnostics.skippedEntity(
                     "player_world_source",
@@ -302,6 +379,32 @@ public final class EntityCarrierSourceProvider {
                         rules,
                         nestedDiagnostics);
         if (aggregates.isEmpty()) {
+            for (int slot = 0; slot < inventory.items.size(); slot++) {
+                observeStackCandidate(
+                        candidateSink,
+                        RadiationSourceType.ENTITY_PLAYER_INVENTORY_AURA,
+                        auraPlayer.blockPosition(),
+                        entityTypeId(auraPlayer),
+                        auraPlayer.getStringUUID(),
+                        inventory.items.get(slot),
+                        "entity_player_aura.entity[" + auraPlayer.getStringUUID() + "].slot[" + slot + "]",
+                        nestedDiagnostics,
+                        targetPosition.distanceTo(Vec3.atCenterOf(auraPlayer.blockPosition())),
+                        "player_aura_observed_without_item_rule");
+            }
+            for (int slot = 0; slot < inventory.offhand.size(); slot++) {
+                observeStackCandidate(
+                        candidateSink,
+                        RadiationSourceType.ENTITY_PLAYER_INVENTORY_AURA,
+                        auraPlayer.blockPosition(),
+                        entityTypeId(auraPlayer),
+                        auraPlayer.getStringUUID(),
+                        inventory.offhand.get(slot),
+                        "entity_player_aura.entity[" + auraPlayer.getStringUUID() + "].offhand[" + slot + "]",
+                        nestedDiagnostics,
+                        targetPosition.distanceTo(Vec3.atCenterOf(auraPlayer.blockPosition())),
+                        "player_aura_observed_without_item_rule");
+            }
             diagnostics.skippedEntity(
                     "player_world_source",
                     entityTypeId(auraPlayer),
@@ -323,6 +426,27 @@ public final class EntityCarrierSourceProvider {
             double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
             double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
             if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.ITEM,
+                        RadiationSourceType.ENTITY_PLAYER_INVENTORY_AURA,
+                        null,
+                        aggregate.itemId(),
+                        null,
+                        sourcePos.immutable(),
+                        entityType.toString(),
+                        entityId,
+                        aggregate.firstContainerItemId(),
+                        aggregate.firstContainerPath(),
+                        null,
+                        null,
+                        aggregate.aggregateCount(),
+                        0,
+                        distance,
+                        aggregate.rule().respectsShielding(),
+                        aggregate.nestedMatches() > 0,
+                        aggregate.maxNestedDepth(),
+                        "player_inventory_aura",
+                        DynamicRadiusModel.outsideDynamicRadiusReason()));
                 diagnostics.skippedEntity(
                         "player_world_source",
                         entityType,
@@ -390,7 +514,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            ForceSourceCandidateSink candidateSink) {
         if (!RadWorksConfig.entityCarriersEnabled() || entity instanceof ServerPlayer) {
             return;
         }
@@ -430,7 +555,8 @@ public final class EntityCarrierSourceProvider {
                         summary,
                         diagnostics,
                         nestedDiagnostics,
-                        sources);
+                        sources,
+                        candidateSink);
             } else {
                 summary.entityCarrierInventoryAccessFailed();
                 diagnostics.entityInventoryAccessFailed();
@@ -460,7 +586,8 @@ public final class EntityCarrierSourceProvider {
                         summary,
                         diagnostics,
                         nestedDiagnostics,
-                        sources);
+                        sources,
+                        candidateSink);
             } else {
                 if (knownSuccess && "no_inventory_capability".equals(capability.failureReason())) {
                     return;
@@ -499,7 +626,8 @@ public final class EntityCarrierSourceProvider {
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
             NestedContainerDiagnostics.Builder nestedDiagnostics,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            ForceSourceCandidateSink candidateSink) {
         List<EntityCarrierExtraction.MatchedAggregate> aggregates =
                 EntityInventoryCarrierExtraction.aggregateRadioactiveStacks(
                         view.stacks(),
@@ -507,6 +635,21 @@ public final class EntityCarrierSourceProvider {
                         rules,
                         nestedDiagnostics);
         if (aggregates.isEmpty()) {
+            int index = 0;
+            for (ItemStack stack : view.stacks()) {
+                observeStackCandidate(
+                        candidateSink,
+                        RadiationSourceType.ENTITY_INVENTORY,
+                        entity.blockPosition(),
+                        entityTypeId(entity),
+                        entity.getStringUUID(),
+                        stack,
+                        "entity_inventory.entity[" + entity.getStringUUID() + "].slot[" + index + "]",
+                        nestedDiagnostics,
+                        playerPosition.distanceTo(Vec3.atCenterOf(entity.blockPosition())),
+                        "entity_inventory_observed_without_item_rule");
+                index++;
+            }
             diagnostics.skippedEntity(
                     view.carrierSourceKind(),
                     entityTypeId(entity),
@@ -546,6 +689,27 @@ public final class EntityCarrierSourceProvider {
             double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
             double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
             if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+                candidateSink.observe(new ForceSourceCandidate(
+                        ForceSourceCandidate.CandidateKind.ITEM,
+                        RadiationSourceType.ENTITY_INVENTORY,
+                        null,
+                        aggregate.itemId(),
+                        null,
+                        sourcePos.immutable(),
+                        entityType.toString(),
+                        entityUuid,
+                        aggregate.firstContainerItemId(),
+                        aggregate.firstContainerPath(),
+                        null,
+                        null,
+                        aggregate.aggregateCount(),
+                        0,
+                        distance,
+                        aggregate.rule().respectsShielding(),
+                        aggregate.nestedMatches() > 0,
+                        aggregate.maxNestedDepth(),
+                        view.extractionMode(),
+                        DynamicRadiusModel.outsideDynamicRadiusReason()));
                 diagnostics.skippedEntity(
                         view.carrierSourceKind(),
                         entityType,
@@ -612,12 +776,34 @@ public final class EntityCarrierSourceProvider {
             EntityCarrierExtraction.MatchedAggregate aggregate,
             SourceScanSummary.Builder summary,
             EntityCarrierDiagnostics.Builder diagnostics,
-            List<RadiationSource> sources) {
+            List<RadiationSource> sources,
+            ForceSourceCandidateSink candidateSink) {
         double distance = playerPosition.distanceTo(Vec3.atCenterOf(sourcePos));
         double baseRadius = aggregate.rule().radius();
         double units = DynamicRadiusModel.aggregateUnitsForItems(aggregate.aggregateCount());
         double effectiveRadius = DynamicRadiusModel.effectiveRadius(baseRadius, units);
         if (!DynamicRadiusModel.isActive(distance, effectiveRadius)) {
+            candidateSink.observe(new ForceSourceCandidate(
+                    ForceSourceCandidate.CandidateKind.ITEM,
+                    sourceType,
+                    null,
+                    aggregate.itemId(),
+                    null,
+                    sourcePos.immutable(),
+                    entityType.toString(),
+                    entityId,
+                    aggregate.firstContainerItemId(),
+                    aggregate.firstContainerPath(),
+                    null,
+                    null,
+                    aggregate.aggregateCount(),
+                    0,
+                    distance,
+                    aggregate.rule().respectsShielding(),
+                    aggregate.nestedMatches() > 0,
+                    aggregate.maxNestedDepth(),
+                    extractionMode,
+                    DynamicRadiusModel.outsideDynamicRadiusReason()));
             diagnostics.skippedEntity(
                     sourceKind,
                     entityType,
@@ -675,6 +861,45 @@ public final class EntityCarrierSourceProvider {
                 + aggregate.maxNestedDepth()
                 + " containerItemId="
                 + aggregate.firstContainerItemId();
+    }
+
+    private static void observeStackCandidate(
+            ForceSourceCandidateSink candidateSink,
+            RadiationSourceType sourceType,
+            BlockPos sourcePos,
+            ResourceLocation carrierEntityType,
+            String carrierEntityId,
+            ItemStack stack,
+            String sourcePath,
+            NestedContainerDiagnostics.Builder nestedDiagnostics,
+            double distance,
+            String reason) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        for (NestedContainerExtractor.ExtractedStack extracted : NestedContainerExtractor.expand(stack, sourcePath, nestedDiagnostics)) {
+            candidateSink.observe(new ForceSourceCandidate(
+                    ForceSourceCandidate.CandidateKind.ITEM,
+                    sourceType,
+                    null,
+                    extracted.itemId(),
+                    null,
+                    sourcePos.immutable(),
+                    carrierEntityType == null ? null : carrierEntityType.toString(),
+                    carrierEntityId,
+                    extracted.containerItemId(),
+                    extracted.containerPath(),
+                    null,
+                    null,
+                    extracted.count(),
+                    0,
+                    distance,
+                    true,
+                    extracted.nested(),
+                    extracted.nestedDepth(),
+                    extracted.extractionMode(),
+                    reason));
+        }
     }
 
     private static ResourceLocation entityTypeId(Entity entity) {

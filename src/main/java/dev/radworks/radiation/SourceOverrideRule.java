@@ -13,6 +13,10 @@ public record SourceOverrideRule(
         String description,
         SourceContainmentMode containmentMode,
         Double containmentMultiplier,
+        Double forceStrength,
+        Double forceRadius,
+        ForceUnitMode forceUnitMode,
+        Boolean forceRespectsShielding,
         String source) {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
@@ -32,6 +36,18 @@ public record SourceOverrideRule(
         }
         if (containmentMultiplier != null) {
             json.addProperty("multiplier", containmentMultiplier);
+        }
+        if (forceStrength != null) {
+            json.addProperty("forceStrength", forceStrength);
+        }
+        if (forceRadius != null) {
+            json.addProperty("forceRadius", forceRadius);
+        }
+        if (forceUnitMode != null) {
+            json.addProperty("forceUnitMode", forceUnitMode.id());
+        }
+        if (forceRespectsShielding != null) {
+            json.addProperty("forceRespectsShielding", forceRespectsShielding);
         }
         json.addProperty("source", source);
         return json;
