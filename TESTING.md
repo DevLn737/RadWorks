@@ -16,6 +16,46 @@ Run:
 ./gradlew build
 ```
 
+## Extra Stage 3D closure gates (pre-0.7)
+Required final gates:
+
+```bash
+./gradlew test
+./gradlew build
+```
+
+Optional smoke (only when practical):
+
+```bash
+./gradlew runServer
+```
+
+Notes:
+- Stage 3D is closure/docs/checklist only.
+- No gameplay/runtime behavior mutations are expected in this step.
+- Remaining runtime-heavy gaps are tracked in `RADWORKS_TEST_MATRIX.md` and external retest workflow.
+
+## Extra Stage 3C spec-driven automated hardening
+- Added blocker/high contract suites from `RADWORKS_TEST_MATRIX.md`:
+  - `PlayerInventorySourceProviderContractTest`
+  - `BlockSourceProviderContractTest`
+  - `BlockEntityInventorySourceProviderContractTest`
+  - `BlockItemHandlerSourceProviderContractTest`
+  - `BlockFluidHandlerSourceProviderContractTest`
+  - `ExposureEnginePipelineContractTest`
+  - `DiagnosticsDumpSchemaContractTest`
+  - `CommandOutputContractTest`
+  - `OverrideSelectorCarrierBlockSemanticsTest`
+  - `ConfigExposureThresholdClampIntentTest`
+- Override test split started (without mass deletions):
+  - `SourceOverrideExcludeContractTest`
+  - `SourceOverrideContainContractTest`
+  - `SourceOverrideForceContractTest`
+  - `SourceOverridePipelineOrderContractTest`
+- Mismatch tracking preserved as tests (no runtime mutation in this stage):
+  - `SPEC_CODE_MISMATCH_CANDIDATE`: exposure threshold clamp intent.
+  - `SPEC_CODE_MISMATCH_CANDIDATE`: carrierBlockId selector semantics.
+
 ## Beta 0.6.5 final override regression workflow
 Run in order:
 
