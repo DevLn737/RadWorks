@@ -178,3 +178,15 @@ GameTest пока не обязателен, но кандидаты:
 
 Порядок приоритета:
 - blocker/runtime-risk -> high -> normal -> low.
+
+---
+
+## 10. Stage 3D closure snapshot (pre-0.7)
+
+Remaining explicit gaps before Beta 0.7 planning:
+1. Full runtime world-scan integration checks for provider paths (beyond hybrid/unit contracts).
+2. Full command-dispatcher/runtime formatting verification (beyond stable marker contract tests).
+3. Real modpack runtime cases (optional integrations, mixed mod interactions, external evidence).
+
+Status:
+- These gaps are intentional carry-over items, not blockers for pre-0.7 docs/spec/test hardening closure.

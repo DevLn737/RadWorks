@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+- Extra Stage 3D pre-0.7 hardening closure / merge prep:
+  - confirmed pre-0.7 baseline as documentation + behavior-spec + automated test hardening complete;
+  - finalized closure docs and explicit residual gaps tracking for runtime-only scenarios;
+  - kept scope docs/checklist only, with no `src/main/**` gameplay changes.
 - Extra Stage 3C spec-driven automated test hardening:
   - added blocker/high contract tests for providers, override pipeline order, diagnostics dump schema, command output markers, and config/selector mismatch characterization;
   - started split of monolithic override tests into focused suites (`exclude`, `contain`, `force`, `pipeline-order`) without risky mass deletions;

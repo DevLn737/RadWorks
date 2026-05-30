@@ -1,10 +1,10 @@
 # Current State for ChatGPT — RadWorks NeoForge Migration
 
-> Update (2026-05-22): Beta 0.6.5 closes the override-rules baseline: `exclude` + `contain` + `force` are active, with force restricted to observed provider candidates only (no new discovery paths/scans).
+> Update (2026-05-30): Pre-0.7 extra stages are closed locally (Stage 1 recall/roadmap, Stage 2 admin/tester guide, Stage 3A behavior spec + test matrix, Stage 3B audit plan, Stage 3C test hardening, Stage 3D closure). Next planned branch is Beta 0.7; implementation not started.
 
 ## 1. One-paragraph summary
 
-RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.5 + Beta 0.6.5: bounded source discovery (world fluids, entity carriers, living targets), target-aware shielding for living entities, bounded vanilla nested-container extraction via item data components (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`), source-override rule loading (`exclude`/`contain`/`force`), and active exclusion+containment+force application before shielding/effect decisions (force from observed candidates only).
+RadWorks is a clean NeoForge Minecraft mod rebuilt from an old KubeJS prototype. The old KubeJS project is the behavior/specification source, but not the architecture to copy. Current baseline is Beta 0.5 + Beta 0.6.5 plus pre-0.7 extra-stage hardening closure: bounded source discovery (world fluids, entity carriers, living targets), target-aware shielding for living entities, bounded vanilla nested-container extraction via item data components (`DataComponents.CONTAINER`, `DataComponents.BUNDLE_CONTENTS`), source-override rule loading (`exclude`/`contain`/`force`), and active exclusion+containment+force application before shielding/effect decisions (force from observed candidates only). Beta 0.7 scope is not started.
 
 ## 2. Target environment
 
@@ -44,6 +44,7 @@ Do not treat `build/classes`, `build/tmp`, `build/reports`, `build/moddev`, `.gr
 
 | Phase | Status | What is implemented | What is still missing |
 |---|---|---|---|
+| Extra pre-0.7 docs/spec/test hardening | DONE (local closure) | Stage 1 recall/roadmap, Stage 2 unified admin+tester guide, Stage 3A behavior spec + test matrix, Stage 3B test-audit plan, Stage 3C blocker/high test hardening, Stage 3D closure/checklist | Runtime-heavy external/modpack evidence remains tracked as residual gaps; Beta 0.7 planning not started |
 | Beta 0.6 source overrides | DONE (local, closure) / EXTERNAL_RETEST_PENDING | 0.6.1 schema+loader+validation, 0.6.2 exclude application, 0.6.3 contain application (post-exclude/pre-shielding), 0.6.4 force application from observed candidates, 0.6.5 closure/regression/handoff | External modpack retest for override rules and force candidate scenarios |
 | Beta 0.5 nested containers | DONE (local) / EXTERNAL_RETEST_PENDING | Bounded nested extraction core + provider integration + nested diagnostics/config caps | External modpack confirmation for nested scenarios (shulker/bundle and unsupported modded formats) |
 | Beta 0.4 closure baseline | DONE (local) | World fluid + stable clusters, entity carriers, living-target auto-apply, target-aware living shielding, dedicated-server hardening | Closed as baseline for Beta 0.5 follow-up |

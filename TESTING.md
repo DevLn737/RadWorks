@@ -16,6 +16,25 @@ Run:
 ./gradlew build
 ```
 
+## Extra Stage 3D closure gates (pre-0.7)
+Required final gates:
+
+```bash
+./gradlew test
+./gradlew build
+```
+
+Optional smoke (only when practical):
+
+```bash
+./gradlew runServer
+```
+
+Notes:
+- Stage 3D is closure/docs/checklist only.
+- No gameplay/runtime behavior mutations are expected in this step.
+- Remaining runtime-heavy gaps are tracked in `RADWORKS_TEST_MATRIX.md` and external retest workflow.
+
 ## Extra Stage 3C spec-driven automated hardening
 - Added blocker/high contract suites from `RADWORKS_TEST_MATRIX.md`:
   - `PlayerInventorySourceProviderContractTest`
