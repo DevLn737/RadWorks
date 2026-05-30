@@ -16,6 +16,27 @@ Run:
 ./gradlew build
 ```
 
+## Extra Stage 3C spec-driven automated hardening
+- Added blocker/high contract suites from `RADWORKS_TEST_MATRIX.md`:
+  - `PlayerInventorySourceProviderContractTest`
+  - `BlockSourceProviderContractTest`
+  - `BlockEntityInventorySourceProviderContractTest`
+  - `BlockItemHandlerSourceProviderContractTest`
+  - `BlockFluidHandlerSourceProviderContractTest`
+  - `ExposureEnginePipelineContractTest`
+  - `DiagnosticsDumpSchemaContractTest`
+  - `CommandOutputContractTest`
+  - `OverrideSelectorCarrierBlockSemanticsTest`
+  - `ConfigExposureThresholdClampIntentTest`
+- Override test split started (without mass deletions):
+  - `SourceOverrideExcludeContractTest`
+  - `SourceOverrideContainContractTest`
+  - `SourceOverrideForceContractTest`
+  - `SourceOverridePipelineOrderContractTest`
+- Mismatch tracking preserved as tests (no runtime mutation in this stage):
+  - `SPEC_CODE_MISMATCH_CANDIDATE`: exposure threshold clamp intent.
+  - `SPEC_CODE_MISMATCH_CANDIDATE`: carrierBlockId selector semantics.
+
 ## Beta 0.6.5 final override regression workflow
 Run in order:
 
